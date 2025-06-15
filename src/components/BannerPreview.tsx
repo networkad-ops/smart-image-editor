@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
 import { BannerType, DeviceType, TextElement, BannerConfig } from '../types/index';
 
 interface BannerPreviewProps {
