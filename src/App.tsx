@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import BannerSelector from './components/BannerSelector';
 import { BannerEditor } from './components/BannerEditor';
 import { CompletionForm } from './components/CompletionForm';
-import { BannerType, DeviceType, TextElement, BannerWork, BannerConfig } from './types'; // types/index.ts로 변경될 수 있음
+import { BannerType, DeviceType, TextElement, BannerWork, BannerConfig, Project } from './types'; // types/index.ts로 변경될 수 있음
 
 interface BannerSelection {
   bannerType: BannerType;
@@ -12,17 +12,29 @@ interface BannerSelection {
 }
 
 function App() {
-  const [step, setStep] = useState<'selection' | 'editor' | 'completion' | 'edit'>('selection');
+  const [step, setStep] = useState<'project' | 'selection' | 'editor' | 'completion' | 'edit'>('project');
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [bannerSelection, setBannerSelection] = useState<BannerSelection | null>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [textElements, setTextElements] = useState<TextElement[]>([]);
-  const [completedWorks, setCompletedWorks] = useState<BannerWork[]>([]);
   const [editingWork, setEditingWork] = useState<BannerWork | null>(null);
+
+  // 프로젝트 선택/생성
+  const handleProjectSelect = (project: Project) => {
+    setSelectedProject(project);
+    setStep('selection');
+  };
+  const handleProjectCreate = (name: string) => {
+    const newProject: Project = { id: crypto.randomUUID(), name, banners: [] };
+    setProjects(prev => [...prev, newProject]);
+    setSelectedProject(newProject);
+    setStep('selection');
+  };
 
   // 배너 + 디바이스 선택
   const handleBannerSelect = (selection: BannerSelection) => {
     setBannerSelection(selection);
-    // 선택된 배너의 기본 텍스트 요소들 초기화
     initializeTextElements(selection);
     setStep('editor');
   };
@@ -134,7 +146,10 @@ function App() {
       createdAt: new Date()
     };
 
-    setCompletedWorks(prev => [...prev, newWork]);
+    setSelectedProject(prev => ({
+      ...prev!,
+      banners: [...prev!.banners, newWork]
+    }));
     handleReset();
   };
 
@@ -217,7 +232,7 @@ function App() {
     setBannerSelection(null);
     setUploadedImage(null);
     setTextElements([]);
-    setStep('selection');
+    setStep('project');
   };
 
   // 목록으로 이동
@@ -255,6 +270,17 @@ function App() {
         </header>
 
         <AnimatePresence mode="wait">
+          {step === 'project' && (
+            <motion.div
+              key="project"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              {/* 프로젝트 선택/생성 컴포넌트 */}
+            </motion.div>
+          )}
+
           {step === 'selection' && (
             <motion.div
               key="selection"
@@ -264,7 +290,8 @@ function App() {
             >
               <BannerSelector
                 onSelect={handleBannerSelect}
-                completedWorks={completedWorks}
+                onProjectSelect={handleProjectSelect}
+                onProjectCreate={handleProjectCreate}
                 onDownload={handleDownload}
                 onEdit={handleEditWork}
               />

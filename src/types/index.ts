@@ -276,4 +276,10 @@ export interface BannerWork {
   editedImageUrl: string;
   textElements: TextElement[];
   createdAt: Date;
+}
+
+export interface Project {
+  id: string;
+  name: string; // 담당사업팀/담당자
+  banners: BannerWork[];
 } 
