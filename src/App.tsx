@@ -18,10 +18,10 @@ function App() {
   const [textElements, setTextElements] = useState<TextElement[]>([]);
 
   // 프로젝트 선택/생성
-  const handleProjectSelect = (project: Project) => {
+  const handleProjectSelect = () => {
     setStep('selection');
   };
-  const handleProjectCreate = (name: string) => {
+  const handleProjectCreate = () => {
     setStep('selection');
   };
 
@@ -120,26 +120,9 @@ function App() {
     setStep('completion');
   };
 
-  // 최종 등록
-  const handleRegister = async (title: string) => {
-    if (!bannerSelection || !uploadedImage) return;
-
-    // 캔버스에서 최종 이미지 생성
-    const { blob: finalImageBlob, url: finalImageUrl } = await generateFinalImage();
-    
-    const newWork: BannerWork = {
-      id: crypto.randomUUID(),
-      title,
-      bannerType: bannerSelection.bannerType,
-      deviceType: bannerSelection.deviceType,
-      originalImage: uploadedImage, // 원본 이미지 유지
-      finalImage: finalImageBlob, // 캔버스에서 생성된 Blob
-      editedImageUrl: finalImageUrl, // 캔버스에서 생성된 이미지 URL 추가
-      textElements: [...textElements],
-      createdAt: new Date()
-    };
-
-    handleReset();
+  // 배너 등록
+  const handleRegister = () => {
+    setStep('completion');
   };
 
   // 최종 이미지 생성 (캔버스 렌더링)
