@@ -1,19 +1,46 @@
-import React, { useRef } from 'react';
-import { TextElement } from '../types/index';
+import React, { useRef, useState } from 'react';
+import { BannerConfig, TextElement } from '../types';
 
 interface TextEditSidebarProps {
+  config: BannerConfig;
   textElements: TextElement[];
-  onAddText: () => void;
-  onTextUpdate: (id: string, updates: Partial<TextElement>) => void;
-  onTextDelete: (id: string) => void;
+  onAddText: (text: TextElement) => void;
+  onUpdateText: (id: string, updates: Partial<TextElement>) => void;
+  onDeleteText: (id: string) => void;
 }
 
-export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
+export function TextEditSidebar({
+  config,
   textElements,
   onAddText,
-  onTextUpdate,
-  onTextDelete
-}) => {
+  onUpdateText,
+  onDeleteText
+}: TextEditSidebarProps) {
+  const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+
+  const handleAddText = () => {
+    if (!config.allowCustomText) return;
+
+    const newText: TextElement = {
+      id: crypto.randomUUID(),
+      type: 'custom',
+      text: '새 텍스트',
+      x: 100,
+      y: 100,
+      width: 200,
+      height: 50,
+      fontSize: 24,
+      fontFamily: 'Pretendard',
+      color: '#000000',
+      editable: { position: true, size: true, color: true }
+    };
+
+    onAddText(newText);
+    setSelectedTextId(newText.id);
+  };
+
+  const selectedText = textElements.find(text => text.id === selectedTextId);
+
   // 텍스트 속성명 라벨 추출
   const getLabel = (element: TextElement) => {
     if (element.id === 'main-title') return '메인타이틀';
@@ -43,7 +70,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       document.execCommand('foreColor', false, color);
       selection?.removeAllRanges();
     }
-    onTextUpdate(element.id, { text: ref.innerHTML });
+    onUpdateText(element.id, { text: ref.innerHTML });
   };
 
   // contentEditable 변경 핸들러
@@ -68,7 +95,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
         sel?.addRange(range);
       }
     }
-    onTextUpdate(element.id, { text: ref.innerHTML });
+    onUpdateText(element.id, { text: ref.innerHTML });
   };
 
   // 키보드 이벤트 핸들러
@@ -121,92 +148,63 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">텍스트 요소</h3>
+    <div className="bg-white rounded-lg shadow-lg p-6">
+      <h2 className="text-xl font-semibold mb-4">텍스트 편집</h2>
+      
+      {config.allowCustomText && (
         <button
-          onClick={onAddText}
-          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+          onClick={handleAddText}
+          className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 mb-4"
         >
           텍스트 추가
         </button>
-      </div>
+      )}
 
       <div className="space-y-4">
-        {getOrderedElements().map((element) => (
-          <div key={element.id} className="border rounded-lg p-4 space-y-3">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <label className="block text-xs text-gray-500 mb-1">
-                  {getLabel(element)}
-                  {element.id === 'main-title' && (
-                    <span className="ml-2 text-xs text-gray-400">
-                      (Shift + Enter로 줄바꿈)
-                    </span>
-                  )}
-                </label>
-                <div
-                  ref={el => (refs.current[element.id] = el)}
-                  contentEditable
-                  suppressContentEditableWarning
-                  className="w-full border border-gray-300 rounded px-2 py-1 text-sm resize-none min-h-[40px] bg-white focus:outline-blue-400"
-                  onInput={() => handleInput(element)}
-                  onKeyDown={(e) => handleKeyDown(element, e)}
-                  dangerouslySetInnerHTML={{ __html: element.text || '' }}
-                  spellCheck={false}
-                  style={{ 
-                    whiteSpace: 'pre-wrap', 
-                    wordBreak: 'break-all',
-                    position: 'relative' // 자동 이동 방지
-                  }}
-                />
-              </div>
+        {textElements.map(text => (
+          <div
+            key={text.id}
+            className={`p-4 border rounded-md cursor-pointer ${
+              selectedTextId === text.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+            }`}
+            onClick={() => setSelectedTextId(text.id)}
+          >
+            <div className="flex justify-between items-start mb-2">
+              <span className="font-medium">{text.text}</span>
               <button
-                onClick={() => onTextDelete(element.id)}
-                className="ml-2 text-red-600 hover:text-red-800"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteText(text.id);
+                  if (selectedTextId === text.id) {
+                    setSelectedTextId(null);
+                  }
+                }}
+                className="text-red-500 hover:text-red-700"
               >
                 삭제
               </button>
             </div>
-
-            {element.editable.color && (
-              <div className="flex items-center gap-2 mt-1">
-                <label className="block text-xs text-gray-500">색상</label>
+            
+            {selectedTextId === text.id && (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={text.text}
+                  onChange={(e) => onUpdateText(text.id, { text: e.target.value })}
+                  className="w-full px-2 py-1 border rounded"
+                />
+                <input
+                  type="number"
+                  value={text.fontSize}
+                  onChange={(e) => onUpdateText(text.id, { fontSize: Number(e.target.value) })}
+                  className="w-full px-2 py-1 border rounded"
+                />
                 <input
                   type="color"
-                  onChange={(e) => handleColorChange(element, e.target.value)}
-                  className="w-8 h-8 border-none bg-transparent cursor-pointer"
-                  title="선택 영역에 색상 적용"
+                  value={text.color}
+                  onChange={(e) => onUpdateText(text.id, { color: e.target.value })}
+                  className="w-full h-8"
                 />
-                <span className="text-xs text-gray-400">(텍스트 일부만 선택 후 색상 변경 가능)</span>
-              </div>
-            )}
-
-            {element.editable.size && (
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">폰트 크기</label>
-                  <input
-                    type="number"
-                    value={element.fontSize}
-                    onChange={(e) => onTextUpdate(element.id, { fontSize: Number(e.target.value) })}
-                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-                    min="8"
-                    max="72"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">폰트</label>
-                  <select
-                    value={element.fontFamily}
-                    onChange={(e) => onTextUpdate(element.id, { fontFamily: e.target.value })}
-                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-                  >
-                    <option value="Pretendard">Pretendard</option>
-                    <option value="Noto Sans KR">Noto Sans KR</option>
-                    <option value="Arial">Arial</option>
-                  </select>
-                </div>
               </div>
             )}
           </div>
@@ -214,4 +212,4 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       </div>
     </div>
   );
-}; 
+} 

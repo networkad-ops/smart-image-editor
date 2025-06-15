@@ -1,23 +1,21 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, forwardRef } from 'react';
 import { BannerType, DeviceType, TextElement, BannerConfig } from '../types/index';
 
 interface BannerPreviewProps {
-  bannerSelection: {
-    bannerType: BannerType;
-    deviceType: DeviceType;
-    config: BannerConfig;
-  };
+  bannerType: BannerType;
+  deviceType: DeviceType;
+  config: BannerConfig;
   uploadedImage: File | null;
   textElements: TextElement[];
-  onTextUpdate: (id: string, updates: Partial<TextElement>) => void;
 }
 
-export const BannerPreview: React.FC<BannerPreviewProps> = ({
-  bannerSelection,
+export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>(({
+  bannerType,
+  deviceType,
+  config,
   uploadedImage,
   textElements
-}) => {
-  const { config } = bannerSelection;
+}, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
@@ -119,4 +117,4 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({
       </div>
     </div>
   );
-}; 
+}); 

@@ -13,17 +13,19 @@ interface BannerSelection {
 }
 
 function App() {
-  const [step, setStep] = useState<'project' | 'selection' | 'editor' | 'completion' | 'edit'>('selection');
+  const [step, setStep] = useState<'project' | 'selection' | 'editor' | 'completion' | 'edit'>('project');
   const [bannerSelection, setBannerSelection] = useState<BannerSelection | null>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [textElements, setTextElements] = useState<TextElement[]>([]);
-  const [completedWorks, setCompletedWorks] = useState<BannerWork[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [finalImage, setFinalImage] = useState<Blob | null>(null);
 
   // 프로젝트 선택/생성
   const handleProjectSelect = () => {
     setStep('selection');
   };
-  const handleProjectCreate = () => {
+  const handleProjectCreate = (project: Project) => {
+    setSelectedProject(project);
     setStep('selection');
   };
 
@@ -83,63 +85,39 @@ function App() {
   };
 
   // 텍스트 요소 추가 (자유도 높은 배너만)
-  const handleAddText = () => {
-    if (!bannerSelection?.config.allowCustomText) return;
-
-    const newElement: TextElement = {
-      id: crypto.randomUUID(),
-      type: 'custom',
-      text: '새 텍스트',
-      x: 100,
-      y: 100,
-      width: 200,
-      height: 50,
-      fontSize: 24,
-      fontFamily: 'Pretendard',
-      color: '#000000',
-      editable: { position: true, size: true, color: true }
-    };
-
-    setTextElements(prev => [...prev, newElement]);
+  const handleAddText = (text: TextElement) => {
+    setTextElements(prev => [...prev, text]);
   };
 
   // 텍스트 요소 업데이트
   const handleTextUpdate = (id: string, updates: Partial<TextElement>) => {
-    setTextElements(prev => 
-      prev.map(element => 
-        element.id === id ? { ...element, ...updates } : element
+    setTextElements(prev =>
+      prev.map(text =>
+        text.id === id ? { ...text, ...updates } : text
       )
     );
   };
 
   // 텍스트 요소 삭제
   const handleTextDelete = (id: string) => {
-    setTextElements(prev => prev.filter(element => element.id !== id));
+    setTextElements(prev => prev.filter(text => text.id !== id));
   };
 
   // 완성 단계로 이동
-  const handleComplete = () => {
+  const handleComplete = (image: Blob) => {
+    setFinalImage(image);
     setStep('completion');
   };
 
   // 배너 등록 - completedWorks에 추가
-  const handleRegister = (title: string) => {
-    if (!bannerSelection || !uploadedImage) return;
-    
-    const bannerWork: BannerWork = {
-      id: crypto.randomUUID(),
-      title,
-      bannerType: bannerSelection.bannerType,
-      deviceType: bannerSelection.deviceType,
-      originalImage: uploadedImage,
-      finalImage: uploadedImage as Blob, // File은 Blob을 상속하므로 캐스팅
-      textElements,
-      editedImageUrl: '', // 실제 구현에서는 편집된 이미지 URL을 생성해야 함
-      createdAt: new Date()
-    };
-    
-    setCompletedWorks(prev => [...prev, bannerWork]);
-    setStep('completion');
+  const handleRegister = (work: BannerWork) => {
+    if (selectedProject) {
+      setSelectedProject({
+        ...selectedProject,
+        banners: [...selectedProject.banners, work]
+      });
+    }
+    setStep('project');
   };
 
   // JPG 다운로드
@@ -157,12 +135,13 @@ function App() {
     setBannerSelection(null);
     setUploadedImage(null);
     setTextElements([]);
+    setFinalImage(null);
     setStep('project');
   };
 
   // 목록으로 이동
   const handleGoToList = () => {
-    setStep('selection');
+    setStep('project');
   };
 
   // 완성된 작업에서 편집 클릭 시
@@ -170,18 +149,10 @@ function App() {
     setBannerSelection({
       bannerType: work.bannerType,
       deviceType: work.deviceType,
-      config: getBannerConfig(work.bannerType, work.deviceType)
+      config: bannerConfigs[`${work.bannerType}-${work.deviceType}`]
     });
-    setUploadedImage(work.originalImage);
     setTextElements(work.textElements);
     setStep('edit');
-  };
-
-  // 배너 config 찾기
-  const getBannerConfig = (bannerType: BannerType, deviceType: DeviceType): BannerConfig => {
-    const key = `${bannerType}-${deviceType}`;
-    // @ts-ignore
-    return bannerConfigs[key];
   };
 
   return (
@@ -193,74 +164,43 @@ function App() {
         </header>
 
         <AnimatePresence mode="wait">
-          {step === 'project' && (
+          {(step === 'project' || step === 'selection') && (
             <motion.div
-              key="project"
+              key="project-selection"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-            >
-              {/* 프로젝트 선택/생성 컴포넌트 */}
-            </motion.div>
-          )}
-
-          {step === 'selection' && (
-            <motion.div
-              key="selection"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
             >
               <BannerSelector
                 onSelect={handleBannerSelect}
-                onProjectSelect={handleProjectSelect}
                 onProjectCreate={handleProjectCreate}
                 onDownload={handleDownload}
                 onEdit={handleEditWork}
-                completedWorks={completedWorks}
+                selectedProject={selectedProject}
               />
             </motion.div>
           )}
 
-          {step === 'editor' && bannerSelection && (
+          {(step === 'editor' || step === 'edit') && bannerSelection && (
             <motion.div
               key="editor"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
             >
               <BannerEditor
-                bannerSelection={bannerSelection}
-                uploadedImage={uploadedImage}
-                textElements={textElements}
+                bannerType={bannerSelection.bannerType}
+                deviceType={bannerSelection.deviceType}
+                config={bannerSelection.config}
                 onImageUpload={handleImageUpload}
                 onAddText={handleAddText}
                 onTextUpdate={handleTextUpdate}
                 onTextDelete={handleTextDelete}
                 onComplete={handleComplete}
-                onBack={handleReset}
-              />
-            </motion.div>
-          )}
-
-          {/* 편집 모드 */}
-          {step === 'edit' && bannerSelection && (
-            <motion.div
-              key="edit"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              <BannerEditor
-                bannerSelection={bannerSelection}
-                uploadedImage={uploadedImage}
                 textElements={textElements}
-                onImageUpload={setUploadedImage}
-                onAddText={handleAddText}
-                onTextUpdate={handleTextUpdate}
-                onTextDelete={handleTextDelete}
-                onComplete={() => setStep('completion')}
-                onBack={handleReset}
+                uploadedImage={uploadedImage}
               />
             </motion.div>
           )}
@@ -268,14 +208,17 @@ function App() {
           {step === 'completion' && (
             <motion.div
               key="completion"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
             >
               <CompletionForm
                 onRegister={handleRegister}
-                onBack={() => setStep('editor')}
+                onReset={handleReset}
                 onGoToList={handleGoToList}
+                finalImage={finalImage || undefined}
+                workTitle={selectedProject?.name}
               />
             </motion.div>
           )}
