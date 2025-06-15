@@ -132,6 +132,7 @@ function App() {
       bannerType: bannerSelection.bannerType,
       deviceType: bannerSelection.deviceType,
       originalImage: uploadedImage,
+      finalImage: uploadedImage as Blob, // File은 Blob을 상속하므로 캐스팅
       textElements,
       editedImageUrl: '', // 실제 구현에서는 편집된 이미지 URL을 생성해야 함
       createdAt: new Date()
