@@ -24,17 +24,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   // contentEditable ref 관리
   const refs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // 색상 적용 핸들러 (선택 영역에만 적용)
-  const applyColorToSelection = (element: TextElement, color: string) => {
-    const ref = refs.current[element.id];
-    if (!ref) return;
-    ref.focus();
-    document.execCommand('styleWithCSS', false, 'true');
-    document.execCommand('foreColor', false, color);
-    // 변경된 HTML을 저장
-    onTextUpdate(element.id, { text: ref.innerHTML });
-  };
-
   // 색상 변경 핸들러 (실시간 반영)
   const handleColorChange = (element: TextElement, color: string) => {
     const ref = refs.current[element.id];
