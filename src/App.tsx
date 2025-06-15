@@ -123,7 +123,20 @@ function App() {
   };
 
   // 배너 등록 - completedWorks에 추가
-  const handleRegister = (bannerWork: BannerWork) => {
+  const handleRegister = (title: string) => {
+    if (!bannerSelection || !uploadedImage) return;
+    
+    const bannerWork: BannerWork = {
+      id: crypto.randomUUID(),
+      title,
+      bannerType: bannerSelection.bannerType,
+      deviceType: bannerSelection.deviceType,
+      originalImage: uploadedImage,
+      textElements,
+      editedImageUrl: '', // 실제 구현에서는 편집된 이미지 URL을 생성해야 함
+      createdAt: new Date()
+    };
+    
     setCompletedWorks(prev => [...prev, bannerWork]);
     setStep('completion');
   };
@@ -259,9 +272,6 @@ function App() {
               exit={{ opacity: 0, y: -20 }}
             >
               <CompletionForm
-                bannerSelection={bannerSelection}
-                uploadedImage={uploadedImage}
-                textElements={textElements}
                 onRegister={handleRegister}
                 onBack={() => setStep('editor')}
                 onGoToList={handleGoToList}
