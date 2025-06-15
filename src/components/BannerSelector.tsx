@@ -1,91 +1,105 @@
 import React, { useState } from 'react';
-import { BannerType, DeviceType, BannerWork, BannerConfig } from '../types/index';
+import { ChevronDown } from 'lucide-react';
 import { bannerConfigs } from '../config/bannerConfigs';
+import { BannerWork, BannerConfig, BannerType, DeviceType } from '../types';
+
+interface BannerSelection {
+  bannerType: BannerType;
+  deviceType: DeviceType;
+  config: BannerConfig;
+}
 
 interface BannerSelectorProps {
-  onSelect: (selection: { bannerType: BannerType; deviceType: DeviceType; config: BannerConfig }) => void;
+  onSelect: (selection: BannerSelection) => void;
   completedWorks: BannerWork[];
   onDownload: (work: BannerWork) => void;
 }
 
-export const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, completedWorks, onDownload }) => {
-  const [selectedOption, setSelectedOption] = useState<{
-    bannerType?: BannerType;
-    deviceType?: DeviceType;
-  }>({});
-
+const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, completedWorks, onDownload }) => {
+  const [selectedOption, setSelectedOption] = useState('');
+  
   const handleSelect = () => {
-    if (!selectedOption.bannerType || !selectedOption.deviceType) return;
-    const config = bannerConfigs[`${selectedOption.bannerType}_${selectedOption.deviceType}`];
-    if (!config) return;
-    onSelect({ ...selectedOption, config } as { bannerType: BannerType; deviceType: DeviceType; config: BannerConfig });
-  };
+    if (!selectedOption) return;
+    
+    const config = bannerConfigs[selectedOption];
+    const [bannerTypeString, deviceTypeString] = selectedOption.split('-');
+    
+    const bannerType = bannerTypeString as BannerType;
+    const deviceType = (deviceTypeString === 'mobile' ? 'mobile' : 'pc') as DeviceType;
 
-  const handleBannerTypeChange = (bannerType: BannerType) => {
-    setSelectedOption(prev => ({ ...prev, bannerType }));
-  };
-
-  const handleDeviceTypeChange = (deviceType: DeviceType) => {
-    setSelectedOption(prev => ({ ...prev, deviceType }));
+    onSelect({
+      bannerType,
+      deviceType,
+      config
+    });
   };
 
   return (
     <div className="space-y-8">
-      <div className="bg-white rounded-lg shadow p-6">
+      {/* 배너 선택 */}
+      <div className="bg-white rounded-lg shadow-sm p-6">
         <h2 className="text-xl font-semibold mb-4">배너 타입 선택</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">배너 타입</label>
+        
+        <div className="space-y-4">
+          <div className="relative">
             <select
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              value={selectedOption.bannerType || ''}
-              onChange={(e) => handleBannerTypeChange(e.target.value as BannerType)}
+              value={selectedOption}
+              onChange={(e) => setSelectedOption(e.target.value)}
+              className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
             >
               <option value="">배너 타입을 선택하세요</option>
-              <option value="basic-no-logo">기본 배너 (로고 없음)</option>
-              <option value="basic-with-logo">기본 배너 (로고 있음)</option>
-              <option value="aviation">항공 배너</option>
-              <option value="main-popup">메인 팝업</option>
-              <option value="splash">스플래시</option>
-              <option value="interactive">인터랙티브</option>
+              {Object.entries(bannerConfigs).map(([key, config]) => (
+                <option key={key} value={key}>
+                  {config.name}
+                </option>
+              ))}
             </select>
+            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">디바이스</label>
-            <select
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              value={selectedOption.deviceType || ''}
-              onChange={(e) => handleDeviceTypeChange(e.target.value as DeviceType)}
-            >
-              <option value="">디바이스를 선택하세요</option>
-              <option value="pc">PC</option>
-              <option value="mobile">모바일</option>
-            </select>
-          </div>
+          
+          {selectedOption && (
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <h3 className="font-medium mb-2">선택된 배너 규격</h3>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>크기: {bannerConfigs[selectedOption].width} × {bannerConfigs[selectedOption].height}</p>
+                <p>텍스트: {bannerConfigs[selectedOption].fixedText ? '고정 위치' : '자유 편집'}</p>
+              </div>
+            </div>
+          )}
+          
+          <button
+            onClick={handleSelect}
+            disabled={!selectedOption}
+            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            선택하기
+          </button>
         </div>
-        <button
-          className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
-          onClick={handleSelect}
-          disabled={!selectedOption.bannerType || !selectedOption.deviceType}
-        >
-          선택 완료
-        </button>
       </div>
+
+      {/* 완성된 작업 목록 */}
       {completedWorks.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">완성된 작품</h2>
-          <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-xl font-semibold mb-4">완성된 작업</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {completedWorks.map((work) => (
-              <div key={work.id} className="border rounded-lg p-4">
-                <h3 className="font-medium">{work.title}</h3>
-                <p className="text-sm text-gray-500">
-                  {work.bannerType} - {work.deviceType}
+              <div key={work.id} className="border border-gray-200 rounded-lg p-4">
+                <div className="aspect-video bg-gray-100 rounded mb-3 overflow-hidden">
+                  <img
+                    src={work.editedImageUrl}
+                    alt={work.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <h3 className="font-medium text-sm mb-2">{work.title}</h3>
+                <p className="text-xs text-gray-500 mb-3">
+                  {work.bannerType} - {work.deviceType.toUpperCase()}
                 </p>
                 <button
-                  className="mt-2 text-blue-600 hover:text-blue-800"
                   onClick={() => onDownload(work)}
+                  className="w-full px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700"
                 >
-                  다운로드
+                  JPG 다운로드
                 </button>
               </div>
             ))}
@@ -94,4 +108,6 @@ export const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, comple
       )}
     </div>
   );
-}; 
+};
+
+export default BannerSelector; 

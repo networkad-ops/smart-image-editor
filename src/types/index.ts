@@ -264,6 +264,7 @@ export interface BannerWork {
   deviceType: DeviceType;
   originalImage: File;
   finalImage: Blob;
+  editedImageUrl: string;
   textElements: TextElement[];
   createdAt: Date;
 } 

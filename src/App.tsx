@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BannerSelector } from './components/BannerSelector';
 import { BannerEditor } from './components/BannerEditor';
 import { CompletionForm } from './components/CompletionForm';
-import { BannerType, DeviceType, TextElement, BannerWork, BannerConfig } from './types/index';
+import { BannerType, DeviceType, TextElement, BannerWork, BannerConfig } from './types'; // types/index.ts로 변경될 수 있음
 
 interface BannerSelection {
   bannerType: BannerType;
@@ -119,15 +119,16 @@ function App() {
     if (!bannerSelection || !uploadedImage) return;
 
     // 캔버스에서 최종 이미지 생성
-    const finalImage = await generateFinalImage();
+    const { blob: finalImageBlob, url: finalImageUrl } = await generateFinalImage();
     
     const newWork: BannerWork = {
       id: crypto.randomUUID(),
       title,
       bannerType: bannerSelection.bannerType,
       deviceType: bannerSelection.deviceType,
-      originalImage: uploadedImage,
-      finalImage,
+      originalImage: uploadedImage, // 원본 이미지 유지
+      finalImage: finalImageBlob, // 캔버스에서 생성된 Blob
+      editedImageUrl: finalImageUrl, // 캔버스에서 생성된 이미지 URL 추가
       textElements: [...textElements],
       createdAt: new Date()
     };
@@ -137,22 +138,77 @@ function App() {
   };
 
   // 최종 이미지 생성 (캔버스 렌더링)
-  const generateFinalImage = async (): Promise<Blob> => {
-    // 실제 구현에서는 캔버스 API를 사용하여 이미지 + 텍스트를 합성
-    // 여기서는 예시로 원본 이미지 반환
-    return uploadedImage as Blob;
+  const generateFinalImage = async (): Promise<{ blob: Blob, url: string }> => {
+    if (!bannerSelection || !uploadedImage) {
+      throw new Error("배너 선택 또는 이미지가 없습니다.");
+    }
+
+    const { width, height } = bannerSelection.config;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error("캔버스 렌더링 컨텍스트를 가져올 수 없습니다.");
+    }
+
+    // 1. 이미지 그리기
+    const img = new Image();
+    img.src = URL.createObjectURL(uploadedImage);
+    await new Promise((resolve) => {
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, width, height);
+        URL.revokeObjectURL(img.src); // 메모리 해제
+        resolve(null);
+      };
+      img.onerror = (error) => {
+        console.error("이미지 로드 오류:", error);
+        resolve(null); // 오류 발생 시에도 프로미스 완료
+      };
+    });
+
+    // 2. 텍스트 요소 그리기
+    textElements.forEach(element => {
+      ctx.font = `${element.fontSize}px ${element.fontFamily}`;
+      ctx.fillStyle = element.color;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top'; // 텍스트를 위쪽 기준으로 정렬
+
+      // 텍스트를 중앙 정렬해야 하는 경우 (필요시 활성화)
+      // ctx.textAlign = 'center';
+      // const textX = element.x + element.width / 2;
+      // const textY = element.y + element.height / 2 - (element.fontSize / 2); // 대략적인 수직 중앙 정렬
+      // ctx.fillText(element.text, textX, textY, element.width);
+
+      // 현재는 왼쪽 상단 기준으로 그리기
+      ctx.fillText(element.text, element.x, element.y, element.width);
+    });
+
+    // 3. 캔버스에서 Blob 생성
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          resolve({ blob, url });
+        } else {
+          reject(new Error('캔버스에서 Blob을 생성하지 못했습니다.'));
+        }
+      }, 'image/jpeg', 0.9); // JPG 형식으로 0.9 품질로 저장
+    });
   };
 
   // JPG 다운로드
   const handleDownload = (work: BannerWork) => {
-    const url = URL.createObjectURL(work.finalImage);
+    // editedImageUrl을 사용하므로 finalImage에서 다시 URL을 생성할 필요 없음
     const a = document.createElement('a');
-    a.href = url;
+    a.href = work.editedImageUrl; // 이미 생성된 URL 사용
     a.download = `${work.title}_${work.bannerType}_${work.deviceType}.jpg`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // URL.revokeObjectURL(url); // 이제 필요 없음, work.editedImageUrl이 관리해야 함.
+    // 만약 `work.editedImageUrl`이 더 이상 필요 없을 때 (예: completedWorks에서 제거될 때) 명시적으로 `URL.revokeObjectURL(work.editedImageUrl)`을 호출해야 메모리 누수를 방지할 수 있습니다.
   };
 
   // 상태 초기화
