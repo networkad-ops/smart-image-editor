@@ -243,6 +243,7 @@ export interface BannerConfig {
     height: number;
     fontSize: number;
     fontFamily: string;
+    letterSpacing?: number;
     maxLength?: number;
     maxLines?: number;
   };
@@ -253,6 +254,7 @@ export interface BannerConfig {
     height: number;
     fontSize: number;
     fontFamily: string;
+    letterSpacing?: number;
     maxLength?: number;
     maxLines?: number;
   };
