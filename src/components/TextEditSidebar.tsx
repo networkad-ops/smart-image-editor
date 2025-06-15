@@ -24,19 +24,26 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   // contentEditable ref 관리
   const refs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // 색상 변경 핸들러 (실시간 반영)
+  // 색상 변경 핸들러 (실시간 반영, 선택 영역 없으면 전체 적용)
   const handleColorChange = (element: TextElement, color: string) => {
     const ref = refs.current[element.id];
     if (!ref) return;
-    
-    // 현재 선택 영역이 있는지 확인
     const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      // 선택 영역이 있으면 해당 영역에 색상 적용
-      document.execCommand('styleWithCSS', false, 'true');
+    ref.focus();
+    document.execCommand('styleWithCSS', false, 'true');
+    if (selection && selection.rangeCount > 0 && !selection.isCollapsed && ref.contains(selection.anchorNode)) {
+      // 선택 영역이 있으면 해당 영역에만 색상 적용
       document.execCommand('foreColor', false, color);
-      onTextUpdate(element.id, { text: ref.innerHTML });
+    } else {
+      // 선택 영역이 없으면 전체 텍스트에 색상 적용
+      const range = document.createRange();
+      range.selectNodeContents(ref);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      document.execCommand('foreColor', false, color);
+      selection?.removeAllRanges();
     }
+    onTextUpdate(element.id, { text: ref.innerHTML });
   };
 
   // contentEditable 변경 핸들러
@@ -44,17 +51,23 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     const ref = refs.current[element.id];
     if (!ref) return;
 
-    // 메인타이틀인 경우 줄바꿈 제한 처리
+    // 메인타이틀인 경우 줄 수 제한 처리 (최대 2줄)
     if (element.id === 'main-title') {
-      const content = ref.innerHTML;
-      const lineBreaks = (content.match(/<br\s*\/?>/gi) || []).length;
-      
-      // 줄바꿈이 1개 초과하면 마지막 줄바꿈 제거
-      if (lineBreaks > 1) {
-        ref.innerHTML = content.replace(/<br\s*\/?>.*$/, '');
+      // <br>을 기준으로 split, 2줄 초과 시 2줄까지만 남김
+      let html = ref.innerHTML;
+      const lines = html.split(/<br\s*\/?>(?!$)/i);
+      if (lines.length > 2) {
+        html = lines.slice(0, 2).join('<br>');
+        ref.innerHTML = html;
+        // 커서를 마지막에 위치
+        const range = document.createRange();
+        range.selectNodeContents(ref);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
       }
     }
-
     onTextUpdate(element.id, { text: ref.innerHTML });
   };
 
@@ -63,35 +76,20 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     if (element.id === 'main-title') {
       const ref = refs.current[element.id];
       if (!ref) return;
-
-      // Shift + Enter로만 줄바꿈 허용
+      // Shift+Enter로만 줄바꿈 허용, 최대 1개까지만(2줄)
       if (e.key === 'Enter') {
+        const html = ref.innerHTML;
+        const lines = html.split(/<br\s*\/?>(?!$)/i);
         if (!e.shiftKey) {
           e.preventDefault();
           return;
         }
-
-        const content = ref.innerHTML;
-        const lineBreaks = (content.match(/<br\s*\/?>/gi) || []).length;
-        
-        // 줄바꿈이 1개 미만일 때만 줄바꿈 추가
-        if (lineBreaks < 1) {
+        if (lines.length >= 2) {
           e.preventDefault();
-          const selection = window.getSelection();
-          if (selection && selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            const br = document.createElement('br');
-            range.insertNode(br);
-            // 커서를 줄바꿈 다음으로 이동
-            range.setStartAfter(br);
-            range.setEndAfter(br);
-            selection.removeAllRanges();
-            selection.addRange(range);
-            onTextUpdate(element.id, { text: ref.innerHTML });
-          }
-        } else {
-          e.preventDefault();
+          return;
         }
+        // 줄바꿈 허용 (브라우저 기본 동작)
+        // 이후 handleInput에서 2줄 초과 시 자동 잘림
       }
     }
   };
