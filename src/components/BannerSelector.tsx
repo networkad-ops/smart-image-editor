@@ -10,23 +10,23 @@ interface BannerSelectorProps {
 
 export const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, completedWorks, onDownload }) => {
   const [selectedOption, setSelectedOption] = useState<{
-    bannerType: BannerType;
-    deviceType: DeviceType;
-  } | null>(null);
+    bannerType?: BannerType;
+    deviceType?: DeviceType;
+  }>({});
 
   const handleSelect = () => {
-    if (!selectedOption) return;
+    if (!selectedOption.bannerType || !selectedOption.deviceType) return;
     const config = bannerConfigs[`${selectedOption.bannerType}_${selectedOption.deviceType}`];
     if (!config) return;
-    onSelect({ ...selectedOption, config });
+    onSelect({ ...selectedOption as { bannerType: BannerType; deviceType: DeviceType }, config });
   };
 
-  const handleBannerTypeChange = (bannerType: BannerType) => {
-    setSelectedOption(prev => prev ? { ...prev, bannerType } : { bannerType, deviceType: 'pc' });
+  const handleBannerTypeChange = (bannerType: string) => {
+    setSelectedOption(prev => ({ ...prev, bannerType: bannerType as BannerType }));
   };
 
-  const handleDeviceTypeChange = (deviceType: DeviceType) => {
-    setSelectedOption(prev => prev ? { ...prev, deviceType } : { deviceType, bannerType: 'basic-no-logo' });
+  const handleDeviceTypeChange = (deviceType: string) => {
+    setSelectedOption(prev => ({ ...prev, deviceType: deviceType as DeviceType }));
   };
 
   return (
@@ -38,10 +38,10 @@ export const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, comple
             <label className="block text-sm font-medium text-gray-700 mb-2">배너 타입</label>
             <select
               className="w-full border border-gray-300 rounded-md px-3 py-2"
-              value={selectedOption?.bannerType || ''}
-              onChange={(e) => handleBannerTypeChange(e.target.value as BannerType)}
+              value={selectedOption.bannerType || ''}
+              onChange={(e) => handleBannerTypeChange(e.target.value)}
             >
-              <option value="">선택하세요</option>
+              <option value="">배너 타입을 선택하세요</option>
               <option value="basic-no-logo">기본 배너 (로고 없음)</option>
               <option value="basic-with-logo">기본 배너 (로고 있음)</option>
               <option value="aviation">항공 배너</option>
@@ -54,10 +54,10 @@ export const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, comple
             <label className="block text-sm font-medium text-gray-700 mb-2">디바이스</label>
             <select
               className="w-full border border-gray-300 rounded-md px-3 py-2"
-              value={selectedOption?.deviceType || ''}
-              onChange={(e) => handleDeviceTypeChange(e.target.value as DeviceType)}
+              value={selectedOption.deviceType || ''}
+              onChange={(e) => handleDeviceTypeChange(e.target.value)}
             >
-              <option value="">선택하세요</option>
+              <option value="">디바이스를 선택하세요</option>
               <option value="pc">PC</option>
               <option value="mobile">모바일</option>
             </select>
@@ -66,7 +66,7 @@ export const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, comple
         <button
           className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
           onClick={handleSelect}
-          disabled={!selectedOption?.bannerType || !selectedOption?.deviceType}
+          disabled={!selectedOption.bannerType || !selectedOption.deviceType}
         >
           선택 완료
         </button>
