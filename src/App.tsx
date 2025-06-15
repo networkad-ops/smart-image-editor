@@ -122,8 +122,9 @@ function App() {
     setStep('completion');
   };
 
-  // 배너 등록
-  const handleRegister = () => {
+  // 배너 등록 - completedWorks에 추가
+  const handleRegister = (bannerWork: BannerWork) => {
+    setCompletedWorks(prev => [...prev, bannerWork]);
     setStep('completion');
   };
 
@@ -202,6 +203,7 @@ function App() {
                 onProjectCreate={handleProjectCreate}
                 onDownload={handleDownload}
                 onEdit={handleEditWork}
+                completedWorks={completedWorks}
               />
             </motion.div>
           )}
@@ -257,6 +259,9 @@ function App() {
               exit={{ opacity: 0, y: -20 }}
             >
               <CompletionForm
+                bannerSelection={bannerSelection}
+                uploadedImage={uploadedImage}
+                textElements={textElements}
                 onRegister={handleRegister}
                 onBack={() => setStep('editor')}
                 onGoToList={handleGoToList}
