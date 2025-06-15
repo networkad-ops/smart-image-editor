@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BannerSelector } from './components/BannerSelector';
+import BannerSelector from './components/BannerSelector';
 import { BannerEditor } from './components/BannerEditor';
 import { CompletionForm } from './components/CompletionForm';
 import { BannerType, DeviceType, TextElement, BannerWork, BannerConfig } from './types'; // types/index.ts로 변경될 수 있음
