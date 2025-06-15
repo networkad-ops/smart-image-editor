@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { TextElement } from '../types/index';
 
 interface TextEditSidebarProps {
@@ -21,18 +21,25 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     return '텍스트';
   };
 
-  // maxLength, maxLines 적용
-  const handleTextChange = (element: TextElement, value: string) => {
-    let text = value;
-    const maxLength = (element as any).maxLength || 100;
-    const maxLines = (element as any).maxLines || 2;
-    // 줄 수 제한
-    let lines = text.split(/\r?\n/);
-    if (lines.length > maxLines) lines = lines.slice(0, maxLines);
-    text = lines.join('\n');
-    // 글자 수 제한
-    if (text.length > maxLength) text = text.slice(0, maxLength);
-    onTextUpdate(element.id, { text });
+  // contentEditable ref 관리
+  const refs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // 색상 적용 핸들러 (선택 영역에만 적용)
+  const applyColorToSelection = (element: TextElement, color: string) => {
+    const ref = refs.current[element.id];
+    if (!ref) return;
+    ref.focus();
+    document.execCommand('styleWithCSS', false, 'true');
+    document.execCommand('foreColor', false, color);
+    // 변경된 HTML을 저장
+    onTextUpdate(element.id, { text: ref.innerHTML });
+  };
+
+  // contentEditable 변경 핸들러
+  const handleInput = (element: TextElement) => {
+    const ref = refs.current[element.id];
+    if (!ref) return;
+    onTextUpdate(element.id, { text: ref.innerHTML });
   };
 
   return (
@@ -53,12 +60,15 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <label className="block text-xs text-gray-500 mb-1">{getLabel(element)}</label>
-                <textarea
-                  value={element.text}
-                  onChange={(e) => handleTextChange(element, e.target.value)}
-                  className="w-full border border-gray-300 rounded px-2 py-1 text-sm resize-none"
-                  placeholder="텍스트 입력"
-                  rows={2}
+                <div
+                  ref={el => (refs.current[element.id] = el)}
+                  contentEditable
+                  suppressContentEditableWarning
+                  className="w-full border border-gray-300 rounded px-2 py-1 text-sm resize-none min-h-[40px] bg-white focus:outline-blue-400"
+                  onInput={() => handleInput(element)}
+                  dangerouslySetInnerHTML={{ __html: element.text || '' }}
+                  spellCheck={false}
+                  style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}
                 />
               </div>
               <button
@@ -70,14 +80,15 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             </div>
 
             {element.editable.color && (
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">색상</label>
+              <div className="flex items-center gap-2 mt-1">
+                <label className="block text-xs text-gray-500">색상</label>
                 <input
                   type="color"
-                  value={element.color}
-                  onChange={(e) => onTextUpdate(element.id, { color: e.target.value })}
-                  className="w-full h-8"
+                  onChange={(e) => applyColorToSelection(element, e.target.value)}
+                  className="w-8 h-8 border-none bg-transparent cursor-pointer"
+                  title="선택 영역에 색상 적용"
                 />
+                <span className="text-xs text-gray-400">(텍스트 일부만 선택 후 색상 변경 가능)</span>
               </div>
             )}
 

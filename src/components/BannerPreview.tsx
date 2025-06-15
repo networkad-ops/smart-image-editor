@@ -25,7 +25,7 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({
   useEffect(() => {
     const handleResize = () => {
       if (containerRef.current) {
-        const parentWidth = containerRef.current.parentElement?.clientWidth || config.width;
+        const parentWidth = containerRef.current.clientWidth;
         const newScale = Math.min(1, parentWidth / config.width);
         setScale(newScale);
       }
@@ -70,10 +70,12 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({
         ref={containerRef}
         className="relative bg-white border rounded-lg mx-auto"
         style={{
-          width: config.width * scale,
-          height: config.height * scale,
-          overflow: 'hidden',
+          width: '100%',
+          maxWidth: 900,
+          minWidth: 320,
+          aspectRatio: `${config.width} / ${config.height}`,
           position: 'relative',
+          overflow: 'hidden',
         }}
       >
         <div
@@ -112,15 +114,10 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({
                 wordBreak: 'break-all',
                 lineHeight: 1.2,
               }}
-              contentEditable={true}
-              onBlur={(e) => onTextUpdate(element.id, { text: e.currentTarget.textContent || '' })}
-              suppressContentEditableWarning={true}
               className="outline-none"
-            >
-              {element.id === 'main-title'
-                ? renderTextWithLineBreaks(element.text)
-                : element.text}
-            </div>
+              // contentEditable 제거, 미리보기에서는 HTML 렌더링만
+              dangerouslySetInnerHTML={{ __html: element.text || '' }}
+            />
           ))}
         </div>
       </div>
