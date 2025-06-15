@@ -55,7 +55,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     },
     mainTitle: {
       x: 81,
-      y: 187, // 86 + 74 + 27
+      y: 187,
       width: 1199,
       height: 198,
       fontSize: 80,

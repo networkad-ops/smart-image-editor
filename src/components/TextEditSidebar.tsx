@@ -39,7 +39,52 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   const handleInput = (element: TextElement) => {
     const ref = refs.current[element.id];
     if (!ref) return;
+
+    // 메인타이틀인 경우 줄바꿈 제한 처리
+    if (element.id === 'main-title') {
+      const content = ref.innerHTML;
+      const lineBreaks = (content.match(/<br\s*\/?>/gi) || []).length;
+      
+      // 줄바꿈이 1개 초과하면 마지막 줄바꿈 제거
+      if (lineBreaks > 1) {
+        ref.innerHTML = content.replace(/<br\s*\/?>.*$/, '');
+      }
+    }
+
     onTextUpdate(element.id, { text: ref.innerHTML });
+  };
+
+  // 키보드 이벤트 핸들러
+  const handleKeyDown = (element: TextElement, e: React.KeyboardEvent) => {
+    if (element.id === 'main-title') {
+      const ref = refs.current[element.id];
+      if (!ref) return;
+
+      // Enter 키 처리
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const content = ref.innerHTML;
+        const lineBreaks = (content.match(/<br\s*\/?>/gi) || []).length;
+        
+        // 줄바꿈이 1개 미만일 때만 줄바꿈 추가
+        if (lineBreaks < 1) {
+          document.execCommand('insertLineBreak');
+        }
+      }
+    }
+  };
+
+  // 텍스트 요소 정렬 (main-title → sub-title → 기타)
+  const getOrderedElements = () => {
+    const order: string[] = [];
+    if (textElements.some(e => e.id === 'main-title')) order.push('main-title');
+    if (textElements.some(e => e.id === 'sub-title')) order.push('sub-title');
+    const fixed = textElements.filter(e => order.includes(e.id));
+    const custom = textElements.filter(e => !order.includes(e.id));
+    return [
+      ...order.map(id => fixed.find(e => e.id === id)).filter(Boolean),
+      ...custom
+    ] as TextElement[];
   };
 
   return (
@@ -55,7 +100,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       </div>
 
       <div className="space-y-4">
-        {textElements.map((element) => (
+        {getOrderedElements().map((element) => (
           <div key={element.id} className="border rounded-lg p-4 space-y-3">
             <div className="flex justify-between items-start">
               <div className="flex-1">
@@ -66,6 +111,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                   suppressContentEditableWarning
                   className="w-full border border-gray-300 rounded px-2 py-1 text-sm resize-none min-h-[40px] bg-white focus:outline-blue-400"
                   onInput={() => handleInput(element)}
+                  onKeyDown={(e) => handleKeyDown(element, e)}
                   dangerouslySetInnerHTML={{ __html: element.text || '' }}
                   spellCheck={false}
                   style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}
