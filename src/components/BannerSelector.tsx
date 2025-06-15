@@ -18,15 +18,15 @@ export const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, comple
     if (!selectedOption.bannerType || !selectedOption.deviceType) return;
     const config = bannerConfigs[`${selectedOption.bannerType}_${selectedOption.deviceType}`];
     if (!config) return;
-    onSelect({ ...selectedOption as { bannerType: BannerType; deviceType: DeviceType }, config });
+    onSelect({ ...selectedOption, config } as { bannerType: BannerType; deviceType: DeviceType; config: BannerConfig });
   };
 
-  const handleBannerTypeChange = (bannerType: string) => {
-    setSelectedOption(prev => ({ ...prev, bannerType: bannerType as BannerType }));
+  const handleBannerTypeChange = (bannerType: BannerType) => {
+    setSelectedOption(prev => ({ ...prev, bannerType }));
   };
 
-  const handleDeviceTypeChange = (deviceType: string) => {
-    setSelectedOption(prev => ({ ...prev, deviceType: deviceType as DeviceType }));
+  const handleDeviceTypeChange = (deviceType: DeviceType) => {
+    setSelectedOption(prev => ({ ...prev, deviceType }));
   };
 
   return (
@@ -39,7 +39,7 @@ export const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, comple
             <select
               className="w-full border border-gray-300 rounded-md px-3 py-2"
               value={selectedOption.bannerType || ''}
-              onChange={(e) => handleBannerTypeChange(e.target.value)}
+              onChange={(e) => handleBannerTypeChange(e.target.value as BannerType)}
             >
               <option value="">배너 타입을 선택하세요</option>
               <option value="basic-no-logo">기본 배너 (로고 없음)</option>
@@ -55,7 +55,7 @@ export const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, comple
             <select
               className="w-full border border-gray-300 rounded-md px-3 py-2"
               value={selectedOption.deviceType || ''}
-              onChange={(e) => handleDeviceTypeChange(e.target.value)}
+              onChange={(e) => handleDeviceTypeChange(e.target.value as DeviceType)}
             >
               <option value="">디바이스를 선택하세요</option>
               <option value="pc">PC</option>
@@ -71,7 +71,6 @@ export const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, comple
           선택 완료
         </button>
       </div>
-
       {completedWorks.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">완성된 작품</h2>
