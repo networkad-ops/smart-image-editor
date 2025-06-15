@@ -22,7 +22,6 @@ function App() {
     setStep('selection');
   };
   const handleProjectCreate = (name: string) => {
-    const newProject: Project = { id: crypto.randomUUID(), name, banners: [] };
     setStep('selection');
   };
 
