@@ -100,7 +100,7 @@ export const FORMATS: Record<FormatType, Format> = {
   }
 };
 
-export type DeviceType = 'PC' | 'MO';
+export type DeviceType = 'pc' | 'mobile';
 
 export interface DeviceConfig {
   width: number;
@@ -115,7 +115,7 @@ export interface DeviceConfig {
 }
 
 export const DEVICE_CONFIGS: Record<DeviceType, DeviceConfig> = {
-  PC: {
+  pc: {
     width: 2880,
     height: 480,
     aspectRatio: 6,
@@ -149,7 +149,7 @@ export const DEVICE_CONFIGS: Record<DeviceType, DeviceConfig> = {
       }
     }
   },
-  MO: {
+  mobile: {
     width: 1560,
     height: 468,
     aspectRatio: 3.33,
@@ -201,4 +201,69 @@ export interface Work {
   logoImage?: ImageConfig;
   createdAt: string;
   updatedAt: string;
+}
+
+export type BannerType = 
+  | 'basic-no-logo' 
+  | 'basic-with-logo' 
+  | 'aviation' 
+  | 'main-popup' 
+  | 'splash' 
+  | 'interactive';
+
+export interface TextElement {
+  id: string;
+  type: 'fixed' | 'custom';
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fontSize: number;
+  fontFamily: string;
+  color: string;
+  editable: {
+    position: boolean;
+    size: boolean;
+    color: boolean;
+  };
+}
+
+export interface BannerConfig {
+  name: string;
+  width: number;
+  height: number;
+  fixedText: boolean;
+  allowCustomText: boolean;
+  mainTitle?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    fontSize: number;
+    fontFamily: string;
+  };
+  subTitle?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    fontSize: number;
+    fontFamily: string;
+  };
+  background?: {
+    type: 'image' | 'color';
+    value: string;
+  };
+}
+
+export interface BannerWork {
+  id: string;
+  title: string;
+  bannerType: BannerType;
+  deviceType: DeviceType;
+  originalImage: File;
+  finalImage: Blob;
+  textElements: TextElement[];
+  createdAt: Date;
 } 

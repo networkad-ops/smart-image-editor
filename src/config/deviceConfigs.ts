@@ -1,7 +1,7 @@
 import { DeviceConfig, DeviceType } from '../types';
 
 export const deviceConfigs: Record<DeviceType, DeviceConfig> = {
-  PC: {
+  pc: {
     width: 1920,
     height: 1080,
     aspectRatio: 16 / 9,
@@ -35,7 +35,7 @@ export const deviceConfigs: Record<DeviceType, DeviceConfig> = {
       }
     }
   },
-  MO: {
+  mobile: {
     width: 750,
     height: 1334,
     aspectRatio: 9 / 16,
