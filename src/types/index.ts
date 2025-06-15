@@ -243,6 +243,8 @@ export interface BannerConfig {
     height: number;
     fontSize: number;
     fontFamily: string;
+    maxLength?: number;
+    maxLines?: number;
   };
   subTitle?: {
     x: number;
@@ -251,6 +253,8 @@ export interface BannerConfig {
     height: number;
     fontSize: number;
     fontFamily: string;
+    maxLength?: number;
+    maxLines?: number;
   };
   background?: {
     type: 'image' | 'color';
