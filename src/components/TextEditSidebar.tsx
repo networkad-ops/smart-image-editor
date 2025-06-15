@@ -35,6 +35,21 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     onTextUpdate(element.id, { text: ref.innerHTML });
   };
 
+  // 색상 변경 핸들러 (실시간 반영)
+  const handleColorChange = (element: TextElement, color: string) => {
+    const ref = refs.current[element.id];
+    if (!ref) return;
+    
+    // 현재 선택 영역이 있는지 확인
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      // 선택 영역이 있으면 해당 영역에 색상 적용
+      document.execCommand('styleWithCSS', false, 'true');
+      document.execCommand('foreColor', false, color);
+      onTextUpdate(element.id, { text: ref.innerHTML });
+    }
+  };
+
   // contentEditable 변경 핸들러
   const handleInput = (element: TextElement) => {
     const ref = refs.current[element.id];
@@ -72,7 +87,19 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
         
         // 줄바꿈이 1개 미만일 때만 줄바꿈 추가
         if (lineBreaks < 1) {
-          document.execCommand('insertLineBreak');
+          e.preventDefault();
+          const selection = window.getSelection();
+          if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            const br = document.createElement('br');
+            range.insertNode(br);
+            // 커서를 줄바꿈 다음으로 이동
+            range.setStartAfter(br);
+            range.setEndAfter(br);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            onTextUpdate(element.id, { text: ref.innerHTML });
+          }
         } else {
           e.preventDefault();
         }
@@ -147,7 +174,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 <label className="block text-xs text-gray-500">색상</label>
                 <input
                   type="color"
-                  onChange={(e) => applyColorToSelection(element, e.target.value)}
+                  onChange={(e) => handleColorChange(element, e.target.value)}
                   className="w-8 h-8 border-none bg-transparent cursor-pointer"
                   title="선택 영역에 색상 적용"
                 />
