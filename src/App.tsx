@@ -13,7 +13,7 @@ interface BannerSelection {
 }
 
 function App() {
-  const [step, setStep] = useState<'project' | 'selection' | 'editor' | 'completion' | 'edit'>('project');
+  const [step, setStep] = useState<'project' | 'selection' | 'editor' | 'completion' | 'edit'>('selection');
   const [bannerSelection, setBannerSelection] = useState<BannerSelection | null>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [textElements, setTextElements] = useState<TextElement[]>([]);
