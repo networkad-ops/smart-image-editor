@@ -95,3 +95,4 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     maxFileSize: 5 * 1024 * 1024
   }
 };
+ 
