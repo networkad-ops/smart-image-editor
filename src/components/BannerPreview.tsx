@@ -15,8 +15,7 @@ interface BannerPreviewProps {
 export const BannerPreview: React.FC<BannerPreviewProps> = ({
   bannerSelection,
   uploadedImage,
-  textElements,
-  onTextUpdate
+  textElements
 }) => {
   const { config } = bannerSelection;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -48,15 +47,6 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({
       ...custom
     ] as TextElement[];
   };
-
-  // 줄바꿈 지원: \n → <br />
-  const renderTextWithLineBreaks = (text: string) =>
-    text.split(/\r?\n/).map((line, i) => (
-      <React.Fragment key={i}>
-        {line}
-        {i < text.split(/\r?\n/).length - 1 && <br />}
-      </React.Fragment>
-    ));
 
   return (
     <div className="space-y-4">
@@ -107,6 +97,7 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({
                 height: element.height,
                 fontSize: element.fontSize,
                 fontFamily: element.fontFamily,
+                fontWeight: (element as any).fontWeight || undefined,
                 color: element.color,
                 letterSpacing: (element as any).letterSpacing || undefined,
                 whiteSpace: 'pre-line',
@@ -115,7 +106,6 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({
                 lineHeight: 1.2,
               }}
               className="outline-none"
-              // contentEditable 제거, 미리보기에서는 HTML 렌더링만
               dangerouslySetInnerHTML={{ __html: element.text || '' }}
             />
           ))}
