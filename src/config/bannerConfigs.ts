@@ -9,7 +9,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     fixedText: true,
     allowCustomText: false,
     subTitle: {
-      x: 110,
+      x: 81,
       y: 170,
       width: 1227,
       height: 66,
@@ -21,7 +21,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       maxLines: 1
     },
     mainTitle: {
-      x: 110,
+      x: 81,
       y: 254,
       width: 1227,
       height: 208,
