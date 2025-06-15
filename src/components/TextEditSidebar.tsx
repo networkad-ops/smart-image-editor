@@ -60,15 +60,21 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       const ref = refs.current[element.id];
       if (!ref) return;
 
-      // Enter 키 처리
+      // Shift + Enter로만 줄바꿈 허용
       if (e.key === 'Enter') {
-        e.preventDefault();
+        if (!e.shiftKey) {
+          e.preventDefault();
+          return;
+        }
+
         const content = ref.innerHTML;
         const lineBreaks = (content.match(/<br\s*\/?>/gi) || []).length;
         
         // 줄바꿈이 1개 미만일 때만 줄바꿈 추가
         if (lineBreaks < 1) {
           document.execCommand('insertLineBreak');
+        } else {
+          e.preventDefault();
         }
       }
     }
@@ -104,7 +110,14 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           <div key={element.id} className="border rounded-lg p-4 space-y-3">
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <label className="block text-xs text-gray-500 mb-1">{getLabel(element)}</label>
+                <label className="block text-xs text-gray-500 mb-1">
+                  {getLabel(element)}
+                  {element.id === 'main-title' && (
+                    <span className="ml-2 text-xs text-gray-400">
+                      (Shift + Enter로 줄바꿈)
+                    </span>
+                  )}
+                </label>
                 <div
                   ref={el => (refs.current[element.id] = el)}
                   contentEditable
@@ -114,7 +127,11 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                   onKeyDown={(e) => handleKeyDown(element, e)}
                   dangerouslySetInnerHTML={{ __html: element.text || '' }}
                   spellCheck={false}
-                  style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}
+                  style={{ 
+                    whiteSpace: 'pre-wrap', 
+                    wordBreak: 'break-all',
+                    position: 'relative' // 자동 이동 방지
+                  }}
                 />
               </div>
               <button
