@@ -21,11 +21,11 @@ export const CompletionForm: React.FC<CompletionFormProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-4">작품 등록</h2>
+      <h2 className="text-xl font-semibold mb-4">배너 등록</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-            작품 제목
+            배너 제목(담당사업팀/담당자)
           </label>
           <input
             type="text"
@@ -33,9 +33,10 @@ export const CompletionForm: React.FC<CompletionFormProps> = ({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full border border-gray-300 rounded-md px-3 py-2"
-            placeholder="작품 제목을 입력하세요"
+            placeholder="예시) 홍보팀/홍길동"
             required
           />
+          <div className="text-xs text-gray-500 mt-1">배너 제목은 담당사업팀/담당자로 저장됩니다.</div>
         </div>
         <div className="flex justify-between">
           <button

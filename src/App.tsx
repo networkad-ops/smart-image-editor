@@ -12,11 +12,12 @@ interface BannerSelection {
 }
 
 function App() {
-  const [step, setStep] = useState<'selection' | 'editor' | 'completion'>('selection');
+  const [step, setStep] = useState<'selection' | 'editor' | 'completion' | 'edit'>('selection');
   const [bannerSelection, setBannerSelection] = useState<BannerSelection | null>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [textElements, setTextElements] = useState<TextElement[]>([]);
   const [completedWorks, setCompletedWorks] = useState<BannerWork[]>([]);
+  const [editingWork, setEditingWork] = useState<BannerWork | null>(null);
 
   // 배너 + 디바이스 선택
   const handleBannerSelect = (selection: BannerSelection) => {
@@ -224,6 +225,27 @@ function App() {
     setStep('selection');
   };
 
+  // 완성된 작업에서 편집 클릭 시
+  const handleEditWork = (work: BannerWork) => {
+    setEditingWork(work);
+    setBannerSelection({
+      bannerType: work.bannerType,
+      deviceType: work.deviceType,
+      config: getBannerConfig(work.bannerType, work.deviceType)
+    });
+    setUploadedImage(work.originalImage);
+    setTextElements(work.textElements);
+    setStep('edit');
+  };
+
+  // 배너 config 찾기
+  const getBannerConfig = (bannerType: BannerType, deviceType: DeviceType): BannerConfig => {
+    // bannerConfigs의 key는 예: 'basic-no-logo-pc'
+    const key = `${bannerType}-${deviceType}`;
+    // @ts-ignore
+    return bannerConfigs[key];
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -244,6 +266,7 @@ function App() {
                 onSelect={handleBannerSelect}
                 completedWorks={completedWorks}
                 onDownload={handleDownload}
+                onEdit={handleEditWork}
               />
             </motion.div>
           )}
@@ -264,6 +287,28 @@ function App() {
                 onTextUpdate={handleTextUpdate}
                 onTextDelete={handleTextDelete}
                 onComplete={handleComplete}
+                onBack={handleReset}
+              />
+            </motion.div>
+          )}
+
+          {/* 편집 모드 */}
+          {step === 'edit' && bannerSelection && (
+            <motion.div
+              key="edit"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <BannerEditor
+                bannerSelection={bannerSelection}
+                uploadedImage={uploadedImage}
+                textElements={textElements}
+                onImageUpload={setUploadedImage}
+                onAddText={handleAddText}
+                onTextUpdate={handleTextUpdate}
+                onTextDelete={handleTextDelete}
+                onComplete={() => setStep('completion')}
                 onBack={handleReset}
               />
             </motion.div>

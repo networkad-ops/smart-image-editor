@@ -13,9 +13,10 @@ interface BannerSelectorProps {
   onSelect: (selection: BannerSelection) => void;
   completedWorks: BannerWork[];
   onDownload: (work: BannerWork) => void;
+  onEdit: (work: BannerWork) => void;
 }
 
-const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, completedWorks, onDownload }) => {
+const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, completedWorks, onDownload, onEdit }) => {
   const [selectedOption, setSelectedOption] = useState('');
   
   const handleSelect = () => {
@@ -36,6 +37,32 @@ const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, completedWork
 
   return (
     <div className="space-y-8">
+      {/* 완성된 작업 리스트 */}
+      {completedWorks.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-xl font-semibold mb-4">완성된 배너 목록</h2>
+          <div className="divide-y">
+            {completedWorks.map((work) => (
+              <div
+                key={work.id}
+                className="py-3 flex items-center justify-between cursor-pointer hover:bg-gray-50"
+                onClick={() => onEdit(work)}
+              >
+                <div>
+                  <div className="font-medium">{work.title}</div>
+                  <div className="text-xs text-gray-500">{work.createdAt instanceof Date ? work.createdAt.toLocaleString() : new Date(work.createdAt).toLocaleString()}</div>
+                </div>
+                <button
+                  onClick={e => { e.stopPropagation(); onDownload(work); }}
+                  className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                >
+                  JPG 다운로드
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {/* 배너 선택 */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h2 className="text-xl font-semibold mb-4">배너 타입 선택</h2>
@@ -76,36 +103,6 @@ const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, completedWork
           </button>
         </div>
       </div>
-
-      {/* 완성된 작업 목록 */}
-      {completedWorks.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4">완성된 작업</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {completedWorks.map((work) => (
-              <div key={work.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="aspect-video bg-gray-100 rounded mb-3 overflow-hidden">
-                  <img
-                    src={work.editedImageUrl}
-                    alt={work.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <h3 className="font-medium text-sm mb-2">{work.title}</h3>
-                <p className="text-xs text-gray-500 mb-3">
-                  {work.bannerType} - {work.deviceType.toUpperCase()}
-                </p>
-                <button
-                  onClick={() => onDownload(work)}
-                  className="w-full px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700"
-                >
-                  JPG 다운로드
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -88,8 +88,21 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           e.preventDefault();
           return;
         }
-        // 줄바꿈 허용 (브라우저 기본 동작)
-        // 이후 handleInput에서 2줄 초과 시 자동 잘림
+        // 직접 <br> 삽입 및 커서 이동
+        e.preventDefault();
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          // <br> 삽입
+          const br = document.createElement('br');
+          range.insertNode(br);
+          // 커서를 <br> 뒤로 이동
+          range.setStartAfter(br);
+          range.collapse(false);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+        // 입력 후 2줄 초과 시 자동 잘림 (handleInput에서 처리)
       }
     }
   };
