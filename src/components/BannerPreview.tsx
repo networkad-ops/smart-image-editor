@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { BannerType, DeviceType, TextElement, BannerConfig } from '../types/index';
 
 interface BannerPreviewProps {
@@ -19,6 +19,23 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({
   onTextUpdate
 }) => {
   const { config } = bannerSelection;
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState({ x: 1, y: 1 });
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (previewRef.current) {
+        const rect = previewRef.current.getBoundingClientRect();
+        setScale({
+          x: rect.width / config.width,
+          y: rect.height / config.height
+        });
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [config.width, config.height]);
 
   return (
     <div className="space-y-4">
@@ -30,6 +47,7 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({
       </div>
 
       <div
+        ref={previewRef}
         className="relative bg-white border rounded-lg overflow-hidden"
         style={{
           width: config.width,
@@ -51,11 +69,11 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({
             key={element.id}
             style={{
               position: 'absolute',
-              left: element.x,
-              top: element.y,
-              width: element.width,
-              height: element.height,
-              fontSize: element.fontSize,
+              left: element.x * scale.x,
+              top: element.y * scale.y,
+              width: element.width * scale.x,
+              height: element.height * scale.y,
+              fontSize: element.fontSize * scale.y,
               fontFamily: element.fontFamily,
               color: element.color
             }}
