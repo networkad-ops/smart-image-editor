@@ -13,22 +13,16 @@ interface BannerSelection {
 
 function App() {
   const [step, setStep] = useState<'project' | 'selection' | 'editor' | 'completion' | 'edit'>('project');
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [bannerSelection, setBannerSelection] = useState<BannerSelection | null>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [textElements, setTextElements] = useState<TextElement[]>([]);
-  const [editingWork, setEditingWork] = useState<BannerWork | null>(null);
 
   // 프로젝트 선택/생성
   const handleProjectSelect = (project: Project) => {
-    setSelectedProject(project);
     setStep('selection');
   };
   const handleProjectCreate = (name: string) => {
     const newProject: Project = { id: crypto.randomUUID(), name, banners: [] };
-    setProjects(prev => [...prev, newProject]);
-    setSelectedProject(newProject);
     setStep('selection');
   };
 
@@ -146,10 +140,6 @@ function App() {
       createdAt: new Date()
     };
 
-    setSelectedProject(prev => ({
-      ...prev!,
-      banners: [...prev!.banners, newWork]
-    }));
     handleReset();
   };
 
@@ -242,7 +232,6 @@ function App() {
 
   // 완성된 작업에서 편집 클릭 시
   const handleEditWork = (work: BannerWork) => {
-    setEditingWork(work);
     setBannerSelection({
       bannerType: work.bannerType,
       deviceType: work.deviceType,
@@ -255,7 +244,6 @@ function App() {
 
   // 배너 config 찾기
   const getBannerConfig = (bannerType: BannerType, deviceType: DeviceType): BannerConfig => {
-    // bannerConfigs의 key는 예: 'basic-no-logo-pc'
     const key = `${bannerType}-${deviceType}`;
     // @ts-ignore
     return bannerConfigs[key];
