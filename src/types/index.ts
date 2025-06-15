@@ -235,6 +235,7 @@ export interface BannerConfig {
   height: number;
   fixedText: boolean;
   allowCustomText: boolean;
+  maxFileSize?: number;
   mainTitle?: {
     x: number;
     y: number;

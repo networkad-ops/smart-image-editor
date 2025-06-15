@@ -3,6 +3,8 @@ import { useDropzone } from 'react-dropzone';
 
 interface ImageUploadProps {
   onUpload: (file: File) => void;
+  requiredWidth?: number;
+  requiredHeight?: number;
 }
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({ onUpload }) => {
