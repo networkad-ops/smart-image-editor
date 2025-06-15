@@ -86,29 +86,35 @@ export const BannerPreview: React.FC<BannerPreviewProps> = ({
               style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', left: 0, top: 0 }}
             />
           )}
-          {getOrderedElements().map((element) => (
-            <div
-              key={element.id}
-              style={{
-                position: 'absolute',
-                left: element.x,
-                top: element.y,
-                width: element.width,
-                height: element.height,
-                fontSize: element.fontSize,
-                fontFamily: element.fontFamily,
-                fontWeight: (element as any).fontWeight || undefined,
-                color: element.color,
-                letterSpacing: (element as any).letterSpacing || undefined,
-                whiteSpace: 'pre-line',
-                overflow: 'hidden',
-                wordBreak: 'break-all',
-                lineHeight: 1.2,
-              }}
-              className="outline-none"
-              dangerouslySetInnerHTML={{ __html: element.text || '' }}
-            />
-          ))}
+          {getOrderedElements().map((element) => {
+            // config에서 해당 요소의 설정 가져오기
+            const elementConfig = element.id === 'main-title' ? config.mainTitle : 
+                                element.id === 'sub-title' ? config.subTitle : null;
+
+            return (
+              <div
+                key={element.id}
+                style={{
+                  position: 'absolute',
+                  left: element.x,
+                  top: element.y,
+                  width: element.width,
+                  height: element.height,
+                  fontSize: element.fontSize,
+                  fontFamily: 'Pretendard',
+                  fontWeight: elementConfig?.fontWeight || 400,
+                  color: element.color,
+                  letterSpacing: elementConfig?.letterSpacing || 0,
+                  whiteSpace: 'pre-line',
+                  overflow: 'hidden',
+                  wordBreak: 'break-all',
+                  lineHeight: 1.2,
+                }}
+                className="outline-none"
+                dangerouslySetInnerHTML={{ __html: element.text || '' }}
+              />
+            );
+          })}
         </div>
       </div>
     </div>
