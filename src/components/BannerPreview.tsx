@@ -1,5 +1,5 @@
 // BannerPreview.tsx 수정
-import { forwardRef, useEffect } from 'react';
+import { forwardRef, useEffect, RefObject } from 'react';
 import { BannerConfig, TextElement } from '../types';
 
 interface BannerPreviewProps {
@@ -14,7 +14,7 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
   textElements
 }, ref) => {
   useEffect(() => {
-    const canvas = ref.current;
+    const canvas = (ref as RefObject<HTMLCanvasElement>).current;
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
@@ -46,7 +46,7 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
       ctx.fillStyle = element.color;
       ctx.fillText(element.text, element.x, element.y + element.fontSize);
     });
-  }, [uploadedImage, textElements, config.width, config.height]);
+  }, [uploadedImage, textElements, config.width, config.height, ref]);
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
