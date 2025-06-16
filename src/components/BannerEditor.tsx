@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef } from 'react';
 import { BannerType, DeviceType, BannerConfig, TextElement } from '../types';
 import { ImageUpload } from './ImageUpload';
 import { TextEditSidebar } from './TextEditSidebar';

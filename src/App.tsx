@@ -3,14 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import BannerSelector from './components/BannerSelector';
 import { BannerEditor } from './components/BannerEditor';
 import { CompletionForm } from './components/CompletionForm';
-import { BannerType, DeviceType, TextElement, BannerWork, BannerConfig } from './types';
+import { BannerType, DeviceType, TextElement, BannerWork, BannerConfig, Project, BannerSelection } from './types';
 import { bannerConfigs } from './config/bannerConfigs';
-
-interface BannerSelection {
-  bannerType: BannerType;
-  deviceType: DeviceType;
-  config: BannerConfig;
-}
 
 function App() {
   const [step, setStep] = useState<'project' | 'selection' | 'editor' | 'completion' | 'edit'>('project');

@@ -282,4 +282,10 @@ export interface Project {
   id: string;
   name: string; // 담당사업팀/담당자
   banners: BannerWork[];
+}
+
+export interface BannerSelection {
+  bannerType: BannerType;
+  deviceType: DeviceType;
+  config: BannerConfig;
 } 

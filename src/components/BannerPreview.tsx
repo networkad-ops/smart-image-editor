@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState, forwardRef } from 'react';
-import { BannerType, DeviceType, TextElement, BannerConfig } from '../types/index';
+import { forwardRef } from 'react';
+import { BannerType, DeviceType, BannerConfig, TextElement } from '../types';
 
 interface BannerPreviewProps {
   bannerType: BannerType;
@@ -10,110 +10,20 @@ interface BannerPreviewProps {
 }
 
 export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>(({
-  bannerType,
-  deviceType,
   config,
   uploadedImage,
   textElements
 }, ref) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (containerRef.current) {
-        const parentWidth = containerRef.current.clientWidth;
-        const newScale = Math.min(1, parentWidth / config.width);
-        setScale(newScale);
-      }
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [config.width]);
-
-  // 텍스트 요소를 config 순서대로 정렬 (subTitle → mainTitle → 기타)
-  const getOrderedElements = () => {
-    const order: string[] = [];
-    if (config.subTitle) order.push('sub-title');
-    if (config.mainTitle) order.push('main-title');
-    const fixed = textElements.filter(e => order.includes(e.id));
-    const custom = textElements.filter(e => !order.includes(e.id));
-    // subTitle, mainTitle 순서대로, 그 뒤에 custom
-    return [
-      ...order.map(id => fixed.find(e => e.id === id)).filter(Boolean),
-      ...custom
-    ] as TextElement[];
-  };
-
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">배너 미리보기</h3>
-        <div className="text-sm text-gray-500">
-          {config.width} × {config.height}px
-        </div>
-      </div>
-      <div
-        ref={containerRef}
-        className="relative bg-white border rounded-lg mx-auto"
-        style={{
-          width: '100%',
-          maxWidth: 900,
-          minWidth: 320,
-          aspectRatio: `${config.width} / ${config.height}`,
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            width: config.width,
-            height: config.height,
-            transform: `scale(${scale})`,
-            transformOrigin: 'top left',
-            position: 'absolute',
-            left: 0,
-            top: 0,
-          }}
-        >
-          {uploadedImage && (
-            <img
-              src={URL.createObjectURL(uploadedImage)}
-              alt="배너 이미지"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', left: 0, top: 0 }}
-            />
-          )}
-          {getOrderedElements().map((element) => {
-            // config에서 해당 요소의 설정 가져오기
-            const elementConfig = element.id === 'main-title' ? config.mainTitle : 
-                                element.id === 'sub-title' ? config.subTitle : null;
-
-            return (
-              <div
-                key={element.id}
-                style={{
-                  position: 'absolute',
-                  left: element.x,
-                  top: element.y,
-                  width: element.width,
-                  height: element.height,
-                  fontSize: element.fontSize,
-                  fontFamily: 'Pretendard',
-                  fontWeight: elementConfig?.fontWeight || 400,
-                  color: element.color,
-                  letterSpacing: elementConfig?.letterSpacing || 0,
-                  whiteSpace: 'pre-line',
-                  overflow: 'hidden',
-                  wordBreak: 'break-all',
-                  lineHeight: 1.2,
-                }}
-                className="outline-none"
-                dangerouslySetInnerHTML={{ __html: element.text || '' }}
-              />
-            );
-          })}
-        </div>
+    <div className="bg-white rounded-lg shadow-lg p-6">
+      <h2 className="text-xl font-semibold mb-4">미리보기</h2>
+      <div className="relative" style={{ width: config.width, height: config.height }}>
+        <canvas
+          ref={ref}
+          width={config.width}
+          height={config.height}
+          className="border border-gray-200"
+        />
       </div>
     </div>
   );
