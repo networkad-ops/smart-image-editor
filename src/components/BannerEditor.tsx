@@ -55,7 +55,11 @@ export function BannerEditor({
       <div className="lg:col-span-2">
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-semibold mb-4">이미지 편집</h2>
-          <ImageUpload onUpload={onImageUpload} />
+          <ImageUpload 
+            onUpload={onImageUpload} 
+            requiredWidth={config.width}
+            requiredHeight={config.height}
+          />
         </div>
 
         <div className="mt-6">

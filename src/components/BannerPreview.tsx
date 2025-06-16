@@ -27,8 +27,27 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
     if (uploadedImage) {
       const img = new Image();
       img.onload = () => {
-        // 이미지를 캔버스 크기에 맞게 그리기
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        // 이미지 비율 계산
+        const imageRatio = img.width / img.height;
+        const canvasRatio = canvas.width / canvas.height;
+        
+        let drawWidth = canvas.width;
+        let drawHeight = canvas.height;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (imageRatio > canvasRatio) {
+          // 이미지가 더 넓은 경우
+          drawHeight = canvas.width / imageRatio;
+          offsetY = (canvas.height - drawHeight) / 2;
+        } else {
+          // 이미지가 더 높은 경우
+          drawWidth = canvas.height * imageRatio;
+          offsetX = (canvas.width - drawWidth) / 2;
+        }
+
+        // 이미지를 캔버스 중앙에 맞춰 그리기
+        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
         
         // 텍스트 그리기
         textElements.forEach(element => {
