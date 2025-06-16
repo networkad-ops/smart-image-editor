@@ -51,27 +51,20 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
         
         // 텍스트 그리기
         textElements.forEach(element => {
-          ctx.font = `${element.fontSize}px ${element.fontFamily}`;
+          ctx.save();
+          ctx.font = `${element.fontSize}px "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
           ctx.fillStyle = element.color;
           
           // 줄바꿈 처리
-          const words = element.text.split(' ');
-          let line = '';
-          let y = element.y + element.fontSize;
+          const lines = element.text.split('\n');
+          const lineHeight = element.fontSize * 1.2; // 줄 간격 설정
           
-          for (let i = 0; i < words.length; i++) {
-            const testLine = line + words[i] + ' ';
-            const metrics = ctx.measureText(testLine);
-            
-            if (metrics.width > element.width && i > 0) {
-              ctx.fillText(line, element.x, y);
-              line = words[i] + ' ';
-              y += element.fontSize;
-            } else {
-              line = testLine;
-            }
-          }
-          ctx.fillText(line, element.x, y);
+          lines.forEach((line, index) => {
+            const y = element.y + (index * lineHeight);
+            ctx.fillText(line, element.x, y);
+          });
+          
+          ctx.restore();
         });
       };
       img.src = URL.createObjectURL(uploadedImage);
@@ -79,27 +72,20 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
 
     // 텍스트 그리기 (이미지가 없는 경우에도)
     textElements.forEach(element => {
-      ctx.font = `${element.fontSize}px ${element.fontFamily}`;
+      ctx.save();
+      ctx.font = `${element.fontSize}px "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
       ctx.fillStyle = element.color;
       
       // 줄바꿈 처리
-      const words = element.text.split(' ');
-      let line = '';
-      let y = element.y + element.fontSize;
+      const lines = element.text.split('\n');
+      const lineHeight = element.fontSize * 1.2; // 줄 간격 설정
       
-      for (let i = 0; i < words.length; i++) {
-        const testLine = line + words[i] + ' ';
-        const metrics = ctx.measureText(testLine);
-        
-        if (metrics.width > element.width && i > 0) {
-          ctx.fillText(line, element.x, y);
-          line = words[i] + ' ';
-          y += element.fontSize;
-        } else {
-          line = testLine;
-        }
-      }
-      ctx.fillText(line, element.x, y);
+      lines.forEach((line, index) => {
+        const y = element.y + (index * lineHeight);
+        ctx.fillText(line, element.x, y);
+      });
+      
+      ctx.restore();
     });
   }, [uploadedImage, textElements, config.width, config.height, ref]);
 
