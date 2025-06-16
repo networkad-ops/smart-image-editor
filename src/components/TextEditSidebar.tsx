@@ -9,99 +9,119 @@ interface TextEditSidebarProps {
   onDeleteText: (id: string) => void;
 }
 
-export function TextEditSidebar({
+export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   config,
   textElements,
   onAddText,
   onUpdateText,
   onDeleteText
-}: TextEditSidebarProps) {
-  const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+}) => {
+  const [newText, setNewText] = useState('');
 
   const handleAddText = () => {
-    if (!config.allowCustomText) return;
+    if (!newText.trim()) return;
 
-    const newText: TextElement = {
-      id: crypto.randomUUID(),
+    const newElement: TextElement = {
+      id: Date.now().toString(),
       type: 'custom',
-      text: '새 텍스트',
-      x: 100,
-      y: 100,
+      text: newText,
+      x: 50,
+      y: 50,
       width: 200,
-      height: 50,
+      height: 100,
       fontSize: 24,
-      fontFamily: 'Pretendard',
+      fontFamily: 'Arial',
       color: '#000000',
       editable: { position: true, size: true, color: true }
     };
 
-    onAddText(newText);
-    setSelectedTextId(newText.id);
+    onAddText(newElement);
+    setNewText('');
   };
+
+  // 메인타이틀과 서브타이틀 분리
+  const mainTitle = textElements.find(el => el.id === 'main-title');
+  const subTitle = textElements.find(el => el.id === 'sub-title');
+  const otherTexts = textElements.filter(el => el.id !== 'main-title' && el.id !== 'sub-title');
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-xl font-semibold mb-4">텍스트 편집</h2>
       
-      {config.allowCustomText && (
-        <button
-          onClick={handleAddText}
-          className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 mb-4"
-        >
-          텍스트 추가
-        </button>
+      {/* 메인타이틀 편집 */}
+      {config.mainTitle && (
+        <div className="mb-6">
+          <h3 className="font-medium mb-2">메인타이틀</h3>
+          <input
+            type="text"
+            value={mainTitle?.text || ''}
+            onChange={(e) => onUpdateText('main-title', { text: e.target.value })}
+            className="w-full px-3 py-2 border rounded"
+            placeholder="메인타이틀 입력"
+          />
+        </div>
       )}
 
-      <div className="space-y-4">
-        {textElements.map(text => (
-          <div
-            key={text.id}
-            className={`p-4 border rounded-md cursor-pointer ${
-              selectedTextId === text.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-            }`}
-            onClick={() => setSelectedTextId(text.id)}
+      {/* 서브타이틀 편집 */}
+      {config.subTitle && (
+        <div className="mb-6">
+          <h3 className="font-medium mb-2">서브타이틀</h3>
+          <input
+            type="text"
+            value={subTitle?.text || ''}
+            onChange={(e) => onUpdateText('sub-title', { text: e.target.value })}
+            className="w-full px-3 py-2 border rounded"
+            placeholder="서브타이틀 입력"
+          />
+        </div>
+      )}
+
+      {/* 추가 텍스트 입력 */}
+      <div className="mb-6">
+        <h3 className="font-medium mb-2">추가 텍스트</h3>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newText}
+            onChange={(e) => setNewText(e.target.value)}
+            className="flex-1 px-3 py-2 border rounded"
+            placeholder="새 텍스트 입력"
+          />
+          <button
+            onClick={handleAddText}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            <div className="flex justify-between items-start mb-2">
-              <span className="font-medium">{text.text}</span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteText(text.id);
-                  if (selectedTextId === text.id) {
-                    setSelectedTextId(null);
-                  }
-                }}
-                className="text-red-500 hover:text-red-700"
-              >
-                삭제
-              </button>
-            </div>
-            
-            {selectedTextId === text.id && (
-              <div className="space-y-2">
+            추가
+          </button>
+        </div>
+      </div>
+
+      {/* 추가된 텍스트 목록 */}
+      {otherTexts.length > 0 && (
+        <div>
+          <h3 className="font-medium mb-2">추가된 텍스트</h3>
+          <div className="space-y-4">
+            {otherTexts.map((element) => (
+              <div key={element.id} className="border rounded p-3">
                 <input
                   type="text"
-                  value={text.text}
-                  onChange={(e) => onUpdateText(text.id, { text: e.target.value })}
-                  className="w-full px-2 py-1 border rounded"
+                  value={element.text}
+                  onChange={(e) => onUpdateText(element.id, { text: e.target.value })}
+                  className="w-full px-3 py-2 border rounded mb-2"
                 />
-                <input
-                  type="number"
-                  value={text.fontSize}
-                  onChange={(e) => onUpdateText(text.id, { fontSize: Number(e.target.value) })}
-                  className="w-full px-2 py-1 border rounded"
-                />
-                <input
-                  type="color"
-                  value={text.color}
-                  onChange={(e) => onUpdateText(text.id, { color: e.target.value })}
-                  className="w-full h-8"
-                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onDeleteText(element.id)}
+                    className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                  >
+                    삭제
+                  </button>
+                </div>
               </div>
-            )}
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
-} 
+}; 

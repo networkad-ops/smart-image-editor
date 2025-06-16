@@ -53,7 +53,25 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
         textElements.forEach(element => {
           ctx.font = `${element.fontSize}px ${element.fontFamily}`;
           ctx.fillStyle = element.color;
-          ctx.fillText(element.text, element.x, element.y + element.fontSize);
+          
+          // 줄바꿈 처리
+          const words = element.text.split(' ');
+          let line = '';
+          let y = element.y + element.fontSize;
+          
+          for (let i = 0; i < words.length; i++) {
+            const testLine = line + words[i] + ' ';
+            const metrics = ctx.measureText(testLine);
+            
+            if (metrics.width > element.width && i > 0) {
+              ctx.fillText(line, element.x, y);
+              line = words[i] + ' ';
+              y += element.fontSize;
+            } else {
+              line = testLine;
+            }
+          }
+          ctx.fillText(line, element.x, y);
         });
       };
       img.src = URL.createObjectURL(uploadedImage);
@@ -63,19 +81,46 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
     textElements.forEach(element => {
       ctx.font = `${element.fontSize}px ${element.fontFamily}`;
       ctx.fillStyle = element.color;
-      ctx.fillText(element.text, element.x, element.y + element.fontSize);
+      
+      // 줄바꿈 처리
+      const words = element.text.split(' ');
+      let line = '';
+      let y = element.y + element.fontSize;
+      
+      for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + ' ';
+        const metrics = ctx.measureText(testLine);
+        
+        if (metrics.width > element.width && i > 0) {
+          ctx.fillText(line, element.x, y);
+          line = words[i] + ' ';
+          y += element.fontSize;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, element.x, y);
     });
   }, [uploadedImage, textElements, config.width, config.height, ref]);
+
+  // 미리보기 프레임 크기 계산
+  const previewScale = Math.min(1, 800 / Math.max(config.width, config.height));
+  const previewWidth = config.width * previewScale;
+  const previewHeight = config.height * previewScale;
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-xl font-semibold mb-4">미리보기</h2>
-      <div className="relative" style={{ width: config.width, height: config.height }}>
+      <div className="relative" style={{ width: previewWidth, height: previewHeight }}>
         <canvas
           ref={ref}
           width={config.width}
           height={config.height}
           className="border border-gray-200"
+          style={{
+            width: previewWidth,
+            height: previewHeight
+          }}
         />
       </div>
     </div>
