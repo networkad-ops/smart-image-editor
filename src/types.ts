@@ -83,5 +83,26 @@ export interface DeviceConfig {
   maxFileSize?: number;
   aspectRatio?: number;
   logo?: { width: number; height: number; x: number; y: number; };
-  text?: { x: number; y: number; width: number; height: number; };
+  text?: {
+    title: {
+      maxLength: number;
+      fontFamily: string;
+      fontSize: number;
+      fontWeight: number;
+      letterSpacing: number;
+      lineHeight: number;
+      x: number;
+      y: number;
+    };
+    subtitle: {
+      maxLength: number;
+      fontFamily: string;
+      fontSize: number;
+      fontWeight: number;
+      letterSpacing: number;
+      lineHeight: number;
+      x: number;
+      y: number;
+    };
+  };
 } 
