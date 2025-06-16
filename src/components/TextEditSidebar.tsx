@@ -30,7 +30,8 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       width: 200,
       height: 100,
       fontSize: 24,
-      fontFamily: 'Pretendard Variable',
+      fontFamily: 'Pretendard',
+      fontWeight: 400,
       color: '#000000',
       editable: { position: true, size: true, color: true }
     };

@@ -52,7 +52,9 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
         // 텍스트 그리기
         textElements.forEach(element => {
           ctx.save();
-          ctx.font = `${element.fontSize}px "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+          // 폰트 두께 설정 (기본값 400)
+          const fontWeight = element.fontWeight || 400;
+          ctx.font = `${fontWeight} ${element.fontSize}px Pretendard`;
           ctx.fillStyle = element.color;
           
           // 줄바꿈 처리
@@ -76,7 +78,9 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
     // 텍스트 그리기 (이미지가 없는 경우에도)
     textElements.forEach(element => {
       ctx.save();
-      ctx.font = `${element.fontSize}px "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+      // 폰트 두께 설정 (기본값 400)
+      const fontWeight = element.fontWeight || 400;
+      ctx.font = `${fontWeight} ${element.fontSize}px Pretendard`;
       ctx.fillStyle = element.color;
       
       // 줄바꿈 처리
