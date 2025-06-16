@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import BannerSelector from './components/BannerSelector';
 import { BannerEditor } from './components/BannerEditor';
 import { CompletionForm } from './components/CompletionForm';
-import { BannerType, DeviceType, TextElement, BannerWork, BannerConfig, Project, BannerSelection } from './types';
+import { TextElement, BannerWork, Project, BannerSelection } from './types';
 import { bannerConfigs } from './config/bannerConfigs';
 
 function App() {

@@ -65,11 +65,7 @@ export function BannerEditor({
         <div className="mt-6">
           <BannerPreview
             ref={canvasRef}
-            bannerType={bannerType}
-            deviceType={deviceType}
             config={config}
-            uploadedImage={uploadedImage}
-            textElements={textElements}
           />
         </div>
       </div>
