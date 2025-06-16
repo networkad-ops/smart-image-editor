@@ -59,6 +59,9 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
           const lines = element.text.split('\n');
           const lineHeight = element.fontSize * 1.2; // 줄 간격 설정
           
+          // 텍스트 정렬을 위한 설정
+          ctx.textBaseline = 'top'; // 텍스트의 기준선을 상단으로 설정
+          
           lines.forEach((line, index) => {
             const y = element.y + (index * lineHeight);
             ctx.fillText(line, element.x, y);
@@ -79,6 +82,9 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
       // 줄바꿈 처리
       const lines = element.text.split('\n');
       const lineHeight = element.fontSize * 1.2; // 줄 간격 설정
+      
+      // 텍스트 정렬을 위한 설정
+      ctx.textBaseline = 'top'; // 텍스트의 기준선을 상단으로 설정
       
       lines.forEach((line, index) => {
         const y = element.y + (index * lineHeight);
