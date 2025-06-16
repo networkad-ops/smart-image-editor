@@ -188,8 +188,6 @@ function App() {
               transition={{ duration: 0.3 }}
             >
               <BannerEditor
-                bannerType={bannerSelection.bannerType}
-                deviceType={bannerSelection.deviceType}
                 config={bannerSelection.config}
                 onImageUpload={handleImageUpload}
                 onAddText={handleAddText}
