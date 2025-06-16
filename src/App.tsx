@@ -14,12 +14,14 @@ function App() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [finalImage, setFinalImage] = useState<Blob | null>(null);
 
-  // 프로젝트 선택/생성
-  const handleProjectSelect = () => {
-    setStep('selection');
-  };
-  const handleProjectCreate = (project: Project) => {
-    setSelectedProject(project);
+  // 프로젝트 생성
+  const handleProjectNameSubmit = (name: string) => {
+    const newProject: Project = {
+      id: Date.now().toString(),
+      name,
+      banners: []
+    };
+    setSelectedProject(newProject);
     setStep('selection');
   };
 
@@ -168,10 +170,11 @@ function App() {
             >
               <BannerSelector
                 onSelect={handleBannerSelect}
-                onProjectCreate={handleProjectCreate}
+                onProjectCreate={handleProjectNameSubmit}
+                onProjectSelect={(project) => setSelectedProject(project)}
                 onDownload={handleDownload}
                 onEdit={handleEditWork}
-                selectedProject={selectedProject}
+                projects={selectedProject ? [selectedProject] : []}
               />
             </motion.div>
           )}
