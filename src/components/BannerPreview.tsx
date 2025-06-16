@@ -1,12 +1,17 @@
+// BannerPreview.tsx 수정
 import { forwardRef } from 'react';
-import { BannerConfig } from '../types';
+import { BannerConfig, TextElement } from '../types';
 
 interface BannerPreviewProps {
   config: BannerConfig;
+  uploadedImage: File | null;
+  textElements: TextElement[];
 }
 
 export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>(({
-  config
+  config,
+  uploadedImage,
+  textElements
 }, ref) => {
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
@@ -21,4 +26,4 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
       </div>
     </div>
   );
-}); 
+});
