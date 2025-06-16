@@ -82,5 +82,5 @@ export interface DeviceConfig {
   height: number;
   maxFileSize?: number;
   aspectRatio?: number;
-  logo?: { width: number; height: number; };
+  logo?: { width: number; height: number; x: number; y: number; };
 } 
