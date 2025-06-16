@@ -52,11 +52,10 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       {config.mainTitle && (
         <div className="mb-6">
           <h3 className="font-medium mb-2">메인타이틀</h3>
-          <input
-            type="text"
+          <textarea
             value={mainTitle?.text || ''}
             onChange={(e) => onUpdateText('main-title', { text: e.target.value })}
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-3 py-2 border rounded min-h-[100px] resize-y"
             placeholder="메인타이틀 입력"
           />
         </div>
@@ -66,11 +65,10 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       {config.subTitle && (
         <div className="mb-6">
           <h3 className="font-medium mb-2">서브타이틀</h3>
-          <input
-            type="text"
+          <textarea
             value={subTitle?.text || ''}
             onChange={(e) => onUpdateText('sub-title', { text: e.target.value })}
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-3 py-2 border rounded min-h-[100px] resize-y"
             placeholder="서브타이틀 입력"
           />
         </div>
