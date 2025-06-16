@@ -1,12 +1,10 @@
 import { useState, useRef } from 'react';
-import { BannerType, DeviceType, BannerConfig, TextElement } from '../types';
+import { BannerConfig, TextElement } from '../types';
 import { ImageUpload } from './ImageUpload';
 import { TextEditSidebar } from './TextEditSidebar';
 import { BannerPreview } from './BannerPreview';
 
 interface BannerEditorProps {
-  bannerType: BannerType;
-  deviceType: DeviceType;
   config: BannerConfig;
   onImageUpload: (file: File) => void;
   onAddText: (text: TextElement) => void;
@@ -18,8 +16,6 @@ interface BannerEditorProps {
 }
 
 export function BannerEditor({
-  bannerType,
-  deviceType,
   config,
   onImageUpload,
   onAddText,
