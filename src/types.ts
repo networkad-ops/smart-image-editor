@@ -75,4 +75,10 @@ export interface BannerSelection {
   bannerType: BannerType;
   deviceType: DeviceType;
   config: BannerConfig;
+}
+
+export interface DeviceConfig {
+  width: number;
+  height: number;
+  maxFileSize?: number;
 } 

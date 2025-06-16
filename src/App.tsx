@@ -34,44 +34,42 @@ function App() {
 
   // 기본 텍스트 요소 초기화
   const initializeTextElements = (selection: BannerSelection) => {
-    const { config } = selection;
     const elements: TextElement[] = [];
-
-    // 규격이 정해진 배너들의 기본 텍스트
-    if (config.fixedText) {
-      if (config.mainTitle) {
-        elements.push({
-          id: 'main-title',
-          type: 'fixed',
-          text: '',
-          x: config.mainTitle.x,
-          y: config.mainTitle.y,
-          width: config.mainTitle.width,
-          height: config.mainTitle.height,
-          fontSize: config.mainTitle.fontSize,
-          fontFamily: config.mainTitle.fontFamily,
-          color: '#000000',
-          editable: { position: false, size: false, color: true }
-        });
-      }
-
-      if (config.subTitle) {
-        elements.push({
-          id: 'sub-title',
-          type: 'fixed',
-          text: '',
-          x: config.subTitle.x,
-          y: config.subTitle.y,
-          width: config.subTitle.width,
-          height: config.subTitle.height,
-          fontSize: config.subTitle.fontSize,
-          fontFamily: config.subTitle.fontFamily,
-          color: '#000000',
-          editable: { position: false, size: false, color: true }
-        });
-      }
+    
+    if (selection.config.mainTitle) {
+      elements.push({
+        id: 'main-title',
+        type: 'fixed',
+        text: '',
+        x: selection.config.mainTitle.x,
+        y: selection.config.mainTitle.y,
+        width: selection.config.mainTitle.width,
+        height: selection.config.mainTitle.height,
+        fontSize: selection.config.mainTitle.fontSize,
+        fontFamily: selection.config.mainTitle.fontFamily,
+        fontWeight: selection.config.mainTitle.fontWeight ?? 700,
+        color: '#000000',
+        editable: { position: false, size: false, color: true }
+      });
     }
-
+    
+    if (selection.config.subTitle) {
+      elements.push({
+        id: 'sub-title',
+        type: 'fixed',
+        text: '',
+        x: selection.config.subTitle.x,
+        y: selection.config.subTitle.y,
+        width: selection.config.subTitle.width,
+        height: selection.config.subTitle.height,
+        fontSize: selection.config.subTitle.fontSize,
+        fontFamily: selection.config.subTitle.fontFamily,
+        fontWeight: selection.config.subTitle.fontWeight ?? 400,
+        color: '#000000',
+        editable: { position: false, size: false, color: true }
+      });
+    }
+    
     setTextElements(elements);
   };
 
