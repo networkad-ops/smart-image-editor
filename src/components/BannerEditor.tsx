@@ -62,6 +62,8 @@ export function BannerEditor({
           <BannerPreview
             ref={canvasRef}
             config={config}
+            uploadedImage={uploadedImage}
+            textElements={textElements}
           />
         </div>
       </div>
