@@ -238,12 +238,35 @@ function App() {
         console.log('로고 업로드 완료:', logoUrl);
       }
       
+      // 배너 타입과 디바이스 타입 분리 (예: 'basic-no-logo-pc' -> 'basic-no-logo', 'pc')
+      let bannerType: string;
+      let deviceType: string;
+      
+      const configKey = bannerSelection.bannerType;
+      if (configKey.endsWith('-pc')) {
+        bannerType = configKey.replace('-pc', '');
+        deviceType = 'pc';
+      } else if (configKey.endsWith('-mobile')) {
+        bannerType = configKey.replace('-mobile', '');
+        deviceType = 'mobile';
+      } else {
+        // fallback
+        bannerType = bannerSelection.bannerType;
+        deviceType = bannerSelection.deviceType;
+      }
+
+      console.log('배너 타입 분리:', {
+        configKey,
+        bannerType,
+        deviceType
+      });
+
       // 배너 데이터 구성
       const bannerData: Partial<Banner> = {
         title: editingBanner?.title || `배너_${Date.now()}`,
         description: editingBanner?.description || '',
-        banner_type: bannerSelection.bannerType,
-        device_type: bannerSelection.deviceType,
+        banner_type: bannerType as any,
+        device_type: deviceType as any,
         status: 'draft' as const,
         project_id: selectedProjectId,
         image_url: imageUrl,

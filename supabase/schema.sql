@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS teams (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     color VARCHAR(7) DEFAULT '#3B82F6', -- 팀 색상 (hex)
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS projects (
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'completed', 'on_hold', 'cancelled')),
     priority VARCHAR(10) DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
     deadline DATE, -- 프로젝트 마감일
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS banners (
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    banner_type VARCHAR(50) NOT NULL CHECK (banner_type IN ('basic-no-logo', 'basic-with-logo', 'splash', 'event')),
+    banner_type VARCHAR(50) NOT NULL CHECK (banner_type IN ('basic-no-logo', 'basic-with-logo', 'splash', 'event', 'interactive', 'fullscreen')),
     device_type VARCHAR(20) NOT NULL CHECK (device_type IN ('pc', 'mobile')),
     status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'in_progress', 'review', 'approved', 'rejected', 'completed')),
     image_url TEXT NOT NULL,
@@ -78,28 +78,13 @@ CREATE TABLE IF NOT EXISTS banner_comments (
 );
 
 -- Create comprehensive indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_teams_user_id ON teams(user_id);
 CREATE INDEX IF NOT EXISTS idx_teams_created_at ON teams(created_at DESC);
-
 CREATE INDEX IF NOT EXISTS idx_projects_team_id ON projects(team_id);
-CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id);
 CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
-CREATE INDEX IF NOT EXISTS idx_projects_priority ON projects(priority);
-CREATE INDEX IF NOT EXISTS idx_projects_deadline ON projects(deadline);
 CREATE INDEX IF NOT EXISTS idx_projects_created_at ON projects(created_at DESC);
-
 CREATE INDEX IF NOT EXISTS idx_banners_project_id ON banners(project_id);
 CREATE INDEX IF NOT EXISTS idx_banners_status ON banners(status);
-CREATE INDEX IF NOT EXISTS idx_banners_banner_type ON banners(banner_type);
-CREATE INDEX IF NOT EXISTS idx_banners_device_type ON banners(device_type);
 CREATE INDEX IF NOT EXISTS idx_banners_created_at ON banners(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_banners_tags ON banners USING GIN(tags);
-
-CREATE INDEX IF NOT EXISTS idx_banner_history_banner_id ON banner_history(banner_id);
-CREATE INDEX IF NOT EXISTS idx_banner_history_version ON banner_history(banner_id, version);
-
-CREATE INDEX IF NOT EXISTS idx_banner_comments_banner_id ON banner_comments(banner_id);
-CREATE INDEX IF NOT EXISTS idx_banner_comments_user_id ON banner_comments(user_id);
 
 -- Create storage buckets
 INSERT INTO storage.buckets (id, name, public) 
@@ -109,175 +94,7 @@ VALUES
     ('thumbnails', 'thumbnails', true)
 ON CONFLICT (id) DO NOTHING;
 
--- 완전 공개 모드: RLS 비활성화
-ALTER TABLE teams DISABLE ROW LEVEL SECURITY;
-ALTER TABLE projects DISABLE ROW LEVEL SECURITY;
-ALTER TABLE banners DISABLE ROW LEVEL SECURITY;
-ALTER TABLE banner_history DISABLE ROW LEVEL SECURITY;
-ALTER TABLE banner_comments DISABLE ROW LEVEL SECURITY;
-
--- Create policies for teams
-CREATE POLICY "Users can view their own teams" ON teams
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can create teams" ON teams
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update their own teams" ON teams
-    FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete their own teams" ON teams
-    FOR DELETE USING (auth.uid() = user_id);
-
--- Create policies for projects
-CREATE POLICY "Users can view projects of their teams" ON projects
-    FOR SELECT USING (
-        auth.uid() = user_id OR
-        EXISTS (
-            SELECT 1 FROM teams 
-            WHERE teams.id = projects.team_id 
-            AND teams.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "Users can create projects" ON projects
-    FOR INSERT WITH CHECK (
-        auth.uid() = user_id OR
-        (team_id IS NOT NULL AND EXISTS (
-            SELECT 1 FROM teams 
-            WHERE teams.id = projects.team_id 
-            AND teams.user_id = auth.uid()
-        ))
-    );
-
-CREATE POLICY "Users can update projects of their teams" ON projects
-    FOR UPDATE USING (
-        auth.uid() = user_id OR
-        EXISTS (
-            SELECT 1 FROM teams 
-            WHERE teams.id = projects.team_id 
-            AND teams.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "Users can delete projects of their teams" ON projects
-    FOR DELETE USING (
-        auth.uid() = user_id OR
-        EXISTS (
-            SELECT 1 FROM teams 
-            WHERE teams.id = projects.team_id 
-            AND teams.user_id = auth.uid()
-        )
-    );
-
--- Create policies for banners
-CREATE POLICY "Users can view banners of their projects" ON banners
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM projects p
-            LEFT JOIN teams t ON p.team_id = t.id
-            WHERE p.id = banners.project_id 
-            AND (p.user_id = auth.uid() OR t.user_id = auth.uid())
-        )
-    );
-
-CREATE POLICY "Users can create banners for their projects" ON banners
-    FOR INSERT WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM projects p
-            LEFT JOIN teams t ON p.team_id = t.id
-            WHERE p.id = banners.project_id 
-            AND (p.user_id = auth.uid() OR t.user_id = auth.uid())
-        )
-    );
-
-CREATE POLICY "Users can update banners of their projects" ON banners
-    FOR UPDATE USING (
-        EXISTS (
-            SELECT 1 FROM projects p
-            LEFT JOIN teams t ON p.team_id = t.id
-            WHERE p.id = banners.project_id 
-            AND (p.user_id = auth.uid() OR t.user_id = auth.uid())
-        )
-    );
-
-CREATE POLICY "Users can delete banners of their projects" ON banners
-    FOR DELETE USING (
-        EXISTS (
-            SELECT 1 FROM projects p
-            LEFT JOIN teams t ON p.team_id = t.id
-            WHERE p.id = banners.project_id 
-            AND (p.user_id = auth.uid() OR t.user_id = auth.uid())
-        )
-    );
-
--- Create policies for banner_history
-CREATE POLICY "Users can view banner history of their projects" ON banner_history
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM banners b
-            JOIN projects p ON b.project_id = p.id
-            LEFT JOIN teams t ON p.team_id = t.id
-            WHERE b.id = banner_history.banner_id 
-            AND (p.user_id = auth.uid() OR t.user_id = auth.uid())
-        )
-    );
-
-CREATE POLICY "Users can create banner history for their projects" ON banner_history
-    FOR INSERT WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM banners b
-            JOIN projects p ON b.project_id = p.id
-            LEFT JOIN teams t ON p.team_id = t.id
-            WHERE b.id = banner_history.banner_id 
-            AND (p.user_id = auth.uid() OR t.user_id = auth.uid())
-        )
-    );
-
--- Create policies for banner_comments
-CREATE POLICY "Users can view comments on banners of their projects" ON banner_comments
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM banners b
-            JOIN projects p ON b.project_id = p.id
-            LEFT JOIN teams t ON p.team_id = t.id
-            WHERE b.id = banner_comments.banner_id 
-            AND (p.user_id = auth.uid() OR t.user_id = auth.uid())
-        )
-    );
-
-CREATE POLICY "Users can create comments on banners of their projects" ON banner_comments
-    FOR INSERT WITH CHECK (
-        auth.uid() = user_id AND
-        EXISTS (
-            SELECT 1 FROM banners b
-            JOIN projects p ON b.project_id = p.id
-            LEFT JOIN teams t ON p.team_id = t.id
-            WHERE b.id = banner_comments.banner_id 
-            AND (p.user_id = auth.uid() OR t.user_id = auth.uid())
-        )
-    );
-
-CREATE POLICY "Users can update their own comments" ON banner_comments
-    FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete their own comments" ON banner_comments
-    FOR DELETE USING (auth.uid() = user_id);
-
--- Storage policies
-CREATE POLICY "Anyone can view banner images" ON storage.objects
-    FOR SELECT USING (bucket_id IN ('banner-images', 'logos', 'thumbnails'));
-
-CREATE POLICY "Authenticated users can upload files" ON storage.objects
-    FOR INSERT WITH CHECK (bucket_id IN ('banner-images', 'logos', 'thumbnails') AND auth.role() = 'authenticated');
-
-CREATE POLICY "Users can update their files" ON storage.objects
-    FOR UPDATE USING (bucket_id IN ('banner-images', 'logos', 'thumbnails') AND auth.role() = 'authenticated');
-
-CREATE POLICY "Users can delete their files" ON storage.objects
-    FOR DELETE USING (bucket_id IN ('banner-images', 'logos', 'thumbnails') AND auth.role() = 'authenticated');
-
--- Create functions
+-- Functions
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -286,7 +103,31 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Create function to automatically create banner history
+-- Triggers
+CREATE TRIGGER update_teams_updated_at 
+    BEFORE UPDATE ON teams 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_projects_updated_at 
+    BEFORE UPDATE ON projects 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_banners_updated_at 
+    BEFORE UPDATE ON banners 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- RLS 완전 비활성화 (인증 없이 접근 가능)
+ALTER TABLE teams DISABLE ROW LEVEL SECURITY;
+ALTER TABLE projects DISABLE ROW LEVEL SECURITY;
+ALTER TABLE banners DISABLE ROW LEVEL SECURITY;
+
+-- Storage 정책 (공개 접근 허용)
+CREATE POLICY "Public Access" ON storage.objects FOR ALL USING (true);
+CREATE POLICY "Public Upload" ON storage.objects FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public Update" ON storage.objects FOR UPDATE USING (true);
+CREATE POLICY "Public Delete" ON storage.objects FOR DELETE USING (true);
+
+-- Create functions
 CREATE OR REPLACE FUNCTION create_banner_history()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -333,22 +174,6 @@ END;
 $$ language 'plpgsql';
 
 -- Create triggers
-CREATE TRIGGER update_teams_updated_at 
-    BEFORE UPDATE ON teams 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_projects_updated_at 
-    BEFORE UPDATE ON projects 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_banners_updated_at 
-    BEFORE UPDATE ON banners 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_banner_comments_updated_at 
-    BEFORE UPDATE ON banner_comments 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
 CREATE TRIGGER create_banner_history_trigger
     BEFORE UPDATE ON banners
     FOR EACH ROW EXECUTE FUNCTION create_banner_history();
