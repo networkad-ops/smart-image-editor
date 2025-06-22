@@ -46,6 +46,13 @@ export interface LogoConfig {
   maxFileSize?: number;
 }
 
+// 색상 세그먼트 타입 (부분 색상 변경용)
+export interface ColorSegment {
+  start: number;  // 시작 인덱스
+  end: number;    // 끝 인덱스
+  color: string;  // 색상
+}
+
 // 텍스트 요소 타입
 export interface TextElement {
   id: string;
@@ -59,6 +66,7 @@ export interface TextElement {
   fontFamily: string;
   fontWeight: number;
   color: string;
+  colorSegments?: ColorSegment[];  // 부분 색상 변경 정보
   editable: {
     position: boolean;
     size: boolean;
