@@ -44,24 +44,35 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       // 저장된 선택 범위 사용
       start = selectedRange.start;
       end = selectedRange.end;
+      console.log('저장된 선택 범위 사용:', { elementId, start, end, color });
     } else {
       // 현재 선택 범위 확인
       const inputRef = elementId === 'sub-title' ? subTitleInputRef : mainTitleInputRef;
       const input = inputRef.current;
-      if (!input) return;
+      if (!input) {
+        console.log('Input이 없음:', elementId);
+        return;
+      }
       
       start = input.selectionStart || 0;
       end = input.selectionEnd || 0;
+      console.log('현재 선택 범위:', { elementId, start, end, color });
     }
     
     if (start === end) {
       // 선택된 텍스트가 없으면 전체 색상 변경
+      console.log('선택된 텍스트가 없어서 전체 색상 변경:', { elementId, color });
       onUpdateText(elementId, { color });
       return;
     }
     
     const element = textElements.find(el => el.id === elementId);
-    if (!element) return;
+    if (!element) {
+      console.log('Element를 찾을 수 없음:', elementId);
+      return;
+    }
+    
+    console.log('선택된 텍스트:', element.text?.substring(start, end));
     
     // 기존 colorSegments 복사 또는 새로 생성
     const existingSegments = element.colorSegments || [];
@@ -72,6 +83,9 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       end,
       color
     };
+    
+    console.log('새 세그먼트:', newSegment);
+    console.log('기존 세그먼트:', existingSegments);
     
     // 기존 세그먼트와 겹치는 부분 처리
     let updatedSegments = existingSegments.filter(segment => 
@@ -111,7 +125,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     // 세그먼트를 시작 위치순으로 정렬
     updatedSegments.sort((a, b) => a.start - b.start);
     
-    console.log('Applying color segments:', updatedSegments);
+    console.log('최종 세그먼트:', updatedSegments);
     onUpdateText(elementId, { colorSegments: updatedSegments });
     
     // 선택 범위 초기화
