@@ -2,13 +2,13 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BannerSelector from './components/BannerSelector';
 import { BannerEditor } from './components/BannerEditor';
-import { CompletionForm } from './components/CompletionForm';
+
 import { ProjectManager } from './components/project/ProjectManager';
 import { TextElement, Banner, BannerSelection, Team, Project, ProjectFormData, TeamFormData } from './types';
 import { bannerConfigs } from './config/bannerConfigs';
 import { useSupabase } from './hooks/useSupabase';
 
-type AppStep = 'project-manager' | 'banner-selection' | 'editor' | 'completion';
+type AppStep = 'project-manager' | 'banner-selection' | 'editor';
 
 function App() {
   const [step, setStep] = useState<AppStep>('project-manager');
@@ -208,81 +208,75 @@ function App() {
     setTextElements(prev => prev.filter(text => text.id !== id));
   };
 
-  // 완성 단계로 이동
-  const handleComplete = (image: Blob) => {
-    setFinalImage(image);
-    setStep('completion');
-  };
-
-  // 배너 저장
-  const handleSaveBanner = async (formData: any) => {
-    if (!selectedProjectId) {
-      alert('프로젝트를 선택해주세요.');
+  // 완료 버튼 클릭 시 바로 저장
+  const handleComplete = async (image: Blob) => {
+    if (!selectedProjectId || !bannerSelection) {
+      alert('프로젝트 정보가 없습니다.');
       return;
     }
 
     try {
       setLoading(true);
+      console.log('handleComplete 호출됨 - 바로 저장 시작');
 
-      const bannerBlob = await new Promise<Blob | null>((resolve) => {
-        if (previewCanvasRef.current) {
-          previewCanvasRef.current.toBlob(
-            (blob) => {
-              if (blob) {
-                resolve(new Blob([blob], { type: 'image/jpeg' }));
-              } else {
-                resolve(null);
-              }
-            },
-            'image/jpeg',
-            0.95
-          );
-        } else {
-          resolve(null);
-        }
-      });
+      // Blob을 File로 변환
+      const fileName = editingBanner?.title 
+        ? `${editingBanner.title.replace(/[^\w\s-]/g, '').trim()}_${Date.now()}.jpg`
+        : `banner_${Date.now()}.jpg`;
+      
+      const bannerFile = new File([image], fileName, { type: 'image/jpeg' });
+      console.log('배너 파일 생성:', bannerFile.name, bannerFile.size, 'bytes');
 
-      if (!bannerBlob) {
-        throw new Error('배너 이미지 생성에 실패했습니다.');
-      }
-
-      const bannerFile = new File([bannerBlob], `${formData.title.replace(/\\s+/g, '_') || 'banner'}.jpg`, { type: 'image/jpeg' });
+      // 이미지 업로드
       const imageUrl = await uploadBannerImage(bannerFile);
+      console.log('이미지 업로드 완료:', imageUrl);
 
+      // 로고 업로드 (있는 경우)
       let logoUrl = editingBanner?.logo_url || '';
       if (uploadedLogo) {
         logoUrl = await uploadLogo(uploadedLogo);
+        console.log('로고 업로드 완료:', logoUrl);
       }
       
+      // 배너 데이터 구성
       const bannerData: Partial<Banner> = {
-        title: formData.title,
-        description: formData.description,
-        banner_type: formData.bannerType,
-        device_type: formData.deviceType,
+        title: editingBanner?.title || `배너_${Date.now()}`,
+        description: editingBanner?.description || '',
+        banner_type: bannerSelection.bannerType,
+        device_type: bannerSelection.deviceType,
         status: 'draft' as const,
         project_id: selectedProjectId,
         image_url: imageUrl,
         logo_url: logoUrl,
         text_elements: textElements,
-        canvas_width: formData.config.width,
-        canvas_height: formData.config.height
+        canvas_width: bannerSelection.config.width,
+        canvas_height: bannerSelection.config.height
       };
 
+      console.log('배너 데이터:', bannerData);
+
+      // 배너 저장 또는 업데이트
       if (editingBanner) {
         await updateBanner(editingBanner.id, bannerData);
+        console.log('배너 업데이트 완료');
       } else {
         await createBanner(bannerData);
+        console.log('새 배너 생성 완료');
       }
 
+      alert('배너가 성공적으로 저장되었습니다!');
+      
       // 상태 초기화 후 프로젝트 매니저로 돌아가기
       handleReset();
     } catch (error) {
       console.error('배너 저장 실패:', error);
-      alert('배너 저장에 실패했습니다.');
+      alert(`배너 저장에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
     } finally {
       setLoading(false);
     }
   };
+
+
 
   // 상태 초기화
   const handleReset = () => {
@@ -300,9 +294,7 @@ function App() {
 
   // 뒤로 가기
   const handleGoBack = () => {
-    if (step === 'completion') {
-      setStep('editor');
-    } else if (step === 'editor') {
+    if (step === 'editor') {
       if (editingBanner) {
         handleReset();
       } else {
@@ -324,7 +316,6 @@ function App() {
                 {step === 'project-manager' && '프로젝트를 관리하고 배너를 생성하세요'}
                 {step === 'banner-selection' && '배너 타입과 디바이스를 선택하세요'}
                 {step === 'editor' && '배너를 편집하세요'}
-                {step === 'completion' && '배너를 저장하세요'}
               </p>
             </div>
             <div className="flex items-center space-x-4">
@@ -419,27 +410,7 @@ function App() {
             </motion.div>
           )}
 
-          {/* 완성 단계 */}
-          {step === 'completion' && finalImage && bannerSelection && (
-            <motion.div
-              key="completion"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <CompletionForm
-                finalImage={finalImage}
-                bannerType={bannerSelection.bannerType}
-                deviceType={bannerSelection.deviceType}
-                onSave={handleSaveBanner}
-                onEdit={() => setStep('editor')}
-                isEditing={!!editingBanner}
-                defaultTitle={editingBanner?.title || bannerSelection.config.name}
-                defaultDescription={editingBanner?.description}
-              />
-            </motion.div>
-          )}
+
         </AnimatePresence>
       </div>
 

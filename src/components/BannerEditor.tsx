@@ -87,22 +87,45 @@ const BannerEditor = React.forwardRef<HTMLCanvasElement, BannerEditorProps>(
     };
 
     const handleComplete = async () => {
-      if (!ref || !('current' in ref) || !ref.current || (!uploadedImage && !existingImageUrl)) return;
+      if (!ref || !('current' in ref) || !ref.current || (!uploadedImage && !existingImageUrl)) {
+        alert('이미지를 업로드해주세요.');
+        return;
+      }
 
       try {
         setIsProcessing(true);
         
+        console.log('완료 버튼 클릭 - Canvas 상태:', {
+          canvasExists: !!ref.current,
+          uploadedImage: !!uploadedImage,
+          existingImageUrl: !!existingImageUrl,
+          textElements: textElements.length
+        });
+        
         // Canvas를 Blob으로 변환
-        const blob = await new Promise<Blob>((resolve) => {
-          ref.current?.toBlob((blob: Blob | null) => {
-            if (blob) resolve(blob);
+        const blob = await new Promise<Blob>((resolve, reject) => {
+          if (!ref.current) {
+            reject(new Error('Canvas를 찾을 수 없습니다.'));
+            return;
+          }
+          
+          ref.current.toBlob((blob: Blob | null) => {
+            if (blob) {
+              console.log('Blob 생성 성공:', blob.size, 'bytes');
+              resolve(blob);
+            } else {
+              console.error('toBlob이 null을 반환했습니다.');
+              reject(new Error('Canvas에서 이미지를 생성할 수 없습니다.'));
+            }
           }, 'image/jpeg', 0.95);
         });
 
+        console.log('onComplete 호출 전');
         onComplete(blob);
+        console.log('onComplete 호출 후');
       } catch (error) {
         console.error('이미지 처리 중 오류 발생:', error);
-        alert('이미지 처리 중 오류가 발생했습니다.');
+        alert(`이미지 처리 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
       } finally {
         setIsProcessing(false);
       }
