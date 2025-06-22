@@ -206,39 +206,28 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               </div>
             )}
             
-            {/* 색상 팔레트 */}
+            {/* 부분 색상 선택 */}
             <div>
               <div className="text-xs text-gray-600 mb-2">
-                {selectedRange && selectedRange.elementId === 'sub-title' ? '선택 부분에 적용할 색상' : '색상 팔레트 (텍스트 선택 후 사용)'}
+                {selectedRange && selectedRange.elementId === 'sub-title' ? '선택 부분에 적용할 색상' : '부분 색상 (텍스트 선택 후 사용)'}
               </div>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { color: '#FF0000', name: '빨강' },
-                  { color: '#FF6B35', name: '주황' },
-                  { color: '#F7931E', name: '오렌지' },
-                  { color: '#FFD700', name: '금색' },
-                  { color: '#32CD32', name: '초록' },
-                  { color: '#00CED1', name: '청록' },
-                  { color: '#4169E1', name: '파랑' },
-                  { color: '#8A2BE2', name: '보라' },
-                  { color: '#FF1493', name: '핑크' },
-                  { color: '#000000', name: '검정' },
-                  { color: '#666666', name: '회색' },
-                  { color: '#FFFFFF', name: '흰색' }
-                ].map(({ color, name }) => (
-                  <button
-                    key={color}
-                    className={`w-8 h-8 rounded-lg border-2 cursor-pointer hover:scale-110 transition-all shadow-sm ${
-                      selectedRange && selectedRange.elementId === 'sub-title' 
-                        ? 'border-gray-400 hover:border-gray-600' 
-                        : 'border-gray-300 opacity-60'
-                    }`}
-                    style={{ backgroundColor: color }}
-                    onClick={() => applyPartialColor('sub-title', color)}
-                    title={`${name} (${color})`}
-                    disabled={!selectedRange || selectedRange.elementId !== 'sub-title'}
-                  />
-                ))}
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  onChange={(e) => applyPartialColor('sub-title', e.target.value)}
+                  className={`w-10 h-10 border-2 rounded-lg cursor-pointer transition-all ${
+                    selectedRange && selectedRange.elementId === 'sub-title' 
+                      ? 'border-blue-400' 
+                      : 'border-gray-300 opacity-60 cursor-not-allowed'
+                  }`}
+                  disabled={!selectedRange || selectedRange.elementId !== 'sub-title'}
+                  title="선택된 텍스트에 색상 적용"
+                />
+                <span className="text-xs text-gray-500">
+                  {selectedRange && selectedRange.elementId === 'sub-title' 
+                    ? '색상을 선택하면 선택된 부분에 적용됩니다' 
+                    : '텍스트를 먼저 선택해주세요'}
+                </span>
               </div>
             </div>
             
@@ -320,39 +309,28 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               </div>
             )}
             
-            {/* 색상 팔레트 */}
+            {/* 부분 색상 선택 */}
             <div>
               <div className="text-xs text-gray-600 mb-2">
-                {selectedRange && selectedRange.elementId === 'main-title' ? '선택 부분에 적용할 색상' : '색상 팔레트 (텍스트 선택 후 사용)'}
+                {selectedRange && selectedRange.elementId === 'main-title' ? '선택 부분에 적용할 색상' : '부분 색상 (텍스트 선택 후 사용)'}
               </div>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { color: '#FF0000', name: '빨강' },
-                  { color: '#FF6B35', name: '주황' },
-                  { color: '#F7931E', name: '오렌지' },
-                  { color: '#FFD700', name: '금색' },
-                  { color: '#32CD32', name: '초록' },
-                  { color: '#00CED1', name: '청록' },
-                  { color: '#4169E1', name: '파랑' },
-                  { color: '#8A2BE2', name: '보라' },
-                  { color: '#FF1493', name: '핑크' },
-                  { color: '#000000', name: '검정' },
-                  { color: '#666666', name: '회색' },
-                  { color: '#FFFFFF', name: '흰색' }
-                ].map(({ color, name }) => (
-                  <button
-                    key={color}
-                    className={`w-8 h-8 rounded-lg border-2 cursor-pointer hover:scale-110 transition-all shadow-sm ${
-                      selectedRange && selectedRange.elementId === 'main-title' 
-                        ? 'border-gray-400 hover:border-gray-600' 
-                        : 'border-gray-300 opacity-60'
-                    }`}
-                    style={{ backgroundColor: color }}
-                    onClick={() => applyPartialColor('main-title', color)}
-                    title={`${name} (${color})`}
-                    disabled={!selectedRange || selectedRange.elementId !== 'main-title'}
-                  />
-                ))}
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  onChange={(e) => applyPartialColor('main-title', e.target.value)}
+                  className={`w-10 h-10 border-2 rounded-lg cursor-pointer transition-all ${
+                    selectedRange && selectedRange.elementId === 'main-title' 
+                      ? 'border-blue-400' 
+                      : 'border-gray-300 opacity-60 cursor-not-allowed'
+                  }`}
+                  disabled={!selectedRange || selectedRange.elementId !== 'main-title'}
+                  title="선택된 텍스트에 색상 적용"
+                />
+                <span className="text-xs text-gray-500">
+                  {selectedRange && selectedRange.elementId === 'main-title' 
+                    ? '색상을 선택하면 선택된 부분에 적용됩니다' 
+                    : '텍스트를 먼저 선택해주세요'}
+                </span>
               </div>
             </div>
             
