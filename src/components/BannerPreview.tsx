@@ -85,20 +85,29 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
     });
 
     const canvas = (ref as RefObject<HTMLCanvasElement>).current;
-    if (!canvas) return;
+    if (!canvas) {
+      console.log('Canvas가 없음');
+      return;
+    }
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      console.log('Canvas context가 없음');
+      return;
+    }
 
     // 캔버스 초기화
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    console.log('Canvas 초기화 완료:', canvas.width, 'x', canvas.height);
 
     // 이미지 그리기 (새 이미지 우선, 없으면 기존 이미지)
     const imageToUse = uploadedImage || existingImageUrl;
-    console.log('사용할 이미지:', {
+    console.log('사용할 이미지 상세:', {
       uploadedImage: !!uploadedImage,
+      uploadedImageName: uploadedImage?.name,
       existingImageUrl,
-      imageToUse: typeof imageToUse
+      imageToUse: typeof imageToUse,
+      imageToUseValue: imageToUse
     });
     if (imageToUse) {
       const img = new Image();
