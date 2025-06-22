@@ -17,16 +17,42 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   onDeleteText
 }) => {
   const [newText, setNewText] = useState('');
+  const [selectedRange, setSelectedRange] = useState<{elementId: string, start: number, end: number} | null>(null);
   const subTitleInputRef = useRef<HTMLInputElement>(null);
   const mainTitleInputRef = useRef<HTMLTextAreaElement>(null);
   
-  // 부분 색상 변경 함수
-  const applyPartialColor = (elementId: string, color: string, inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement>) => {
+  // 텍스트 선택 감지
+  const handleTextSelect = (elementId: string, inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = inputRef.current;
     if (!input) return;
     
     const start = input.selectionStart || 0;
     const end = input.selectionEnd || 0;
+    
+    if (start !== end) {
+      setSelectedRange({ elementId, start, end });
+    } else {
+      setSelectedRange(null);
+    }
+  };
+  
+  // 부분 색상 변경 함수
+  const applyPartialColor = (elementId: string, color: string) => {
+    let start: number, end: number;
+    
+    if (selectedRange && selectedRange.elementId === elementId) {
+      // 저장된 선택 범위 사용
+      start = selectedRange.start;
+      end = selectedRange.end;
+    } else {
+      // 현재 선택 범위 확인
+      const inputRef = elementId === 'sub-title' ? subTitleInputRef : mainTitleInputRef;
+      const input = inputRef.current;
+      if (!input) return;
+      
+      start = input.selectionStart || 0;
+      end = input.selectionEnd || 0;
+    }
     
     if (start === end) {
       // 선택된 텍스트가 없으면 전체 색상 변경
@@ -86,6 +112,9 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     updatedSegments.sort((a, b) => a.start - b.start);
     
     onUpdateText(elementId, { colorSegments: updatedSegments });
+    
+    // 선택 범위 초기화
+    setSelectedRange(null);
   };
 
   const handleAddText = () => {
@@ -133,6 +162,9 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             type="text"
             value={subTitle?.text || ''}
             onChange={(e) => onUpdateText('sub-title', { text: e.target.value })}
+            onSelect={() => handleTextSelect('sub-title', subTitleInputRef)}
+            onMouseUp={() => handleTextSelect('sub-title', subTitleInputRef)}
+            onKeyUp={() => handleTextSelect('sub-title', subTitleInputRef)}
             className="w-full px-3 py-2 border rounded mb-2"
             placeholder="서브타이틀 입력 (한 줄만 가능)"
             maxLength={config.subTitle.maxLength}
@@ -153,6 +185,11 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           {/* 부분 색상 변경 안내 */}
           <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
             💡 <strong>부분 색상 변경:</strong> 텍스트를 드래그하여 선택한 후 아래 색상을 클릭하세요
+            {selectedRange && selectedRange.elementId === 'sub-title' && (
+              <div className="mt-1 text-green-600">
+                ✓ 선택됨: "{(subTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"
+              </div>
+            )}
           </div>
           
           {/* 부분 색상 변경용 색상 팔레트 */}
@@ -162,7 +199,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 key={color}
                 className="w-6 h-6 rounded border border-gray-300 cursor-pointer hover:scale-110 transition-transform"
                 style={{ backgroundColor: color }}
-                onClick={() => applyPartialColor('sub-title', color, subTitleInputRef)}
+                onClick={() => applyPartialColor('sub-title', color)}
                 title={`색상: ${color}`}
               />
             ))}
@@ -200,6 +237,9 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 onUpdateText('main-title', { text: limitedText });
               }
             }}
+            onSelect={() => handleTextSelect('main-title', mainTitleInputRef)}
+            onMouseUp={() => handleTextSelect('main-title', mainTitleInputRef)}
+            onKeyUp={() => handleTextSelect('main-title', mainTitleInputRef)}
             className="w-full px-3 py-2 border rounded min-h-[80px] resize-y mb-2"
             placeholder="메인타이틀 입력 (최대 2줄, 줄바꿈 1번만 가능)"
             maxLength={config.mainTitle.maxLength}
@@ -221,6 +261,11 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           {/* 부분 색상 변경 안내 */}
           <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
             💡 <strong>부분 색상 변경:</strong> 텍스트를 드래그하여 선택한 후 아래 색상을 클릭하세요
+            {selectedRange && selectedRange.elementId === 'main-title' && (
+              <div className="mt-1 text-green-600">
+                ✓ 선택됨: "{(mainTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"
+              </div>
+            )}
           </div>
           
           {/* 부분 색상 변경용 색상 팔레트 */}
@@ -230,7 +275,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 key={color}
                 className="w-6 h-6 rounded border border-gray-300 cursor-pointer hover:scale-110 transition-transform"
                 style={{ backgroundColor: color }}
-                onClick={() => applyPartialColor('main-title', color, mainTitleInputRef)}
+                onClick={() => applyPartialColor('main-title', color)}
                 title={`색상: ${color}`}
               />
             ))}
