@@ -132,14 +132,6 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     allowCustomText: true
   },
 
-  'main-popup-mobile': {
-    name: '메인홈 팝업',
-    width: 375,
-    height: 203,
-    maxFileSize: 5 * 1024 * 1024,
-    fixedText: false,
-    allowCustomText: true
-  },
 
   'interactive-mobile': {
     name: '인터랙티브 배너 (모바일)',
@@ -151,13 +143,36 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'fullscreen-pc': {
-    name: '전면 배너 (PC)',
-    width: 2880,
-    height: 570,
-    maxFileSize: 10 * 1024 * 1024,
-    fixedText: false,
-    allowCustomText: true
+  name: '전면 배너 (PC)',
+  width: 2880,
+  height: 570,
+  maxFileSize: 10 * 1024 * 1024,
+  fixedText: true,
+  allowCustomText: false,
+  subTitle: {
+    x: 165,
+    y: 197,
+    width: 679,
+    height: 50, // 실제 렌더링 기준 보정 가능
+    fontSize: 38,
+    lineHeight: 47, // 38 * 1.24
+    fontFamily: 'Pretendard',
+    fontWeight: 600, // Semibold
+    letterSpacing: -2
+  },
+  mainTitle: {
+    x: 165,
+    y: 250,
+    width: 679,
+    height: 100,
+    fontSize: 54,
+    lineHeight: 67, // 54 * 1.24
+    fontFamily: 'Pretendard',
+    fontWeight: 700, // Bold
+    letterSpacing: -2
   }
+}
+
 };
 
 // 배너 타입별 설정 가져오기

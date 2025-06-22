@@ -16,6 +16,8 @@ interface BannerEditorProps {
   textElements: TextElement[];
   uploadedImage: File | null;
   uploadedLogo?: File | null;
+  isEditing?: boolean;
+  editingBanner?: any; // Banner 타입이지만 일단 any로 처리
 }
 
 export function BannerEditor({
@@ -28,7 +30,9 @@ export function BannerEditor({
   onComplete,
   textElements,
   uploadedImage,
-  uploadedLogo
+  uploadedLogo,
+  isEditing = false,
+  editingBanner
 }: BannerEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);

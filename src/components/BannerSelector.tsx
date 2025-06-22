@@ -1,13 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { bannerConfigs } from '../config/bannerConfigs';
-import { BannerWork, BannerConfig, BannerType, DeviceType, Project } from '../types';
-
-interface BannerSelection {
-  bannerType: BannerType;
-  deviceType: DeviceType;
-  config: BannerConfig;
-}
+import { BannerWork, BannerConfig, Project, BannerSelection } from '../types';
 
 interface BannerSelectorProps {
   onSelect: (selection: BannerSelection) => void;
@@ -17,9 +11,10 @@ interface BannerSelectorProps {
   onDownload: (work: BannerWork) => void;
   onEdit: (work: BannerWork) => void;
   projects?: Project[];
+  hideProjectManagement?: boolean;
 }
 
-const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, onProjectSelect, onProjectCreate, onDownload, onEdit, projects = [] }) => {
+const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, onProjectSelect, onProjectCreate, onDownload, onEdit, projects = [], hideProjectManagement = false }) => {
   const [selectedOption, setSelectedOption] = useState('');
   const [projectInput, setProjectInput] = useState('');
   
@@ -29,8 +24,8 @@ const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, onProjectSele
     const config = bannerConfigs[selectedOption];
     const [bannerTypeString, deviceTypeString] = selectedOption.split('-');
     
-    const bannerType = bannerTypeString as BannerType;
-    const deviceType = (deviceTypeString === 'mobile' ? 'mobile' : 'pc') as DeviceType;
+    const bannerType = bannerTypeString as 'basic-no-logo' | 'basic-with-logo' | 'splash' | 'event';
+    const deviceType = (deviceTypeString === 'mobile' ? 'mobile' : 'pc') as 'pc' | 'mobile';
 
     onSelect({
       bannerType,
@@ -41,76 +36,80 @@ const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, onProjectSele
 
   return (
     <div className="space-y-8">
-      {/* 프로젝트 선택/생성 */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-xl font-semibold mb-4">담당사업팀/담당자 선택</h2>
-        <div className="flex gap-2 mb-4">
-          <select
-            className="border rounded px-3 py-2"
-            onChange={e => {
-              const project = projects.find(p => p.id === e.target.value);
-              if (project) onProjectSelect(project);
-            }}
-            defaultValue=""
-          >
-            <option value="">프로젝트(팀/담당자) 선택</option>
-            {projects.map(project => (
-              <option key={project.id} value={project.id}>{project.name}</option>
-            ))}
-          </select>
-          <input
-            type="text"
-            className="border rounded px-3 py-2"
-            placeholder="새 프로젝트명 (팀/담당자)"
-            value={projectInput}
-            onChange={e => setProjectInput(e.target.value)}
-          />
-          <button
-            className="px-4 py-2 bg-blue-600 text-white rounded"
-            onClick={() => {
-              if (projectInput.trim()) {
-                onProjectCreate(projectInput.trim());
-                setProjectInput('');
-              }
-            }}
-          >
-            새로 만들기
-          </button>
-        </div>
-      </div>
-      {/* 완성된 작업 리스트 */}
-      {projects.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4">완성된 배너 목록</h2>
-          <div className="divide-y">
-            {projects.map((project) => (
-              <div key={project.id} className="mb-4">
-                <div className="font-bold text-blue-700 mb-2">{project.name}</div>
-                {project.banners.length === 0 && (
-                  <div className="text-xs text-gray-400 mb-2">아직 등록된 배너가 없습니다.</div>
-                )}
-                {project.banners.map((work) => (
-                  <div
-                    key={work.id}
-                    className="py-2 flex items-center justify-between cursor-pointer hover:bg-gray-50 rounded px-2"
-                    onClick={() => onEdit(work)}
-                  >
-                    <div>
-                      <div className="font-medium">{work.title}</div>
-                      <div className="text-xs text-gray-500">{work.createdAt instanceof Date ? work.createdAt.toLocaleString() : new Date(work.createdAt).toLocaleString()}</div>
-                    </div>
-                    <button
-                      onClick={e => { e.stopPropagation(); onDownload(work); }}
-                      className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                    >
-                      JPG 다운로드
-                    </button>
+      {/* 프로젝트 선택/생성 - hideProjectManagement가 true이면 숨김 */}
+      {!hideProjectManagement && (
+        <>
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-xl font-semibold mb-4">담당사업팀/담당자 선택</h2>
+            <div className="flex gap-2 mb-4">
+              <select
+                className="border rounded px-3 py-2"
+                onChange={e => {
+                  const project = projects.find(p => p.id === e.target.value);
+                  if (project) onProjectSelect(project);
+                }}
+                defaultValue=""
+              >
+                <option value="">프로젝트(팀/담당자) 선택</option>
+                {projects.map(project => (
+                  <option key={project.id} value={project.id}>{project.name}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                className="border rounded px-3 py-2"
+                placeholder="새 프로젝트명 (팀/담당자)"
+                value={projectInput}
+                onChange={e => setProjectInput(e.target.value)}
+              />
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+                onClick={() => {
+                  if (projectInput.trim()) {
+                    onProjectCreate(projectInput.trim());
+                    setProjectInput('');
+                  }
+                }}
+              >
+                새로 만들기
+              </button>
+            </div>
+          </div>
+          {/* 완성된 작업 리스트 */}
+          {projects.length > 0 && (
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold mb-4">완성된 배너 목록</h2>
+              <div className="divide-y">
+                {projects.map((project) => (
+                  <div key={project.id} className="mb-4">
+                    <div className="font-bold text-blue-700 mb-2">{project.name}</div>
+                    {(!project.banners || project.banners.length === 0) && (
+                      <div className="text-xs text-gray-400 mb-2">아직 등록된 배너가 없습니다.</div>
+                    )}
+                    {project.banners && project.banners.map((work) => (
+                      <div
+                        key={work.id}
+                        className="py-2 flex items-center justify-between cursor-pointer hover:bg-gray-50 rounded px-2"
+                        onClick={() => onEdit(work as any)} // 타입 호환성을 위해 임시로 any 사용
+                      >
+                        <div>
+                          <div className="font-medium">{work.title}</div>
+                          <div className="text-xs text-gray-500">{new Date(work.created_at).toLocaleString()}</div>
+                        </div>
+                        <button
+                          onClick={e => { e.stopPropagation(); onDownload(work as any); }} // 타입 호환성을 위해 임시로 any 사용
+                          className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                        >
+                          JPG 다운로드
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          )}
+        </>
       )}
       {/* 배너 선택 */}
       <div className="bg-white rounded-lg shadow-sm p-6">
