@@ -2,97 +2,191 @@ import { BannerConfig } from '../types';
 
 export const bannerConfigs: Record<string, BannerConfig> = {
   'basic-no-logo-pc': {
-    name: '기본배너(로고x) - PC',
+    name: '기본 배너 (PC)',
     width: 2880,
     height: 480,
     maxFileSize: 1.5 * 1024 * 1024,
     fixedText: true,
     allowCustomText: false,
-    subTitle: {
-      x: 81,
-      y: 170,
-      width: 1227,
-      height: 66,
-      fontSize: 54,
-      fontFamily: 'Pretendard',
-      fontWeight: 500,
-      letterSpacing: -0.54,
-      maxLength: 20,
-      maxLines: 1
-    },
     mainTitle: {
-      x: 81,
-      y: 254,
-      width: 1227,
-      height: 208,
+      x: 100,
+      y: 100,
+      width: 2680,
+      height: 100,
       fontSize: 84,
+      lineHeight: 104,
       fontFamily: 'Pretendard',
       fontWeight: 700,
-      letterSpacing: -1.68,
       maxLength: 36,
       maxLines: 2
+    },
+    subTitle: {
+      x: 100,
+      y: 220,
+      width: 2680,
+      height: 60,
+      fontSize: 54,
+      lineHeight: 67,
+      fontFamily: 'Pretendard',
+      fontWeight: 500,
+      maxLength: 20,
+      maxLines: 1
     }
   },
 
   'basic-no-logo-mobile': {
-    name: '기본배너(로고x) - MO',
+    name: '기본 배너 (모바일)',
     width: 1560,
     height: 468,
     maxFileSize: 500 * 1024,
     fixedText: true,
     allowCustomText: false,
-    subTitle: {
-      x: 81,
-      y: 86,
-      width: 1199,
-      height: 74,
-      fontSize: 60,
-      fontFamily: 'Pretendard',
-      fontWeight: 500,
-      letterSpacing: -1.2,
-      maxLength: 20,
-      maxLines: 1
-    },
     mainTitle: {
-      x: 81,
-      y: 187,
-      width: 1199,
-      height: 198,
+      x: 50,
+      y: 80,
+      width: 1460,
+      height: 90,
       fontSize: 80,
+      lineHeight: 99,
       fontFamily: 'Pretendard',
       fontWeight: 700,
-      letterSpacing: -1.6,
       maxLength: 24,
       maxLines: 2
+    },
+    subTitle: {
+      x: 50,
+      y: 190,
+      width: 1460,
+      height: 60,
+      fontSize: 60,
+      lineHeight: 74,
+      fontFamily: 'Pretendard',
+      fontWeight: 500,
+      maxLength: 20,
+      maxLines: 1
+    }
+  },
+
+  'basic-with-logo-pc': {
+    name: '기본 배너 + 로고 (PC)',
+    width: 2880,
+    height: 480,
+    maxFileSize: 1.5 * 1024 * 1024,
+    fixedText: true,
+    allowCustomText: false,
+    mainTitle: {
+      x: 100,
+      y: 100,
+      width: 2680,
+      height: 100,
+      fontSize: 84,
+      lineHeight: 104,
+      fontFamily: 'Pretendard',
+      fontWeight: 700,
+      maxLength: 36,
+      maxLines: 2
+    },
+    logo: {
+      x: 110,
+      y: 90,
+      width: 266,
+      height: 56,
+      maxFileSize: 500 * 1024
+    }
+  },
+
+  'basic-with-logo-mobile': {
+    name: '기본 배너 + 로고 (모바일)',
+    width: 1560,
+    height: 468,
+    maxFileSize: 500 * 1024,
+    fixedText: true,
+    allowCustomText: false,
+    mainTitle: {
+      x: 50,
+      y: 80,
+      width: 1460,
+      height: 90,
+      fontSize: 80,
+      lineHeight: 99,
+      fontFamily: 'Pretendard',
+      fontWeight: 700,
+      maxLength: 24,
+      maxLines: 2
+    },
+    logo: {
+      x: 81,
+      y: 98,
+      width: 266,
+      height: 56,
+      maxFileSize: 300 * 1024
     }
   },
 
   'splash-mobile': {
-    name: '스플래시배너 - MO',
-    width: 390, height: 844,
-    fixedText: false, allowCustomText: true,
-    maxFileSize: 5 * 1024 * 1024
+    name: '스플래시 배너',
+    width: 390,
+    height: 844,
+    maxFileSize: 5 * 1024 * 1024,
+    fixedText: false,
+    allowCustomText: true
   },
 
   'main-popup-mobile': {
-    name: '메인홈 팝업 - MO',
-    width: 375, height: 203,
-    fixedText: false, allowCustomText: true,
-    maxFileSize: 5 * 1024 * 1024
+    name: '메인홈 팝업',
+    width: 375,
+    height: 203,
+    maxFileSize: 5 * 1024 * 1024,
+    fixedText: false,
+    allowCustomText: true
   },
 
   'interactive-pc': {
-    name: '인터랙티브&전면배너 - PC',
-    width: 2880, height: 570,
-    fixedText: false, allowCustomText: true,
-    maxFileSize: 10 * 1024 * 1024
+    name: '인터랙티브 배너 (PC)',
+    width: 2880,
+    height: 570,
+    maxFileSize: 10 * 1024 * 1024,
+    fixedText: false,
+    allowCustomText: true
   },
 
   'interactive-mobile': {
-    name: '인터랙티브&전면배너 - MO',
-    width: 1050, height: 1050,
-    fixedText: false, allowCustomText: true,
-    maxFileSize: 5 * 1024 * 1024
+    name: '인터랙티브 배너 (모바일)',
+    width: 1050,
+    height: 1050,
+    maxFileSize: 5 * 1024 * 1024,
+    fixedText: false,
+    allowCustomText: true
+  },
+
+  'fullscreen-pc': {
+    name: '전면 배너 (PC)',
+    width: 2880,
+    height: 570,
+    maxFileSize: 10 * 1024 * 1024,
+    fixedText: false,
+    allowCustomText: true
+  },
+
+  'fullscreen-mobile': {
+    name: '전면 배너 (모바일)',
+    width: 1050,
+    height: 1050,
+    maxFileSize: 5 * 1024 * 1024,
+    fixedText: false,
+    allowCustomText: true
   }
 };
- 
+
+// 배너 타입별 설정 가져오기
+export const getBannerConfig = (bannerType: string, deviceType: string): BannerConfig => {
+  const key = `${bannerType}-${deviceType}`;
+  return bannerConfigs[key];
+};
+
+// 사용 가능한 배너 타입 목록
+export const getAvailableBannerTypes = (deviceType: string): string[] => {
+  return Object.keys(bannerConfigs)
+    .filter(key => key.endsWith(deviceType))
+    .map(key => key.replace(`-${deviceType}`, ''));
+};

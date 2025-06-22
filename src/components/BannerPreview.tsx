@@ -5,12 +5,14 @@ import { BannerConfig, TextElement } from '../types';
 interface BannerPreviewProps {
   config: BannerConfig;
   uploadedImage: File | null;
+  uploadedLogo?: File | null;
   textElements: TextElement[];
 }
 
 export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>(({
   config,
   uploadedImage,
+  uploadedLogo,
   textElements
 }, ref) => {
   useEffect(() => {
@@ -48,6 +50,21 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
 
         // 이미지를 캔버스 중앙에 맞춰 그리기
         ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+        
+        // 로고 그리기
+        if (uploadedLogo && config.logo) {
+          const logoImg = new Image();
+          logoImg.onload = () => {
+            ctx.drawImage(
+              logoImg,
+              config.logo!.x,
+              config.logo!.y,
+              config.logo!.width,
+              config.logo!.height
+            );
+          };
+          logoImg.src = URL.createObjectURL(uploadedLogo);
+        }
         
         // 텍스트 그리기
         textElements.forEach(element => {
@@ -97,7 +114,7 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
       
       ctx.restore();
     });
-  }, [uploadedImage, textElements, config.width, config.height, ref]);
+  }, [uploadedImage, uploadedLogo, textElements, config.width, config.height, ref]);
 
   // 미리보기 프레임 크기 계산
   const previewScale = Math.min(1, 800 / Math.max(config.width, config.height));

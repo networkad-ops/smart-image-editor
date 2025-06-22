@@ -1,29 +1,34 @@
 import { useState, useRef } from 'react';
 import { BannerConfig, TextElement } from '../types';
 import { ImageUpload } from './ImageUpload';
+import { LogoUpload } from './LogoUpload';
 import { TextEditSidebar } from './TextEditSidebar';
 import { BannerPreview } from './BannerPreview';
 
 interface BannerEditorProps {
   config: BannerConfig;
   onImageUpload: (file: File) => void;
+  onLogoUpload?: (file: File) => void;
   onAddText: (text: TextElement) => void;
   onTextUpdate: (id: string, updates: Partial<TextElement>) => void;
   onTextDelete: (id: string) => void;
   onComplete: (image: Blob) => void;
   textElements: TextElement[];
   uploadedImage: File | null;
+  uploadedLogo?: File | null;
 }
 
 export function BannerEditor({
   config,
   onImageUpload,
+  onLogoUpload,
   onAddText,
   onTextUpdate,
   onTextDelete,
   onComplete,
   textElements,
-  uploadedImage
+  uploadedImage,
+  uploadedLogo
 }: BannerEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -60,6 +65,17 @@ export function BannerEditor({
             requiredWidth={config.width}
             requiredHeight={config.height}
           />
+          
+          {/* 로고 업로드 섹션 */}
+          {config.logo && onLogoUpload && (
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <LogoUpload
+                onUpload={onLogoUpload}
+                logoConfig={config.logo}
+                uploadedLogo={uploadedLogo}
+              />
+            </div>
+          )}
         </div>
 
         <div className="mt-6">
@@ -67,6 +83,7 @@ export function BannerEditor({
             ref={canvasRef}
             config={config}
             uploadedImage={uploadedImage}
+            uploadedLogo={uploadedLogo}
             textElements={textElements}
           />
         </div>

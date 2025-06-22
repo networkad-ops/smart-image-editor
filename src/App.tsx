@@ -10,6 +10,7 @@ function App() {
   const [step, setStep] = useState<'project' | 'selection' | 'editor' | 'completion' | 'edit'>('project');
   const [bannerSelection, setBannerSelection] = useState<BannerSelection | null>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
   const [textElements, setTextElements] = useState<TextElement[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [finalImage, setFinalImage] = useState<Blob | null>(null);
@@ -19,7 +20,9 @@ function App() {
     const newProject: Project = {
       id: Date.now().toString(),
       name,
-      banners: []
+      banners: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
     setSelectedProject(newProject);
     setStep('selection');
@@ -78,6 +81,11 @@ function App() {
     setUploadedImage(file);
   };
 
+  // 로고 업로드
+  const handleLogoUpload = (file: File) => {
+    setUploadedLogo(file);
+  };
+
   // 텍스트 요소 추가 (자유도 높은 배너만)
   const handleAddText = (text: TextElement) => {
     setTextElements(prev => [...prev, text]);
@@ -128,6 +136,7 @@ function App() {
   const handleReset = () => {
     setBannerSelection(null);
     setUploadedImage(null);
+    setUploadedLogo(null);
     setTextElements([]);
     setFinalImage(null);
     setStep('project');
@@ -188,12 +197,14 @@ function App() {
               <BannerEditor
                 config={bannerSelection.config}
                 onImageUpload={handleImageUpload}
+                onLogoUpload={handleLogoUpload}
                 onAddText={handleAddText}
                 onTextUpdate={handleTextUpdate}
                 onTextDelete={handleTextDelete}
                 onComplete={handleComplete}
                 textElements={textElements}
                 uploadedImage={uploadedImage}
+                uploadedLogo={uploadedLogo}
               />
             </motion.div>
           )}
