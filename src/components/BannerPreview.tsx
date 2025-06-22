@@ -1,7 +1,6 @@
 // BannerPreview.tsx 수정
-import React, { forwardRef, useEffect, RefObject } from 'react';
+import React, { useEffect, RefObject } from 'react';
 import { BannerConfig, TextElement } from '../types';
-import { drawMultilineText, drawTextWithLineBreaks, applyRangeColor } from '../utils/canvasUtils';
 
 interface BannerPreviewProps {
   config: BannerConfig;

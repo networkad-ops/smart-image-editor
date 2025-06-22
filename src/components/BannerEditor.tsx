@@ -1,10 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BannerConfig, TextElement, Banner, BannerType, DeviceType } from '../types';
 import { ImageUpload } from './ImageUpload';
 import { LogoUpload } from './LogoUpload';
 import { TextEditSidebar } from './TextEditSidebar';
 import { BannerPreview } from './BannerPreview';
-import { CompletionForm } from './CompletionForm';
 
 interface BannerEditorProps {
   config: BannerConfig;
@@ -41,10 +40,8 @@ const BannerEditor = React.forwardRef<HTMLCanvasElement, BannerEditorProps>(
     editingBanner,
     onBannerTypeChange,
     onTitleChange,
-    onGoHome,
-    isLoading
+    onGoHome
   }, ref) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [currentTitle, setCurrentTitle] = useState(editingBanner?.title || '');
     const [currentBannerType, setCurrentBannerType] = useState<string>(editingBanner?.banner_type || 'basic-no-logo');
@@ -90,14 +87,14 @@ const BannerEditor = React.forwardRef<HTMLCanvasElement, BannerEditorProps>(
     };
 
     const handleComplete = async () => {
-      if (!canvasRef.current || (!uploadedImage && !existingImageUrl)) return;
+      if (!ref || !('current' in ref) || !ref.current || (!uploadedImage && !existingImageUrl)) return;
 
       try {
         setIsProcessing(true);
         
         // Canvas를 Blob으로 변환
         const blob = await new Promise<Blob>((resolve) => {
-          canvasRef.current?.toBlob((blob) => {
+          ref.current?.toBlob((blob: Blob | null) => {
             if (blob) resolve(blob);
           }, 'image/jpeg', 0.95);
         });
@@ -112,12 +109,12 @@ const BannerEditor = React.forwardRef<HTMLCanvasElement, BannerEditorProps>(
     };
 
     const handleDownloadJPG = async () => {
-      if (!canvasRef.current || (!uploadedImage && !existingImageUrl)) return;
+      if (!ref || !('current' in ref) || !ref.current || (!uploadedImage && !existingImageUrl)) return;
 
       try {
         // Canvas를 Blob으로 변환
         const blob = await new Promise<Blob>((resolve) => {
-          canvasRef.current?.toBlob((blob) => {
+          ref.current?.toBlob((blob: Blob | null) => {
             if (blob) resolve(blob);
           }, 'image/jpeg', 0.95);
         });
@@ -322,17 +319,13 @@ const BannerEditor = React.forwardRef<HTMLCanvasElement, BannerEditorProps>(
           </div>
         </div>
 
-        <div className="w-full lg:w-96 flex-shrink-0 space-y-4">
-          <CompletionForm
-            bannerConfig={config}
-            onSubmit={handleComplete}
-            editingBanner={editingBanner}
-            isLoading={isLoading}
-          />
-        </div>
+
       </div>
     </div>
-  }
-);
+  );
+});
 
+BannerEditor.displayName = 'BannerEditor';
+
+export { BannerEditor };
 export default BannerEditor; 

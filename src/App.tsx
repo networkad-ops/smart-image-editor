@@ -403,11 +403,16 @@ function App() {
             >
               <BannerEditor
                 ref={previewCanvasRef}
-                bannerConfig={bannerSelection.config}
+                config={bannerSelection.config}
                 textElements={textElements}
-                onTextElementsChange={setTextElements}
-                onSave={handleSaveBanner}
-                onLogoUpload={setUploadedLogo}
+                onImageUpload={handleImageUpload}
+                onLogoUpload={handleLogoUpload}
+                onAddText={handleAddText}
+                onTextUpdate={handleTextUpdate}
+                onTextDelete={handleTextDelete}
+                onComplete={handleComplete}
+                uploadedImage={uploadedImage}
+                uploadedLogo={uploadedLogo}
                 editingBanner={editingBanner}
                 isLoading={loading}
               />
