@@ -1,8 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 
 // 환경 변수 강제 설정 (개발 중 문제 해결용)
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://vznpflqvmbbglfhqftvz.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6bnBmbHF2bWJiZ2xmaHFmdHZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ4NjI4NzQsImV4cCI6MjA1MDQzODg3NH0.lrm-pjZFCOoqQYDDhQwxJGXYHhKdYZcMTIJVwDKBKJo'
+const supabaseUrl = 'https://vznpflqvmbbglfhqftvz.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6bnBmbHF2bWJiZ2xmaHFmdHZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1OTgyMzMsImV4cCI6MjA2NjE3NDIzM30.VPJ9At-GOb2GIxjV_1w8Gf6hWdBaNeKfO7yT5I2b8pM'
+
+console.log('🔧 새로운 API 키로 업데이트 완료!');
 
 console.log('🔧 환경 변수 확인:', {
   supabaseUrl,
