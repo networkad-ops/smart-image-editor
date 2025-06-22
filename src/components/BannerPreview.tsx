@@ -78,6 +78,12 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
   };
 
   useEffect(() => {
+    console.log('BannerPreview useEffect:', {
+      uploadedImage: !!uploadedImage,
+      existingImageUrl,
+      textElements: textElements.length
+    });
+
     const canvas = (ref as RefObject<HTMLCanvasElement>).current;
     if (!canvas) return;
 
@@ -89,9 +95,16 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
 
     // 이미지 그리기 (새 이미지 우선, 없으면 기존 이미지)
     const imageToUse = uploadedImage || existingImageUrl;
+    console.log('사용할 이미지:', {
+      uploadedImage: !!uploadedImage,
+      existingImageUrl,
+      imageToUse: typeof imageToUse
+    });
     if (imageToUse) {
       const img = new Image();
+      img.crossOrigin = 'anonymous'; // CORS 문제 해결
       img.onload = () => {
+        console.log('이미지 로드 성공:', img.width, 'x', img.height);
         // 이미지 비율 계산
         const imageRatio = img.width / img.height;
         const canvasRatio = canvas.width / canvas.height;
@@ -118,6 +131,7 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
         const logoToUse = uploadedLogo || existingLogoUrl;
         if (logoToUse && config.logo) {
           const logoImg = new Image();
+          logoImg.crossOrigin = 'anonymous'; // CORS 문제 해결
           logoImg.onload = () => {
             ctx.drawImage(
               logoImg,

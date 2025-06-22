@@ -40,7 +40,12 @@ const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, onProjectSele
       {!hideProjectManagement && (
         <>
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold mb-4">담당사업팀/담당자 선택</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">담당사업팀/담당자 선택</h2>
+              <div className="text-sm text-gray-500">
+                프로젝트명/담당자 입력 ex. 00 n월 프로모션/ 000
+              </div>
+            </div>
             <div className="flex gap-2 mb-4">
               <select
                 className="border rounded px-3 py-2"

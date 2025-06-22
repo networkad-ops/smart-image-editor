@@ -47,11 +47,21 @@ export function BannerEditor({
 
   // 편집 모드일 때 기존 데이터 로드
   useEffect(() => {
+    console.log('BannerEditor useEffect:', { isEditing, editingBanner });
     if (isEditing && editingBanner) {
+      console.log('기존 배너 데이터 로드:', {
+        title: editingBanner.title,
+        banner_type: editingBanner.banner_type,
+        device_type: editingBanner.device_type,
+        image_url: editingBanner.image_url
+      });
       setCurrentTitle(editingBanner.title);
       setCurrentBannerType(editingBanner.banner_type);
       setCurrentDeviceType(editingBanner.device_type);
       setExistingImageUrl(editingBanner.image_url);
+    } else if (!isEditing) {
+      // 편집 모드가 아닐 때는 초기화
+      setExistingImageUrl(null);
     }
   }, [isEditing, editingBanner]);
 

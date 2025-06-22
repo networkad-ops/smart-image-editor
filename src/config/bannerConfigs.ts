@@ -2,7 +2,7 @@ import { BannerConfig } from '../types';
 
 export const bannerConfigs: Record<string, BannerConfig> = {
   'basic-no-logo-pc': {
-    name: '기본 배너 (PC)',
+    name: '기본 배너',
     width: 2880,
     height: 480,
     maxFileSize: 1.5 * 1024 * 1024,
@@ -35,7 +35,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'basic-no-logo-mobile': {
-    name: '기본 배너 (모바일)',
+    name: '기본 배너',
     width: 1560,
     height: 468,
     maxFileSize: 500 * 1024,
@@ -68,7 +68,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'basic-with-logo-pc': {
-    name: '기본 배너 + 로고 (PC)',
+    name: '로고 배너',
     width: 2880,
     height: 480,
     maxFileSize: 1.5 * 1024 * 1024,
@@ -96,7 +96,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'basic-with-logo-mobile': {
-    name: '기본 배너 + 로고 (모바일)',
+    name: '로고 배너',
     width: 1560,
     height: 468,
     maxFileSize: 500 * 1024,
@@ -124,7 +124,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'splash-mobile': {
-    name: '스플래시 배너',
+    name: '스플래시',
     width: 390,
     height: 844,
     maxFileSize: 5 * 1024 * 1024,
@@ -133,7 +133,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'event-pc': {
-    name: '이벤트 배너 (PC)',
+    name: '이벤트 배너',
     width: 2880,
     height: 480,
     maxFileSize: 2 * 1024 * 1024,
@@ -166,7 +166,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'event-mobile': {
-    name: '이벤트 배너 (모바일)',
+    name: '이벤트 배너',
     width: 1560,
     height: 468,
     maxFileSize: 1 * 1024 * 1024,
@@ -199,7 +199,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'interactive-mobile': {
-    name: '인터랙티브 배너 (모바일)',
+    name: '인터랙티브',
     width: 1050,
     height: 1050,
     maxFileSize: 5 * 1024 * 1024,
@@ -208,7 +208,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'fullscreen-pc': {
-  name: '전면 배너 (PC)',
+  name: '전면 배너',
   width: 2880,
   height: 570,
   maxFileSize: 10 * 1024 * 1024,

@@ -147,13 +147,13 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-xl font-semibold mb-4">텍스트 편집</h2>
+      <h2 className="text-xl font-semibold mb-4">📝 텍스트 편집</h2>
       
       {/* 서브타이틀 편집 */}
       {config.subTitle && (
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="font-medium">서브타이틀</h3>
+            <h3 className="font-medium">🏷️ 서브타이틀</h3>
             <span className="text-sm text-gray-500">
               {subTitle?.text?.length || 0}/{config.subTitle.maxLength}
             </span>
@@ -250,7 +250,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       {config.mainTitle && (
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="font-medium">메인타이틀</h3>
+            <h3 className="font-medium">🎯 메인타이틀</h3>
             <span className="text-sm text-gray-500">
               {mainTitle?.text?.length || 0}/{config.mainTitle.maxLength}
             </span>
@@ -355,20 +355,30 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
 
       {/* 추가 텍스트 입력 */}
       <div className="mb-6">
-        <h3 className="font-medium mb-2">추가 텍스트</h3>
-        <div className="flex gap-2">
-          <input
-            type="text"
+        <h3 className="font-medium mb-2">🆕 자유 텍스트 추가</h3>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+          <div className="text-xs text-blue-700 mb-2">
+            💡 <strong>자유 텍스트:</strong> 원하는 위치에 텍스트를 추가할 수 있습니다
+          </div>
+          <div className="text-xs text-blue-600">
+            • 색상, 크기, 굵기, 위치를 자유롭게 조정 가능<br/>
+            • 여러 줄 텍스트 지원<br/>
+            • 추가한 후 상세 설정에서 스타일 변경
+          </div>
+        </div>
+        <div className="space-y-2">
+          <textarea
             value={newText}
             onChange={(e) => setNewText(e.target.value)}
-            className="flex-1 px-3 py-2 border rounded"
-            placeholder="새 텍스트 입력"
+            className="w-full px-3 py-2 border rounded min-h-[60px] resize-y"
+            placeholder="새 텍스트를 입력하세요&#10;(여러 줄 입력 가능)"
           />
           <button
             onClick={handleAddText}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            disabled={!newText.trim()}
+            className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
           >
-            추가
+            ➕ 텍스트 추가하기
           </button>
         </div>
       </div>
@@ -376,23 +386,120 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       {/* 추가된 텍스트 목록 */}
       {otherTexts.length > 0 && (
         <div>
-          <h3 className="font-medium mb-2">추가된 텍스트</h3>
+          <h3 className="font-medium mb-2">추가된 텍스트 ({otherTexts.length}개)</h3>
           <div className="space-y-4">
             {otherTexts.map((element) => (
-              <div key={element.id} className="border rounded p-3">
-                <input
-                  type="text"
-                  value={element.text}
-                  onChange={(e) => onUpdateText(element.id, { text: e.target.value })}
-                  className="w-full px-3 py-2 border rounded mb-2"
-                />
-                <div className="flex gap-2">
+              <div key={element.id} className="border rounded p-3 bg-gray-50">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium text-gray-700">텍스트 #{element.id.slice(-4)}</span>
                   <button
                     onClick={() => onDeleteText(element.id)}
-                    className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                    className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
                   >
-                    삭제
+                    ✕ 삭제
                   </button>
+                </div>
+                
+                {/* 텍스트 입력 */}
+                <textarea
+                  value={element.text}
+                  onChange={(e) => onUpdateText(element.id, { text: e.target.value })}
+                  className="w-full px-3 py-2 border rounded mb-3 min-h-[60px] resize-y"
+                  placeholder="텍스트를 입력하세요"
+                />
+                
+                {/* 텍스트 스타일 설정 */}
+                <div className="space-y-3">
+                  {/* 색상 및 크기 */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">색상</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={element.color}
+                          onChange={(e) => onUpdateText(element.id, { color: e.target.value })}
+                          className="w-8 h-8 border rounded cursor-pointer"
+                        />
+                        <span className="text-xs text-gray-500">{element.color}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">크기</label>
+                      <input
+                        type="number"
+                        value={element.fontSize}
+                        onChange={(e) => onUpdateText(element.id, { fontSize: parseInt(e.target.value) || 24 })}
+                        className="w-full px-2 py-1 text-sm border rounded"
+                        min="8"
+                        max="100"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* 폰트 굵기 */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">폰트 굵기</label>
+                    <select
+                      value={element.fontWeight || 400}
+                      onChange={(e) => onUpdateText(element.id, { fontWeight: parseInt(e.target.value) })}
+                      className="w-full px-2 py-1 text-sm border rounded"
+                    >
+                      <option value={100}>얇게 (100)</option>
+                      <option value={200}>가늘게 (200)</option>
+                      <option value={300}>밝게 (300)</option>
+                      <option value={400}>보통 (400)</option>
+                      <option value={500}>중간 (500)</option>
+                      <option value={600}>반굵게 (600)</option>
+                      <option value={700}>굵게 (700)</option>
+                      <option value={800}>더굵게 (800)</option>
+                      <option value={900}>매우굵게 (900)</option>
+                    </select>
+                  </div>
+                  
+                  {/* 위치 조정 */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">X 위치</label>
+                      <input
+                        type="number"
+                        value={element.x}
+                        onChange={(e) => onUpdateText(element.id, { x: parseInt(e.target.value) || 0 })}
+                        className="w-full px-2 py-1 text-sm border rounded"
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Y 위치</label>
+                      <input
+                        type="number"
+                        value={element.y}
+                        onChange={(e) => onUpdateText(element.id, { y: parseInt(e.target.value) || 0 })}
+                        className="w-full px-2 py-1 text-sm border rounded"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* 빠른 색상 선택 */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">빠른 색상 선택</label>
+                    <div className="flex flex-wrap gap-1">
+                      {[
+                        '#FF0000', '#FF6B35', '#F7931E', '#FFD700', 
+                        '#32CD32', '#00CED1', '#4169E1', '#8A2BE2', 
+                        '#FF1493', '#000000', '#666666', '#FFFFFF'
+                      ].map((color) => (
+                        <button
+                          key={color}
+                          className="w-6 h-6 rounded border-2 border-gray-300 cursor-pointer hover:scale-110 transition-all"
+                          style={{ backgroundColor: color }}
+                          onClick={() => onUpdateText(element.id, { color })}
+                          title={color}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}

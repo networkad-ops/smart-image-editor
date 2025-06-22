@@ -410,7 +410,7 @@ function App() {
                 onSave={handleSaveBanner}
                 onEdit={() => setStep('editor')}
                 isEditing={!!editingBanner}
-                defaultTitle={editingBanner?.title}
+                defaultTitle={editingBanner?.title || bannerSelection.config.name}
                 defaultDescription={editingBanner?.description}
               />
             </motion.div>
