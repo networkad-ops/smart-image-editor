@@ -20,6 +20,9 @@ function App() {
   const [textElements, setTextElements] = useState<TextElement[]>([]);
   const [finalImage, setFinalImage] = useState<Blob | null>(null);
   const [showBannerProjectModal, setShowBannerProjectModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [previewCanvasRef, setPreviewCanvasRef] = useState<React.RefObject<HTMLCanvasElement> | null>(null);
+  const [logoImage, setLogoImage] = useState<File | null>(null);
 
   const { uploadBannerImage, uploadLogo, createBanner, updateBanner, createProject, createTeam, teams, projects } = useSupabase();
 
@@ -213,39 +216,62 @@ function App() {
   };
 
   // 배너 저장
-  const handleSaveBanner = async (title: string, description?: string) => {
-    if (!bannerSelection || !selectedProjectId || !finalImage) return;
+  const handleSaveBanner = async (formData: any) => {
+    if (!selectedProjectId) {
+      alert('프로젝트를 선택해주세요.');
+      return;
+    }
 
     try {
-      // 이미지 업로드
-      const imageFile = new File([finalImage], `${title}_${Date.now()}.jpg`, { type: 'image/jpeg' });
-      const imageUrl = await uploadBannerImage(imageFile);
+      setLoading(true);
 
-      // 로고 업로드 (있는 경우)
-      let logoUrl: string | undefined;
+      const bannerBlob = await new Promise<Blob | null>((resolve) => {
+        if (previewCanvasRef?.current) {
+          previewCanvasRef.current.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(new Blob([blob], { type: 'image/jpeg' }));
+              } else {
+                resolve(null);
+              }
+            },
+            'image/jpeg',
+            0.95
+          );
+        } else {
+          resolve(null);
+        }
+      });
+
+      if (!bannerBlob) {
+        throw new Error('배너 이미지 생성에 실패했습니다.');
+      }
+
+      const bannerFile = new File([bannerBlob], `${formData.title.replace(/\\s+/g, '_') || 'banner'}.jpg`, { type: 'image/jpeg' });
+      const imageUrl = await uploadBannerImage(bannerFile);
+
+      let logoUrl = editingBanner?.logo_url || '';
       if (uploadedLogo) {
         logoUrl = await uploadLogo(uploadedLogo);
       }
-
-      const bannerData = {
-        title,
-        description,
-        banner_type: bannerSelection.bannerType,
-        device_type: bannerSelection.deviceType,
+      
+      const bannerData: Partial<Banner> = {
+        title: formData.title,
+        description: formData.description,
+        banner_type: formData.bannerType,
+        device_type: formData.deviceType,
         status: 'draft' as const,
         project_id: selectedProjectId,
         image_url: imageUrl,
         logo_url: logoUrl,
         text_elements: textElements,
-        canvas_width: bannerSelection.config.width,
-        canvas_height: bannerSelection.config.height
+        canvas_width: formData.config.width,
+        canvas_height: formData.config.height
       };
 
       if (editingBanner) {
-        // 기존 배너 업데이트
         await updateBanner(editingBanner.id, bannerData);
       } else {
-        // 새 배너 생성
         await createBanner(bannerData);
       }
 
@@ -254,6 +280,8 @@ function App() {
     } catch (error) {
       console.error('배너 저장 실패:', error);
       alert('배너 저장에 실패했습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -340,7 +368,6 @@ function App() {
               <ProjectManager 
                 onBannerCreate={handleBannerCreate}
                 onBannerEdit={handleBannerEdit}
-
               />
             </motion.div>
           )}
