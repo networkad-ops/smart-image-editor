@@ -15,6 +15,64 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
   uploadedLogo,
   textElements
 }, ref) => {
+  // 텍스트 렌더링 함수
+  const drawTextElements = (ctx: CanvasRenderingContext2D, elements: TextElement[]) => {
+    elements.forEach(element => {
+      ctx.save();
+      // 폰트 두께 설정 (기본값 400)
+      const fontWeight = element.fontWeight || 400;
+      ctx.font = `${fontWeight} ${element.fontSize}px Pretendard`;
+      ctx.textBaseline = 'top'; // 텍스트의 기준선을 상단으로 설정
+      
+      // 줄바꿈 처리
+      const lines = element.text.split('\n');
+      const lineHeight = element.fontSize * 1.2; // 줄 간격 설정
+      
+      lines.forEach((line, lineIndex) => {
+        const y = element.y + (lineIndex * lineHeight);
+        let currentX = element.x;
+        
+        // 부분 색상이 있는 경우
+        if (element.colorSegments && element.colorSegments.length > 0) {
+          // 현재 줄의 시작 인덱스 계산
+          const lineStart = lines.slice(0, lineIndex).join('\n').length + (lineIndex > 0 ? 1 : 0);
+          
+          let lastIndex = 0;
+          
+          for (let i = 0; i < line.length; i++) {
+            const globalIndex = lineStart + i;
+            
+            // 이 위치에 적용되는 색상 세그먼트 찾기
+            const segment = element.colorSegments.find(seg => 
+              globalIndex >= seg.start && globalIndex < seg.end
+            );
+            
+            const nextChar = line[i + 1];
+            const nextGlobalIndex = globalIndex + 1;
+            const nextSegment = element.colorSegments.find(seg => 
+              nextGlobalIndex >= seg.start && nextGlobalIndex < seg.end
+            );
+            
+            // 색상이 바뀌거나 마지막 글자인 경우 렌더링
+            if (!nextChar || segment?.color !== nextSegment?.color) {
+              const textPart = line.substring(lastIndex, i + 1);
+              ctx.fillStyle = segment?.color || element.color;
+              ctx.fillText(textPart, currentX, y);
+              currentX += ctx.measureText(textPart).width;
+              lastIndex = i + 1;
+            }
+          }
+        } else {
+          // 부분 색상이 없는 경우 전체 색상으로 렌더링
+          ctx.fillStyle = element.color;
+          ctx.fillText(line, currentX, y);
+        }
+      });
+      
+      ctx.restore();
+    });
+  };
+
   useEffect(() => {
     const canvas = (ref as RefObject<HTMLCanvasElement>).current;
     if (!canvas) return;
@@ -66,87 +124,16 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
           logoImg.src = URL.createObjectURL(uploadedLogo);
         }
         
-        // 텍스트 그리기
-        textElements.forEach(element => {
-          ctx.save();
-          // 폰트 두께 설정 (기본값 400)
-          const fontWeight = element.fontWeight || 400;
-          ctx.font = `${fontWeight} ${element.fontSize}px Pretendard`;
-          ctx.textBaseline = 'top'; // 텍스트의 기준선을 상단으로 설정
-          
-          // 줄바꿈 처리
-          const lines = element.text.split('\n');
-          const lineHeight = element.fontSize * 1.2; // 줄 간격 설정
-          
-          lines.forEach((line, lineIndex) => {
-            const y = element.y + (lineIndex * lineHeight);
-            let currentX = element.x;
-            
-            // 부분 색상이 있는 경우
-            if (element.colorSegments && element.colorSegments.length > 0) {
-              // 현재 줄의 시작 인덱스 계산
-              const lineStart = lines.slice(0, lineIndex).join('\n').length + (lineIndex > 0 ? 1 : 0);
-              
-              let lastIndex = 0;
-              
-              for (let i = 0; i < line.length; i++) {
-                const globalIndex = lineStart + i;
-                
-                // 이 위치에 적용되는 색상 세그먼트 찾기
-                const segment = element.colorSegments.find(seg => 
-                  globalIndex >= seg.start && globalIndex < seg.end
-                );
-                
-                const nextChar = line[i + 1];
-                const nextGlobalIndex = globalIndex + 1;
-                const nextSegment = element.colorSegments.find(seg => 
-                  nextGlobalIndex >= seg.start && nextGlobalIndex < seg.end
-                );
-                
-                // 색상이 바뀌거나 마지막 글자인 경우 렌더링
-                if (!nextChar || segment?.color !== nextSegment?.color) {
-                  const textPart = line.substring(lastIndex, i + 1);
-                  ctx.fillStyle = segment?.color || element.color;
-                  ctx.fillText(textPart, currentX, y);
-                  currentX += ctx.measureText(textPart).width;
-                  lastIndex = i + 1;
-                }
-              }
-            } else {
-              // 부분 색상이 없는 경우 전체 색상으로 렌더링
-              ctx.fillStyle = element.color;
-              ctx.fillText(line, currentX, y);
-            }
-          });
-          
-          ctx.restore();
-        });
+        // 텍스트 그리기 (이미지와 함께)
+        drawTextElements(ctx, textElements);
       };
       img.src = URL.createObjectURL(uploadedImage);
     }
 
     // 텍스트 그리기 (이미지가 없는 경우에도)
-    textElements.forEach(element => {
-      ctx.save();
-      // 폰트 두께 설정 (기본값 400)
-      const fontWeight = element.fontWeight || 400;
-      ctx.font = `${fontWeight} ${element.fontSize}px Pretendard`;
-      ctx.fillStyle = element.color;
-      
-      // 줄바꿈 처리
-      const lines = element.text.split('\n');
-      const lineHeight = element.fontSize * 1.2; // 줄 간격 설정
-      
-      // 텍스트 정렬을 위한 설정
-      ctx.textBaseline = 'top'; // 텍스트의 기준선을 상단으로 설정
-      
-      lines.forEach((line, index) => {
-        const y = element.y + (index * lineHeight);
-        ctx.fillText(line, element.x, y);
-      });
-      
-      ctx.restore();
-    });
+    if (!uploadedImage) {
+      drawTextElements(ctx, textElements);
+    }
   }, [uploadedImage, uploadedLogo, textElements, config.width, config.height, ref]);
 
   // 미리보기 프레임 크기 계산

@@ -111,6 +111,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     // 세그먼트를 시작 위치순으로 정렬
     updatedSegments.sort((a, b) => a.start - b.start);
     
+    console.log('Applying color segments:', updatedSegments);
     onUpdateText(elementId, { colorSegments: updatedSegments });
     
     // 선택 범위 초기화
@@ -182,33 +183,64 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             <span className="text-xs text-gray-500">{subTitle?.color || '#000000'}</span>
           </div>
           
-          {/* 부분 색상 변경 안내 */}
-          <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
-            💡 <strong>부분 색상 변경:</strong> 텍스트를 드래그하여 선택한 후 아래 색상을 클릭하세요
-            {selectedRange && selectedRange.elementId === 'sub-title' && (
-              <div className="mt-1 text-green-600">
-                ✓ 선택됨: "{(subTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"
+          {/* 색상 설정 섹션 */}
+          <div className="bg-gray-50 rounded-lg p-3 space-y-3">
+            <h4 className="text-sm font-semibold text-gray-700">🎨 색상 설정</h4>
+            
+            {/* 선택된 텍스트 표시 */}
+            {selectedRange && selectedRange.elementId === 'sub-title' ? (
+              <div className="bg-green-50 border border-green-200 rounded p-2">
+                <div className="text-xs text-green-700 font-medium">선택된 텍스트</div>
+                <div className="text-sm text-green-800 font-mono bg-white px-2 py-1 rounded mt-1">
+                  "{(subTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"
+                </div>
+                <div className="text-xs text-green-600 mt-1">
+                  아래 색상을 클릭하여 선택된 부분의 색상을 변경하세요
+                </div>
+              </div>
+            ) : (
+              <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                <div className="text-xs text-blue-700">
+                  💡 <strong>부분 색상 변경:</strong> 위 텍스트를 드래그로 선택한 후 색상을 클릭하세요
+                </div>
               </div>
             )}
-          </div>
-          
-          {/* 부분 색상 변경용 색상 팔레트 */}
-          <div className="flex gap-1 mt-2">
-            {['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080'].map((color) => (
-              <button
-                key={color}
-                className="w-6 h-6 rounded border border-gray-300 cursor-pointer hover:scale-110 transition-transform"
-                style={{ backgroundColor: color }}
-                onClick={() => applyPartialColor('sub-title', color)}
-                title={`색상: ${color}`}
-              />
-            ))}
+            
+            {/* 색상 팔레트 */}
+            <div>
+              <div className="text-xs text-gray-600 mb-2">색상 팔레트</div>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { color: '#FF0000', name: '빨강' },
+                  { color: '#FF6B35', name: '주황' },
+                  { color: '#F7931E', name: '오렌지' },
+                  { color: '#FFD700', name: '금색' },
+                  { color: '#32CD32', name: '초록' },
+                  { color: '#00CED1', name: '청록' },
+                  { color: '#4169E1', name: '파랑' },
+                  { color: '#8A2BE2', name: '보라' },
+                  { color: '#FF1493', name: '핑크' },
+                  { color: '#000000', name: '검정' },
+                  { color: '#666666', name: '회색' },
+                  { color: '#FFFFFF', name: '흰색' }
+                ].map(({ color, name }) => (
+                  <button
+                    key={color}
+                    className="w-8 h-8 rounded-lg border-2 border-gray-300 cursor-pointer hover:scale-110 hover:border-gray-400 transition-all shadow-sm"
+                    style={{ backgroundColor: color }}
+                    onClick={() => applyPartialColor('sub-title', color)}
+                    title={`${name} (${color})`}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            {/* 초기화 버튼 */}
             <button
-              className="w-6 h-6 rounded border border-gray-300 cursor-pointer hover:scale-110 transition-transform bg-white text-xs flex items-center justify-center"
+              className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs py-2 px-3 rounded transition-colors"
               onClick={() => onUpdateText('sub-title', { colorSegments: [] })}
-              title="부분 색상 초기화"
             >
-              ↺
+              🔄 부분 색상 초기화
             </button>
           </div>
         </div>
@@ -258,33 +290,64 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             <span className="text-xs text-gray-500">{mainTitle?.color || '#000000'}</span>
           </div>
           
-          {/* 부분 색상 변경 안내 */}
-          <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
-            💡 <strong>부분 색상 변경:</strong> 텍스트를 드래그하여 선택한 후 아래 색상을 클릭하세요
-            {selectedRange && selectedRange.elementId === 'main-title' && (
-              <div className="mt-1 text-green-600">
-                ✓ 선택됨: "{(mainTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"
+          {/* 색상 설정 섹션 */}
+          <div className="bg-gray-50 rounded-lg p-3 space-y-3">
+            <h4 className="text-sm font-semibold text-gray-700">🎨 색상 설정</h4>
+            
+            {/* 선택된 텍스트 표시 */}
+            {selectedRange && selectedRange.elementId === 'main-title' ? (
+              <div className="bg-green-50 border border-green-200 rounded p-2">
+                <div className="text-xs text-green-700 font-medium">선택된 텍스트</div>
+                <div className="text-sm text-green-800 font-mono bg-white px-2 py-1 rounded mt-1">
+                  "{(mainTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"
+                </div>
+                <div className="text-xs text-green-600 mt-1">
+                  아래 색상을 클릭하여 선택된 부분의 색상을 변경하세요
+                </div>
+              </div>
+            ) : (
+              <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                <div className="text-xs text-blue-700">
+                  💡 <strong>부분 색상 변경:</strong> 위 텍스트를 드래그로 선택한 후 색상을 클릭하세요
+                </div>
               </div>
             )}
-          </div>
-          
-          {/* 부분 색상 변경용 색상 팔레트 */}
-          <div className="flex gap-1 mt-2">
-            {['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080'].map((color) => (
-              <button
-                key={color}
-                className="w-6 h-6 rounded border border-gray-300 cursor-pointer hover:scale-110 transition-transform"
-                style={{ backgroundColor: color }}
-                onClick={() => applyPartialColor('main-title', color)}
-                title={`색상: ${color}`}
-              />
-            ))}
+            
+            {/* 색상 팔레트 */}
+            <div>
+              <div className="text-xs text-gray-600 mb-2">색상 팔레트</div>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { color: '#FF0000', name: '빨강' },
+                  { color: '#FF6B35', name: '주황' },
+                  { color: '#F7931E', name: '오렌지' },
+                  { color: '#FFD700', name: '금색' },
+                  { color: '#32CD32', name: '초록' },
+                  { color: '#00CED1', name: '청록' },
+                  { color: '#4169E1', name: '파랑' },
+                  { color: '#8A2BE2', name: '보라' },
+                  { color: '#FF1493', name: '핑크' },
+                  { color: '#000000', name: '검정' },
+                  { color: '#666666', name: '회색' },
+                  { color: '#FFFFFF', name: '흰색' }
+                ].map(({ color, name }) => (
+                  <button
+                    key={color}
+                    className="w-8 h-8 rounded-lg border-2 border-gray-300 cursor-pointer hover:scale-110 hover:border-gray-400 transition-all shadow-sm"
+                    style={{ backgroundColor: color }}
+                    onClick={() => applyPartialColor('main-title', color)}
+                    title={`${name} (${color})`}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            {/* 초기화 버튼 */}
             <button
-              className="w-6 h-6 rounded border border-gray-300 cursor-pointer hover:scale-110 transition-transform bg-white text-xs flex items-center justify-center"
+              className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs py-2 px-3 rounded transition-colors"
               onClick={() => onUpdateText('main-title', { colorSegments: [] })}
-              title="부분 색상 초기화"
             >
-              ↺
+              🔄 부분 색상 초기화
             </button>
           </div>
         </div>
