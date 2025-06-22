@@ -132,6 +132,71 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     allowCustomText: true
   },
 
+  'event-pc': {
+    name: '이벤트 배너 (PC)',
+    width: 2880,
+    height: 480,
+    maxFileSize: 2 * 1024 * 1024,
+    fixedText: true,
+    allowCustomText: false,
+    subTitle: {
+      x: 110,
+      y: 90,
+      width: 2680,
+      height: 60,
+      fontSize: 54,
+      lineHeight: 67,
+      fontFamily: 'Pretendard',
+      fontWeight: 500,
+      maxLength: 20,
+      maxLines: 1
+    },
+    mainTitle: {
+      x: 110,
+      y: 182,
+      width: 2680,
+      height: 100,
+      fontSize: 84,
+      lineHeight: 104,
+      fontFamily: 'Pretendard',
+      fontWeight: 700,
+      maxLength: 36,
+      maxLines: 1
+    }
+  },
+
+  'event-mobile': {
+    name: '이벤트 배너 (모바일)',
+    width: 1560,
+    height: 468,
+    maxFileSize: 1 * 1024 * 1024,
+    fixedText: true,
+    allowCustomText: false,
+    subTitle: {
+      x: 81,
+      y: 86,
+      width: 1460,
+      height: 60,
+      fontSize: 60,
+      lineHeight: 74,
+      fontFamily: 'Pretendard',
+      fontWeight: 500,
+      maxLength: 20,
+      maxLines: 1
+    },
+    mainTitle: {
+      x: 81,
+      y: 187,
+      width: 1460,
+      height: 90,
+      fontSize: 80,
+      lineHeight: 99,
+      fontFamily: 'Pretendard',
+      fontWeight: 700,
+      maxLength: 24,
+      maxLines: 1
+    }
+  },
 
   'interactive-mobile': {
     name: '인터랙티브 배너 (모바일)',

@@ -52,10 +52,28 @@ function App() {
     
     // 배너 설정으로 BannerSelection 생성
     const configKey = `${banner.banner_type}-${banner.device_type}` as keyof typeof bannerConfigs;
-    const config = bannerConfigs[configKey];
+    let config = bannerConfigs[configKey];
     
     console.log('Config Key:', configKey);
     console.log('Config:', config);
+    
+    // Config가 없는 경우 fallback 로직
+    if (!config) {
+      console.warn('Config를 찾을 수 없음. Fallback 적용:', configKey);
+      
+      // event 타입인 경우 basic-no-logo로 fallback
+      if (banner.banner_type === 'event') {
+        const fallbackKey = `basic-no-logo-${banner.device_type}`;
+        config = bannerConfigs[fallbackKey];
+        console.log('Event 타입 fallback:', fallbackKey, config);
+      }
+      
+      // 그래도 없으면 기본 PC 설정 사용
+      if (!config) {
+        config = bannerConfigs['basic-no-logo-pc'];
+        console.log('기본 설정 사용:', config);
+      }
+    }
     
     if (config) {
       setBannerSelection({
@@ -67,8 +85,8 @@ function App() {
       console.log('Editor 단계로 이동');
       setStep('editor');
     } else {
-      console.error('Config를 찾을 수 없음:', configKey);
-      alert('배너 설정을 찾을 수 없습니다.');
+      console.error('모든 fallback 실패:', configKey);
+      alert('배너 설정을 찾을 수 없습니다. 관리자에게 문의하세요.');
     }
   };
 
@@ -392,6 +410,8 @@ function App() {
                 onSave={handleSaveBanner}
                 onEdit={() => setStep('editor')}
                 isEditing={!!editingBanner}
+                defaultTitle={editingBanner?.title}
+                defaultDescription={editingBanner?.description}
               />
             </motion.div>
           )}

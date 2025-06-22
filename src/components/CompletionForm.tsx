@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 // import { BannerWork } from '../types'; // 현재 사용하지 않음
 
@@ -9,13 +9,21 @@ interface CompletionFormProps {
   onSave: (title: string, description?: string) => Promise<void>;
   onEdit: () => void;
   isEditing: boolean;
+  defaultTitle?: string;
+  defaultDescription?: string;
 }
 
-export function CompletionForm({ finalImage, bannerType, deviceType, onSave, onEdit, isEditing }: CompletionFormProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+export function CompletionForm({ finalImage, bannerType, deviceType, onSave, onEdit, isEditing, defaultTitle, defaultDescription }: CompletionFormProps) {
+  const [title, setTitle] = useState(defaultTitle || '');
+  const [description, setDescription] = useState(defaultDescription || '');
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // 기본값이 변경될 때 state 업데이트
+  useEffect(() => {
+    setTitle(defaultTitle || '');
+    setDescription(defaultDescription || '');
+  }, [defaultTitle, defaultDescription]);
 
   const handleDownload = async () => {
     if (!finalImage) return;
