@@ -10,7 +10,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     allowCustomText: false,
     subTitle: {
       x: 110,
-      y: 190,
+      y: 90,
       width: 2680,
       height: 60,
       fontSize: 54,
