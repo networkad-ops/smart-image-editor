@@ -340,6 +340,157 @@ export const bannerService = {
 
     if (error) throw error
     return data
+  },
+
+  // 배너 이미지 업로드 (경로 포함)
+  async uploadBannerImage(file: File, path?: string): Promise<string> {
+    console.log('🚀 이미지 업로드 시작:', { file, path });
+    try {
+      const bucket = 'banner-images';
+      const fileName = path || `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '')}`;
+      
+      console.log('📝 업로드 정보:', { bucket, fileName });
+
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true, // 덮어쓰기 허용
+        });
+
+      console.log('✅ Supabase Storage 응답:', { data, error });
+
+      if (error) {
+        console.error('❌ Supabase Storage 오류 상세:', {
+          message: error.message,
+          stack: (error as any).stack,
+          originalError: (error as any).error,
+        });
+        throw new Error(`이미지 업로드 중 오류가 발생했습니다: ${error.message}`);
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(data.path);
+
+      console.log('🔗 생성된 공개 URL:', publicUrlData.publicUrl);
+      return publicUrlData.publicUrl;
+    } catch (err) {
+      console.error('💥 이미지 업로드 실패:', err);
+      throw err;
+    }
+  },
+
+  // 로고 업로드
+  async uploadLogo(file: File, path?: string): Promise<string> {
+    const fileName = path || `${Date.now()}-${file.name}`
+    const { data: _data, error } = await supabase.storage
+      .from('logos')
+      .upload(fileName, file)
+
+    if (error) throw error
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('logos')
+      .getPublicUrl(fileName)
+
+    return publicUrl
+  },
+
+  // 썸네일 업로드
+  async uploadThumbnail(file: File, path?: string): Promise<string> {
+    const fileName = path || `${Date.now()}-${file.name}`
+    const { data: _data, error } = await supabase.storage
+      .from('thumbnails')
+      .upload(fileName, file)
+
+    if (error) throw error
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('thumbnails')
+      .getPublicUrl(fileName)
+
+    return publicUrl
+  },
+
+  // 파일 삭제
+  async deleteFile(bucket: string, path: string): Promise<void> {
+    const { error } = await supabase.storage
+      .from(bucket)
+      .remove([path])
+
+    if (error) throw error
+  }
+}
+
+// ===== 대시보드 통계 =====
+
+export const dashboardService = {
+  // 전체 통계 조회
+  async getDashboardStats(): Promise<{
+    totalTeams: number;
+    totalProjects: number;
+    totalBanners: number;
+    completedBanners: number;
+    inProgressBanners: number;
+    draftBanners: number;
+  }> {
+    const [teamsResult, projectsResult, bannersResult] = await Promise.all([
+      supabase.from('teams').select('id', { count: 'exact' }),
+      supabase.from('projects').select('id', { count: 'exact' }),
+      supabase.from('banners').select('id, status', { count: 'exact' })
+    ])
+
+    if (teamsResult.error) throw teamsResult.error
+    if (projectsResult.error) throw projectsResult.error
+    if (bannersResult.error) throw bannersResult.error
+
+    const banners = bannersResult.data || []
+
+    return {
+      totalTeams: teamsResult.count || 0,
+      totalProjects: projectsResult.count || 0,
+      totalBanners: bannersResult.count || 0,
+      completedBanners: banners.filter((b: any) => b.status === 'completed').length,
+      inProgressBanners: banners.filter((b: any) => b.status === 'in_progress').length,
+      draftBanners: banners.filter((b: any) => b.status === 'draft').length
+    }
+  },
+
+  // 최근 활동 조회
+  async getRecentActivity(): Promise<{
+    recentProjects: Project[];
+    recentBanners: Banner[];
+  }> {
+    const [projectsResult, bannersResult] = await Promise.all([
+      supabase
+        .from('projects')
+        .select(`
+          *,
+          team:teams(*)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(5),
+      supabase
+        .from('banners')
+        .select(`
+          *,
+          project:projects(
+            name,
+            team:teams(name, color)
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(10)
+    ])
+
+    if (projectsResult.error) throw projectsResult.error
+    if (bannersResult.error) throw bannersResult.error
+
+    return {
+      recentProjects: projectsResult.data || [],
+      recentBanners: bannersResult.data || []
+    }
   }
 }
 
@@ -488,76 +639,5 @@ export const storageService = {
       .remove([path])
 
     if (error) throw error
-  }
-}
-
-// ===== 대시보드 통계 =====
-
-export const dashboardService = {
-  // 전체 통계 조회
-  async getDashboardStats(): Promise<{
-    totalTeams: number;
-    totalProjects: number;
-    totalBanners: number;
-    completedBanners: number;
-    inProgressBanners: number;
-    draftBanners: number;
-  }> {
-    const [teamsResult, projectsResult, bannersResult] = await Promise.all([
-      supabase.from('teams').select('id', { count: 'exact' }),
-      supabase.from('projects').select('id', { count: 'exact' }),
-      supabase.from('banners').select('id, status', { count: 'exact' })
-    ])
-
-    if (teamsResult.error) throw teamsResult.error
-    if (projectsResult.error) throw projectsResult.error
-    if (bannersResult.error) throw bannersResult.error
-
-    const banners = bannersResult.data || []
-
-    return {
-      totalTeams: teamsResult.count || 0,
-      totalProjects: projectsResult.count || 0,
-      totalBanners: bannersResult.count || 0,
-      completedBanners: banners.filter((b: any) => b.status === 'completed').length,
-      inProgressBanners: banners.filter((b: any) => b.status === 'in_progress').length,
-      draftBanners: banners.filter((b: any) => b.status === 'draft').length
-    }
-  },
-
-  // 최근 활동 조회
-  async getRecentActivity(): Promise<{
-    recentProjects: Project[];
-    recentBanners: Banner[];
-  }> {
-    const [projectsResult, bannersResult] = await Promise.all([
-      supabase
-        .from('projects')
-        .select(`
-          *,
-          team:teams(*)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(5),
-      supabase
-        .from('banners')
-        .select(`
-          *,
-          project:projects(
-            name,
-            team:teams(name, color)
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(10)
-    ])
-
-    if (projectsResult.error) throw projectsResult.error
-    if (bannersResult.error) throw bannersResult.error
-
-    return {
-      recentProjects: projectsResult.data || [],
-      recentBanners: bannersResult.data || []
-    }
   }
 } 
