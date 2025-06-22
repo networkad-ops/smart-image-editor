@@ -18,7 +18,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
 }) => {
   const [newText, setNewText] = useState('');
   const [selectedRange, setSelectedRange] = useState<{elementId: string, start: number, end: number} | null>(null);
-  const [rangeInput, setRangeInput] = useState<{elementId: string, start: string, end: string} | null>(null);
   const subTitleInputRef = useRef<HTMLInputElement>(null);
   const mainTitleInputRef = useRef<HTMLTextAreaElement>(null);
   
@@ -35,30 +34,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     } else {
       setSelectedRange(null);
     }
-  };
-  
-  // 레인지 입력 모드 토글
-  const toggleRangeMode = (elementId: string) => {
-    if (rangeInput?.elementId === elementId) {
-      setRangeInput(null);
-    } else {
-      setRangeInput({ elementId, start: '1', end: '1' });
-    }
-  };
-
-  // 레인지 입력으로 범위 설정
-  const applyRangeSelection = (elementId: string) => {
-    if (!rangeInput || rangeInput.elementId !== elementId) return;
-    
-    const element = textElements.find(el => el.id === elementId);
-    if (!element || !element.text) return;
-    
-    const textLength = element.text.length;
-    const start = Math.max(0, Math.min(parseInt(rangeInput.start) - 1, textLength));
-    const end = Math.max(start, Math.min(parseInt(rangeInput.end), textLength));
-    
-    setSelectedRange({ elementId, start, end });
-    setRangeInput(null);
   };
 
   // 부분 색상 변경 함수
@@ -208,96 +183,34 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             <span className="text-xs text-gray-500">{subTitle?.color || '#000000'}</span>
           </div>
           
-          {/* 색상 설정 섹션 */}
+          {/* 부분 색상 설정 */}
           <div className="bg-gray-50 rounded-lg p-3 space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-gray-700">🎨 색상 설정</h4>
-              <button
-                onClick={() => toggleRangeMode('sub-title')}
-                className={`px-2 py-1 text-xs rounded transition-colors ${
-                  rangeInput?.elementId === 'sub-title' 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                }`}
-              >
-                📊 레인지 선택
-              </button>
-            </div>
-
-            {/* 레인지 입력 모드 */}
-            {rangeInput?.elementId === 'sub-title' && (
-              <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                <div className="text-xs text-blue-700 font-medium mb-2">✨ 엑셀처럼 레인지 선택</div>
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                  <div>
-                    <label className="block text-xs text-blue-600 mb-1">시작 위치</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max={subTitle?.text?.length || 1}
-                      value={rangeInput.start}
-                      onChange={(e) => setRangeInput({...rangeInput, start: e.target.value})}
-                      className="w-full px-2 py-1 text-xs border rounded"
-                      placeholder="1"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-blue-600 mb-1">끝 위치</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max={subTitle?.text?.length || 1}
-                      value={rangeInput.end}
-                      onChange={(e) => setRangeInput({...rangeInput, end: e.target.value})}
-                      className="w-full px-2 py-1 text-xs border rounded"
-                      placeholder="1"
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => applyRangeSelection('sub-title')}
-                    className="flex-1 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    ✅ 범위 선택
-                  </button>
-                  <button
-                    onClick={() => setRangeInput(null)}
-                    className="px-2 py-1 text-xs bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                  >
-                    취소
-                  </button>
-                </div>
-                {subTitle?.text && (
-                  <div className="mt-2 text-xs text-blue-600">
-                    💡 "{subTitle.text}" (총 {subTitle.text.length}글자)
-                  </div>
-                )}
-              </div>
-            )}
+            <h4 className="text-sm font-semibold text-gray-700">🎨 부분 색상 변경</h4>
             
             {/* 선택된 텍스트 표시 */}
             {selectedRange && selectedRange.elementId === 'sub-title' ? (
               <div className="bg-green-50 border border-green-200 rounded p-2">
-                <div className="text-xs text-green-700 font-medium">선택된 텍스트</div>
+                <div className="text-xs text-green-700 font-medium">✅ 선택된 텍스트</div>
                 <div className="text-sm text-green-800 font-mono bg-white px-2 py-1 rounded mt-1">
                   "{(subTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"
                 </div>
                 <div className="text-xs text-green-600 mt-1">
-                  위치 {selectedRange.start + 1}~{selectedRange.end} | 아래 색상을 클릭하여 변경하세요
+                  위치 {selectedRange.start + 1}~{selectedRange.end}글자 | 아래 색상을 선택하세요
                 </div>
               </div>
             ) : (
               <div className="bg-blue-50 border border-blue-200 rounded p-2">
                 <div className="text-xs text-blue-700">
-                  💡 <strong>부분 색상 변경:</strong> 위 텍스트를 드래그로 선택하거나 레인지 선택을 사용하세요
+                  💡 <strong>사용법:</strong> 위 텍스트를 마우스로 드래그하여 선택한 후, 원하는 색상을 클릭하세요
                 </div>
               </div>
             )}
             
             {/* 색상 팔레트 */}
             <div>
-              <div className="text-xs text-gray-600 mb-2">색상 팔레트</div>
+              <div className="text-xs text-gray-600 mb-2">
+                {selectedRange && selectedRange.elementId === 'sub-title' ? '선택 부분에 적용할 색상' : '색상 팔레트 (텍스트 선택 후 사용)'}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {[
                   { color: '#FF0000', name: '빨강' },
@@ -315,10 +228,15 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 ].map(({ color, name }) => (
                   <button
                     key={color}
-                    className="w-8 h-8 rounded-lg border-2 border-gray-300 cursor-pointer hover:scale-110 hover:border-gray-400 transition-all shadow-sm"
+                    className={`w-8 h-8 rounded-lg border-2 cursor-pointer hover:scale-110 transition-all shadow-sm ${
+                      selectedRange && selectedRange.elementId === 'sub-title' 
+                        ? 'border-gray-400 hover:border-gray-600' 
+                        : 'border-gray-300 opacity-60'
+                    }`}
                     style={{ backgroundColor: color }}
                     onClick={() => applyPartialColor('sub-title', color)}
                     title={`${name} (${color})`}
+                    disabled={!selectedRange || selectedRange.elementId !== 'sub-title'}
                   />
                 ))}
               </div>
@@ -329,7 +247,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs py-2 px-3 rounded transition-colors"
               onClick={() => onUpdateText('sub-title', { colorSegments: [] })}
             >
-              🔄 부분 색상 초기화
+              🔄 부분 색상 모두 초기화
             </button>
           </div>
         </div>
@@ -379,96 +297,34 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             <span className="text-xs text-gray-500">{mainTitle?.color || '#000000'}</span>
           </div>
           
-          {/* 색상 설정 섹션 */}
+          {/* 부분 색상 설정 */}
           <div className="bg-gray-50 rounded-lg p-3 space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-gray-700">🎨 색상 설정</h4>
-              <button
-                onClick={() => toggleRangeMode('main-title')}
-                className={`px-2 py-1 text-xs rounded transition-colors ${
-                  rangeInput?.elementId === 'main-title' 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                }`}
-              >
-                📊 레인지 선택
-              </button>
-            </div>
-
-            {/* 레인지 입력 모드 */}
-            {rangeInput?.elementId === 'main-title' && (
-              <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                <div className="text-xs text-blue-700 font-medium mb-2">✨ 엑셀처럼 레인지 선택</div>
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                  <div>
-                    <label className="block text-xs text-blue-600 mb-1">시작 위치</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max={mainTitle?.text?.length || 1}
-                      value={rangeInput.start}
-                      onChange={(e) => setRangeInput({...rangeInput, start: e.target.value})}
-                      className="w-full px-2 py-1 text-xs border rounded"
-                      placeholder="1"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-blue-600 mb-1">끝 위치</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max={mainTitle?.text?.length || 1}
-                      value={rangeInput.end}
-                      onChange={(e) => setRangeInput({...rangeInput, end: e.target.value})}
-                      className="w-full px-2 py-1 text-xs border rounded"
-                      placeholder="1"
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => applyRangeSelection('main-title')}
-                    className="flex-1 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    ✅ 범위 선택
-                  </button>
-                  <button
-                    onClick={() => setRangeInput(null)}
-                    className="px-2 py-1 text-xs bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                  >
-                    취소
-                  </button>
-                </div>
-                {mainTitle?.text && (
-                  <div className="mt-2 text-xs text-blue-600">
-                    💡 "{mainTitle.text}" (총 {mainTitle.text.length}글자)
-                  </div>
-                )}
-              </div>
-            )}
+            <h4 className="text-sm font-semibold text-gray-700">🎨 부분 색상 변경</h4>
             
             {/* 선택된 텍스트 표시 */}
             {selectedRange && selectedRange.elementId === 'main-title' ? (
               <div className="bg-green-50 border border-green-200 rounded p-2">
-                <div className="text-xs text-green-700 font-medium">선택된 텍스트</div>
+                <div className="text-xs text-green-700 font-medium">✅ 선택된 텍스트</div>
                 <div className="text-sm text-green-800 font-mono bg-white px-2 py-1 rounded mt-1">
                   "{(mainTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"
                 </div>
                 <div className="text-xs text-green-600 mt-1">
-                  위치 {selectedRange.start + 1}~{selectedRange.end} | 아래 색상을 클릭하여 변경하세요
+                  위치 {selectedRange.start + 1}~{selectedRange.end}글자 | 아래 색상을 선택하세요
                 </div>
               </div>
             ) : (
               <div className="bg-blue-50 border border-blue-200 rounded p-2">
                 <div className="text-xs text-blue-700">
-                  💡 <strong>부분 색상 변경:</strong> 위 텍스트를 드래그로 선택하거나 레인지 선택을 사용하세요
+                  💡 <strong>사용법:</strong> 위 텍스트를 마우스로 드래그하여 선택한 후, 원하는 색상을 클릭하세요
                 </div>
               </div>
             )}
             
             {/* 색상 팔레트 */}
             <div>
-              <div className="text-xs text-gray-600 mb-2">색상 팔레트</div>
+              <div className="text-xs text-gray-600 mb-2">
+                {selectedRange && selectedRange.elementId === 'main-title' ? '선택 부분에 적용할 색상' : '색상 팔레트 (텍스트 선택 후 사용)'}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {[
                   { color: '#FF0000', name: '빨강' },
@@ -486,10 +342,15 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 ].map(({ color, name }) => (
                   <button
                     key={color}
-                    className="w-8 h-8 rounded-lg border-2 border-gray-300 cursor-pointer hover:scale-110 hover:border-gray-400 transition-all shadow-sm"
+                    className={`w-8 h-8 rounded-lg border-2 cursor-pointer hover:scale-110 transition-all shadow-sm ${
+                      selectedRange && selectedRange.elementId === 'main-title' 
+                        ? 'border-gray-400 hover:border-gray-600' 
+                        : 'border-gray-300 opacity-60'
+                    }`}
                     style={{ backgroundColor: color }}
                     onClick={() => applyPartialColor('main-title', color)}
                     title={`${name} (${color})`}
+                    disabled={!selectedRange || selectedRange.elementId !== 'main-title'}
                   />
                 ))}
               </div>
@@ -500,7 +361,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs py-2 px-3 rounded transition-colors"
               onClick={() => onUpdateText('main-title', { colorSegments: [] })}
             >
-              🔄 부분 색상 초기화
+              🔄 부분 색상 모두 초기화
             </button>
           </div>
         </div>
