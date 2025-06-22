@@ -429,7 +429,9 @@ const BannerProjectModal: React.FC<BannerProjectModalProps> = ({
         status: 'active',
         priority: 'medium'
       });
+      // 프로젝트 생성 후 배너 만들기 시작
       onProjectSelect(newProject.id);
+      onClose(); // 모달 닫기
     } catch (error) {
       console.error('프로젝트 생성 실패:', error);
       alert('프로젝트 생성에 실패했습니다.');
@@ -440,6 +442,7 @@ const BannerProjectModal: React.FC<BannerProjectModalProps> = ({
   const handleProjectSelect = () => {
     if (selectedProjectId) {
       onProjectSelect(selectedProjectId);
+      onClose(); // 모달 닫기
     }
   };
 
