@@ -45,12 +45,17 @@ function App() {
 
   // 프로젝트 매니저에서 배너 편집 요청
   const handleBannerEdit = (banner: Banner) => {
+    console.log('handleBannerEdit 호출됨:', banner);
+    
     setEditingBanner(banner);
     setSelectedProjectId(banner.project_id);
     
     // 배너 설정으로 BannerSelection 생성
     const configKey = `${banner.banner_type}-${banner.device_type}` as keyof typeof bannerConfigs;
     const config = bannerConfigs[configKey];
+    
+    console.log('Config Key:', configKey);
+    console.log('Config:', config);
     
     if (config) {
       setBannerSelection({
@@ -59,12 +64,17 @@ function App() {
         config
       });
       setTextElements(banner.text_elements);
+      console.log('Editor 단계로 이동');
       setStep('editor');
+    } else {
+      console.error('Config를 찾을 수 없음:', configKey);
+      alert('배너 설정을 찾을 수 없습니다.');
     }
   };
 
   // 배너 타입/디바이스 변경 처리
   const handleBannerTypeChange = (bannerType: string, deviceType: string) => {
+    console.log('배너 타입/디바이스 변경:', bannerType, deviceType);
     const configKey = `${bannerType}-${deviceType}` as keyof typeof bannerConfigs;
     const config = bannerConfigs[configKey];
     
@@ -74,6 +84,15 @@ function App() {
         deviceType: deviceType as any,
         config
       });
+      
+      // 편집 모드에서 배너 타입이 변경되면 텍스트 요소도 업데이트
+      if (editingBanner) {
+        setEditingBanner({
+          ...editingBanner,
+          banner_type: bannerType as any,
+          device_type: deviceType as any
+        });
+      }
     }
   };
 
@@ -222,6 +241,7 @@ function App() {
 
   // 상태 초기화
   const handleReset = () => {
+    console.log('상태 초기화');
     setSelectedProjectId(null);
     setBannerSelection(null);
     setEditingBanner(null);

@@ -95,6 +95,38 @@ export function BannerEditor({
     }
   };
 
+  const handleDownloadJPG = async () => {
+    if (!canvasRef.current || (!uploadedImage && !existingImageUrl)) return;
+
+    try {
+      // Canvas를 Blob으로 변환
+      const blob = await new Promise<Blob>((resolve) => {
+        canvasRef.current?.toBlob((blob) => {
+          if (blob) resolve(blob);
+        }, 'image/jpeg', 0.95);
+      });
+
+      // 다운로드 링크 생성
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // 파일명 생성
+      const fileName = currentTitle 
+        ? `${currentTitle.replace(/[^\w\s-]/g, '').trim()}_${Date.now()}.jpg`
+        : `banner_${Date.now()}.jpg`;
+      
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('JPG 다운로드 중 오류 발생:', error);
+      alert('JPG 다운로드 중 오류가 발생했습니다.');
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2">
@@ -214,7 +246,26 @@ export function BannerEditor({
           onDeleteText={onTextDelete}
         />
 
-        <div className="mt-6">
+        <div className="mt-6 space-y-3">
+          {/* JPG 다운로드 버튼 */}
+          <button
+            onClick={handleDownloadJPG}
+            disabled={(!uploadedImage && !existingImageUrl)}
+            className={`w-full px-4 py-2 rounded-md font-medium border-2 transition-colors
+              ${(!uploadedImage && !existingImageUrl)
+                ? 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed'
+                : 'bg-white border-green-500 text-green-600 hover:bg-green-50'
+              }`}
+          >
+            <div className="flex items-center justify-center space-x-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>JPG로 다운로드</span>
+            </div>
+          </button>
+
+          {/* 완료 버튼 */}
           <button
             onClick={handleComplete}
             disabled={(!uploadedImage && !existingImageUrl) || isProcessing}
