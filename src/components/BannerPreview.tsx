@@ -138,10 +138,18 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
         
         // 로고 그리기 (새 로고 우선, 없으면 기존 로고)
         const logoToUse = uploadedLogo || existingLogoUrl;
+        console.log('로고 정보:', {
+          uploadedLogo: !!uploadedLogo,
+          existingLogoUrl,
+          logoToUse: typeof logoToUse,
+          hasLogoConfig: !!config.logo
+        });
+        
         if (logoToUse && config.logo) {
           const logoImg = new Image();
           logoImg.crossOrigin = 'anonymous'; // CORS 문제 해결
           logoImg.onload = () => {
+            console.log('로고 로드 성공:', logoImg.width, 'x', logoImg.height);
             ctx.drawImage(
               logoImg,
               config.logo!.x,
@@ -152,33 +160,55 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
             // 텍스트는 로고 로드 후에 그리기
             drawTextElements(ctx, textElements);
           };
-          logoImg.onerror = () => {
+          logoImg.onerror = (error) => {
+            console.error('로고 로드 실패:', error);
+            console.error('실패한 로고 src:', logoImg.src);
             // 로고 로드 실패 시에도 텍스트는 그리기
             drawTextElements(ctx, textElements);
           };
           
           if (uploadedLogo) {
-            logoImg.src = URL.createObjectURL(uploadedLogo);
+            const logoBlobUrl = URL.createObjectURL(uploadedLogo);
+            console.log('업로드된 로고 Blob URL 설정:', logoBlobUrl);
+            logoImg.src = logoBlobUrl;
           } else {
-            logoImg.src = logoToUse as string;
+            const logoUrl = logoToUse as string;
+            console.log('기존 로고 URL 설정:', logoUrl);
+            logoImg.src = logoUrl;
           }
+          
+          console.log('최종 logoImg.src 설정:', logoImg.src);
         } else {
           // 로고가 없는 경우 바로 텍스트 그리기
+          console.log('로고 없음, 텍스트만 그리기');
           drawTextElements(ctx, textElements);
         }
       };
       
-      img.onerror = () => {
-        console.error('이미지 로드 실패');
+      img.onerror = (error) => {
+        console.error('이미지 로드 실패:', error);
+        console.error('실패한 이미지 src:', img.src);
         // 이미지 로드 실패 시에도 텍스트는 그리기
         drawTextElements(ctx, textElements);
       };
       
       if (uploadedImage) {
-        img.src = URL.createObjectURL(uploadedImage);
+        const blobUrl = URL.createObjectURL(uploadedImage);
+        console.log('업로드된 이미지 Blob URL 설정:', blobUrl);
+        img.src = blobUrl;
       } else {
-        img.src = imageToUse as string;
+        const imageUrl = imageToUse as string;
+        console.log('기존 이미지 URL 설정:', imageUrl);
+        console.log('URL 유효성 검사:', {
+          isString: typeof imageUrl === 'string',
+          isNotEmpty: imageUrl && imageUrl.length > 0,
+          startsWithHttp: imageUrl && imageUrl.startsWith('http'),
+          fullUrl: imageUrl
+        });
+        img.src = imageUrl;
       }
+      
+      console.log('최종 img.src 설정:', img.src);
     }
 
     // 텍스트 그리기 (이미지가 없는 경우에만)
