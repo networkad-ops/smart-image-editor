@@ -347,7 +347,9 @@ export const bannerService = {
     console.log('🚀 이미지 업로드 시작:', { file, path });
     try {
       const bucket = 'banner-images';
-      const fileName = path || `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '')}`;
+      const fileExt = file.name.split('.').pop();
+      const randomName = Math.random().toString(36).substring(2);
+      const fileName = path || `${Date.now()}-${randomName}.${fileExt}`;
       
       console.log('📝 업로드 정보:', { bucket, fileName });
 
