@@ -72,4 +72,18 @@ body {
   .input-field {
     @apply w-full px-4 py-2 border rounded-input focus:ring-2 focus:ring-primary focus:border-primary;
   }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 } 

@@ -7,13 +7,17 @@ interface BannerPreviewProps {
   uploadedImage: File | null;
   uploadedLogo?: File | null;
   textElements: TextElement[];
+  existingImageUrl?: string | null;
+  existingLogoUrl?: string | null;
 }
 
 export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>(({
   config,
   uploadedImage,
   uploadedLogo,
-  textElements
+  textElements,
+  existingImageUrl,
+  existingLogoUrl
 }, ref) => {
   // 텍스트 렌더링 함수
   const drawTextElements = (ctx: CanvasRenderingContext2D, elements: TextElement[]) => {
@@ -83,8 +87,9 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
     // 캔버스 초기화
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 이미지 그리기
-    if (uploadedImage) {
+    // 이미지 그리기 (새 이미지 우선, 없으면 기존 이미지)
+    const imageToUse = uploadedImage || existingImageUrl;
+    if (imageToUse) {
       const img = new Image();
       img.onload = () => {
         // 이미지 비율 계산
@@ -109,8 +114,9 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
         // 이미지를 캔버스 중앙에 맞춰 그리기
         ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
         
-        // 로고 그리기
-        if (uploadedLogo && config.logo) {
+        // 로고 그리기 (새 로고 우선, 없으면 기존 로고)
+        const logoToUse = uploadedLogo || existingLogoUrl;
+        if (logoToUse && config.logo) {
           const logoImg = new Image();
           logoImg.onload = () => {
             ctx.drawImage(
@@ -120,21 +126,43 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
               config.logo!.width,
               config.logo!.height
             );
+            // 텍스트는 로고 로드 후에 그리기
+            drawTextElements(ctx, textElements);
           };
-          logoImg.src = URL.createObjectURL(uploadedLogo);
+          logoImg.onerror = () => {
+            // 로고 로드 실패 시에도 텍스트는 그리기
+            drawTextElements(ctx, textElements);
+          };
+          
+          if (uploadedLogo) {
+            logoImg.src = URL.createObjectURL(uploadedLogo);
+          } else {
+            logoImg.src = logoToUse as string;
+          }
+        } else {
+          // 로고가 없는 경우 바로 텍스트 그리기
+          drawTextElements(ctx, textElements);
         }
-        
-        // 텍스트 그리기 (이미지와 함께)
+      };
+      
+      img.onerror = () => {
+        console.error('이미지 로드 실패');
+        // 이미지 로드 실패 시에도 텍스트는 그리기
         drawTextElements(ctx, textElements);
       };
-      img.src = URL.createObjectURL(uploadedImage);
+      
+      if (uploadedImage) {
+        img.src = URL.createObjectURL(uploadedImage);
+      } else {
+        img.src = imageToUse as string;
+      }
     }
 
-    // 텍스트 그리기 (이미지가 없는 경우에도)
-    if (!uploadedImage) {
+    // 텍스트 그리기 (이미지가 없는 경우에만)
+    if (!imageToUse) {
       drawTextElements(ctx, textElements);
     }
-  }, [uploadedImage, uploadedLogo, textElements, config.width, config.height, ref]);
+  }, [uploadedImage, uploadedLogo, textElements, existingImageUrl, existingLogoUrl, config.width, config.height, ref]);
 
   // 미리보기 프레임 크기 계산
   const previewScale = Math.min(1, 800 / Math.max(config.width, config.height));

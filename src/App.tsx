@@ -63,6 +63,30 @@ function App() {
     }
   };
 
+  // 배너 타입/디바이스 변경 처리
+  const handleBannerTypeChange = (bannerType: string, deviceType: string) => {
+    const configKey = `${bannerType}-${deviceType}` as keyof typeof bannerConfigs;
+    const config = bannerConfigs[configKey];
+    
+    if (config) {
+      setBannerSelection({
+        bannerType: bannerType as any,
+        deviceType: deviceType as any,
+        config
+      });
+    }
+  };
+
+  // 타이틀 변경 처리
+  const handleTitleChange = (title: string) => {
+    if (editingBanner) {
+      setEditingBanner({
+        ...editingBanner,
+        title
+      });
+    }
+  };
+
   // 배너 + 디바이스 선택
   const handleBannerSelect = (selection: BannerSelection) => {
     setBannerSelection(selection);
@@ -325,7 +349,9 @@ function App() {
                 uploadedLogo={uploadedLogo}
                 textElements={textElements}
                 isEditing={!!editingBanner}
-                editingBanner={editingBanner}
+                editingBanner={editingBanner || undefined}
+                onBannerTypeChange={handleBannerTypeChange}
+                onTitleChange={handleTitleChange}
               />
             </motion.div>
           )}

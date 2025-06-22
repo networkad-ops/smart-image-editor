@@ -29,6 +29,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   // Supabase hooks
   const { 
@@ -54,6 +55,13 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
     fetchBanners();
   }, []);
 
+  // 선택된 프로젝트가 있을 때 자동으로 확장
+  useEffect(() => {
+    if (selectedProjectId) {
+      setExpandedProjects(new Set([selectedProjectId]));
+    }
+  }, [selectedProjectId]);
+
   // 프로젝트 확장/축소
   const toggleProjectExpansion = (projectId: string) => {
     const newExpanded = new Set(expandedProjects);
@@ -63,6 +71,20 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
       newExpanded.add(projectId);
     }
     setExpandedProjects(newExpanded);
+  };
+
+  // 프로젝트 선택 (대시보드에서 프로젝트 클릭 시)
+  const handleProjectSelect = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    setViewMode('projects');
+    setExpandedProjects(new Set([projectId]));
+  };
+
+  // 프로젝트 뷰에서 뒤로 가기
+  const handleBackToDashboard = () => {
+    setSelectedProjectId(null);
+    setViewMode('dashboard');
+    setExpandedProjects(new Set());
   };
 
   // 팀 생성/수정
@@ -214,46 +236,45 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              {/* 통계 카드 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-sm font-medium text-gray-500">총 팀</h3>
-                  <p className="text-3xl font-bold text-gray-900">{teams.length}</p>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-sm font-medium text-gray-500">총 프로젝트</h3>
-                  <p className="text-3xl font-bold text-gray-900">{projects.length}</p>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-sm font-medium text-gray-500">총 배너</h3>
-                  <p className="text-3xl font-bold text-gray-900">{banners.length}</p>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-sm font-medium text-gray-500">완료된 배너</h3>
-                  <p className="text-3xl font-bold text-green-600">
-                    {banners.filter(b => b.status === 'completed').length}
-                  </p>
-                </div>
-              </div>
-
               {/* 최근 프로젝트 */}
               <div className="bg-white rounded-lg shadow-sm">
                 <div className="p-6 border-b">
                   <h2 className="text-lg font-semibold text-gray-900">최근 프로젝트</h2>
                 </div>
                 <div className="divide-y">
-                  {projects.slice(0, 5).map((project) => (
-                    <div key={project.id} className="p-6 hover:bg-gray-50">
+                  {projects.slice(0, 10).map((project) => (
+                    <div 
+                      key={project.id} 
+                      className="p-6 hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => handleProjectSelect(project.id)}
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">{project.name}</h3>
+                          <div className="flex items-center space-x-2 mb-1">
+                            {project.team && (
+                              <div 
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: project.team.color }}
+                              ></div>
+                            )}
+                            <h3 className="font-medium text-gray-900 hover:text-blue-600 transition-colors">{project.name}</h3>
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
                           <p className="text-sm text-gray-500">{project.description}</p>
-                          <div className="flex items-center space-x-4 mt-2">
+                          <div className="flex items-center space-x-3 mt-2">
                             <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(project.status)}`}>
-                              {project.status}
+                              {project.status === 'active' && '진행중'}
+                              {project.status === 'completed' && '완료'}
+                              {project.status === 'on_hold' && '보류'}
+                              {project.status === 'cancelled' && '취소'}
                             </span>
                             <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(project.priority)}`}>
-                              {project.priority}
+                              {project.priority === 'low' && '낮음'}
+                              {project.priority === 'medium' && '보통'}
+                              {project.priority === 'high' && '높음'}
+                              {project.priority === 'urgent' && '긴급'}
                             </span>
                             {project.manager_name && (
                               <span className="text-xs text-gray-500">담당자: {project.manager_name}</span>
@@ -270,7 +291,10 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                             </p>
                           </div>
                           <button
-                            onClick={() => onBannerCreate(project.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onBannerCreate(project.id);
+                            }}
                             className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
                           >
                             배너 추가
@@ -279,6 +303,17 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                       </div>
                     </div>
                   ))}
+                  {projects.length === 0 && (
+                    <div className="p-6 text-center text-gray-500">
+                      <p>아직 프로젝트가 없습니다.</p>
+                      <button
+                        onClick={() => setViewMode('projects')}
+                        className="text-blue-500 hover:text-blue-700 text-sm mt-2"
+                      >
+                        첫 프로젝트 만들기 →
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -358,7 +393,25 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
               className="space-y-6"
             >
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-900">프로젝트 목록</h2>
+                <div className="flex items-center space-x-4">
+                  {selectedProjectId && (
+                    <button
+                      onClick={handleBackToDashboard}
+                      className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                      <span>대시보드로</span>
+                    </button>
+                  )}
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {selectedProjectId 
+                      ? `${projects.find(p => p.id === selectedProjectId)?.name} - 배너 목록`
+                      : '프로젝트 목록'
+                    }
+                  </h2>
+                </div>
                 <button
                   onClick={() => setShowProjectForm(true)}
                   className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
@@ -369,7 +422,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
 
               <div className="bg-white rounded-lg shadow-sm">
                 <div className="divide-y">
-                  {projects.map((project) => {
+                  {(selectedProjectId ? projects.filter(p => p.id === selectedProjectId) : projects).map((project) => {
                     const projectBanners = banners.filter(b => b.project_id === project.id);
                     const isExpanded = expandedProjects.has(project.id);
                     
@@ -462,53 +515,141 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                         </div>
                         
                         {/* 배너 목록 (확장 시) */}
-                        {isExpanded && projectBanners.length > 0 && (
-                          <div className="mt-4 pl-6 border-l-2 border-gray-100">
-                            <h4 className="text-sm font-medium text-gray-700 mb-3">배너 목록</h4>
-                            <div className="space-y-2">
-                              {projectBanners.map((banner) => (
-                                <div key={banner.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                  <div className="flex-1">
-                                    <div className="flex items-center space-x-3">
-                                      <h5 className="font-medium text-gray-900">{banner.title}</h5>
-                                      <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(banner.status)}`}>
-                                        {banner.status}
-                                      </span>
-                                      <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
-                                        {banner.banner_type}
-                                      </span>
-                                      <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
-                                        {banner.device_type}
-                                      </span>
-                                    </div>
-                                    {banner.description && (
-                                      <p className="text-sm text-gray-600 mt-1">{banner.description}</p>
-                                    )}
-                                  </div>
-                                  <div className="flex space-x-2">
-                                    <button
-                                      onClick={() => onBannerEdit(banner)}
-                                      className="text-blue-500 hover:text-blue-700 text-sm"
-                                    >
-                                      편집
-                                    </button>
-                                    <button
-                                      onClick={() => handleBannerDelete(banner.id)}
-                                      className="text-red-500 hover:text-red-700 text-sm"
-                                    >
-                                      삭제
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="mt-6 border-t border-gray-200 pt-6"
+                          >
+                            <div className="flex items-center justify-between mb-4">
+                              <h4 className="text-lg font-medium text-gray-900">배너 목록</h4>
+                              <button
+                                onClick={() => onBannerCreate(project.id)}
+                                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                배너 생성
+                              </button>
                             </div>
-                          </div>
-                        )}
-                        
-                        {isExpanded && projectBanners.length === 0 && (
-                          <div className="mt-4 pl-6 border-l-2 border-gray-100">
-                            <p className="text-sm text-gray-500">아직 배너가 없습니다.</p>
-                          </div>
+
+                            {projectBanners.length > 0 ? (
+                              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                <div className="divide-y divide-gray-200">
+                                  {projectBanners.map((banner) => (
+                                    <motion.div
+                                      key={banner.id}
+                                      initial={{ opacity: 0, y: 10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ duration: 0.2 }}
+                                      className="p-4 hover:bg-gray-50 transition-colors"
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-4 flex-1">
+                                          {/* 배너 썸네일 */}
+                                          <div className="w-20 h-12 bg-gray-100 rounded border flex-shrink-0 overflow-hidden">
+                                            {banner.image_url ? (
+                                              <img 
+                                                src={banner.image_url} 
+                                                alt={banner.title}
+                                                className="w-full h-full object-cover"
+                                              />
+                                            ) : (
+                                              <div className="w-full h-full flex items-center justify-center">
+                                                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                              </div>
+                                            )}
+                                          </div>
+                                          
+                                          {/* 배너 정보 */}
+                                          <div className="flex-1 min-w-0">
+                                            <div className="flex items-center space-x-2 mb-1">
+                                              <h5 className="font-medium text-gray-900 truncate">
+                                                {banner.title || '제목 없음'}
+                                              </h5>
+                                              <span className={`px-2 py-1 text-xs rounded-full font-medium ${getStatusColor(banner.status)}`}>
+                                                {banner.status === 'draft' && '초안'}
+                                                {banner.status === 'in_progress' && '진행중'}
+                                                {banner.status === 'review' && '검토중'}
+                                                {banner.status === 'approved' && '승인됨'}
+                                                {banner.status === 'rejected' && '거부됨'}
+                                                {banner.status === 'completed' && '완료'}
+                                              </span>
+                                            </div>
+                                            
+                                            {banner.description && (
+                                              <p className="text-sm text-gray-600 truncate mb-2">{banner.description}</p>
+                                            )}
+                                            
+                                            <div className="flex items-center space-x-4 text-xs text-gray-500">
+                                              <span>크기: {banner.canvas_width}×{banner.canvas_height}px</span>
+                                              {banner.banner_type && (
+                                                <span>타입: {banner.banner_type}</span>
+                                              )}
+                                              {banner.device_type && (
+                                                <span>기기: {banner.device_type}</span>
+                                              )}
+                                              <span>생성: {new Date(banner.created_at).toLocaleDateString()}</span>
+                                              {banner.updated_at && banner.updated_at !== banner.created_at && (
+                                                <span>수정: {new Date(banner.updated_at).toLocaleDateString()}</span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                        
+                                        {/* 액션 버튼 */}
+                                        <div className="flex items-center space-x-2 ml-4">
+                                          <button
+                                            onClick={() => {
+                                              console.log('Editing banner:', banner);
+                                              onBannerEdit(banner);
+                                            }}
+                                            className="bg-blue-500 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-600 transition-colors flex items-center gap-1.5"
+                                          >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            편집
+                                          </button>
+                                          <button
+                                            onClick={() => handleBannerDelete(banner.id)}
+                                            className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600 transition-colors flex items-center gap-1.5"
+                                          >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            삭제
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                                <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <p className="text-lg font-medium text-gray-900 mb-2">아직 생성된 배너가 없습니다</p>
+                                <p className="text-sm text-gray-600 mb-6">이 프로젝트의 첫 번째 배너를 만들어보세요.</p>
+                                <button
+                                  onClick={() => onBannerCreate(project.id)}
+                                  className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center gap-2 font-medium"
+                                >
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                  </svg>
+                                  첫 배너 생성하기
+                                </button>
+                              </div>
+                            )}
+                          </motion.div>
                         )}
                       </div>
                     );
