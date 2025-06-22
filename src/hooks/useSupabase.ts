@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import { Team, Project, Banner, TeamFormData, ProjectFormData } from '../types';
+import { isMockMode } from '../lib/supabase';
 import { 
   mockTeamService, 
   mockProjectService, 
@@ -7,6 +8,13 @@ import {
   mockStorageService,
   mockDashboardService 
 } from '../services/mockService';
+import {
+  teamService,
+  projectService,
+  bannerService,
+  storageService,
+  dashboardService
+} from '../services/supabaseService';
 
 export const useSupabase = () => {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -15,14 +23,23 @@ export const useSupabase = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 서비스 선택 (Mock 모드 여부에 따라)
+  const getTeamService = () => isMockMode ? mockTeamService : teamService;
+  const getProjectService = () => isMockMode ? mockProjectService : projectService;
+  const getBannerService = () => isMockMode ? mockBannerService : bannerService;
+  const getStorageService = () => isMockMode ? mockStorageService : storageService;
+  const getDashboardService = () => isMockMode ? mockDashboardService : dashboardService;
+
+  console.log('🔧 useSupabase 훅 초기화:', { isMockMode });
+
   // 초기 데이터 로드
   const initializeData = async () => {
     try {
       setLoading(true);
       const [teamsData, projectsData, bannersData] = await Promise.all([
-        mockTeamService.getTeams(),
-        mockProjectService.getProjects(),
-        mockBannerService.getBanners()
+        getTeamService().getTeams(),
+        getProjectService().getProjects(),
+        getBannerService().getBanners()
       ]);
       
       setTeams(teamsData);
@@ -44,7 +61,7 @@ export const useSupabase = () => {
   const fetchTeams = async () => {
     try {
       setLoading(true);
-      const data = await mockTeamService.getTeams();
+      const data = await getTeamService().getTeams();
       setTeams(data);
       setError(null);
     } catch (err) {
@@ -57,7 +74,7 @@ export const useSupabase = () => {
   const createTeam = async (teamData: TeamFormData): Promise<Team> => {
     try {
       setLoading(true);
-      const newTeam = await mockTeamService.createTeam(teamData);
+      const newTeam = await getTeamService().createTeam(teamData);
       setTeams(prev => [...prev, newTeam]);
       setError(null);
       return newTeam;
@@ -73,7 +90,7 @@ export const useSupabase = () => {
   const updateTeam = async (id: string, teamData: Partial<TeamFormData>): Promise<Team> => {
     try {
       setLoading(true);
-      const updatedTeam = await mockTeamService.updateTeam(id, teamData);
+      const updatedTeam = await getTeamService().updateTeam(id, teamData);
       setTeams(prev => prev.map(team => team.id === id ? updatedTeam : team));
       setError(null);
       return updatedTeam;
@@ -89,7 +106,7 @@ export const useSupabase = () => {
   const deleteTeam = async (id: string): Promise<void> => {
     try {
       setLoading(true);
-      await mockTeamService.deleteTeam(id);
+      await getTeamService().deleteTeam(id);
       setTeams(prev => prev.filter(team => team.id !== id));
       setError(null);
     } catch (err) {
@@ -105,7 +122,7 @@ export const useSupabase = () => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const data = await mockProjectService.getProjects();
+      const data = await getProjectService().getProjects();
       setProjects(data);
       setError(null);
     } catch (err) {
@@ -118,7 +135,7 @@ export const useSupabase = () => {
   const createProject = async (projectData: ProjectFormData): Promise<Project> => {
     try {
       setLoading(true);
-      const newProject = await mockProjectService.createProject(projectData);
+      const newProject = await getProjectService().createProject(projectData);
       setProjects(prev => [...prev, newProject]);
       setError(null);
       return newProject;
@@ -134,7 +151,7 @@ export const useSupabase = () => {
   const updateProject = async (id: string, projectData: Partial<ProjectFormData>): Promise<Project> => {
     try {
       setLoading(true);
-      const updatedProject = await mockProjectService.updateProject(id, projectData);
+      const updatedProject = await getProjectService().updateProject(id, projectData);
       setProjects(prev => prev.map(project => project.id === id ? updatedProject : project));
       setError(null);
       return updatedProject;
@@ -150,7 +167,7 @@ export const useSupabase = () => {
   const deleteProject = async (id: string): Promise<void> => {
     try {
       setLoading(true);
-      await mockProjectService.deleteProject(id);
+      await getProjectService().deleteProject(id);
       setProjects(prev => prev.filter(project => project.id !== id));
       setBanners(prev => prev.filter(banner => banner.project_id !== id));
       setError(null);
@@ -167,7 +184,7 @@ export const useSupabase = () => {
   const fetchBanners = async () => {
     try {
       setLoading(true);
-      const data = await mockBannerService.getBanners();
+      const data = await getBannerService().getBanners();
       setBanners(data);
       setError(null);
     } catch (err) {
@@ -180,9 +197,9 @@ export const useSupabase = () => {
   const createBanner = async (bannerData: any): Promise<Banner> => {
     try {
       setLoading(true);
-      const newBanner = await mockBannerService.createBanner(bannerData);
+      const newBanner = await getBannerService().createBanner(bannerData);
       setBanners(prev => [...prev, newBanner]);
-      const updatedProjects = await mockProjectService.getProjects();
+      const updatedProjects = await getProjectService().getProjects();
       setProjects(updatedProjects);
       setError(null);
       return newBanner;
@@ -198,7 +215,7 @@ export const useSupabase = () => {
   const updateBanner = async (id: string, bannerData: Partial<Banner>): Promise<Banner> => {
     try {
       setLoading(true);
-      const updatedBanner = await mockBannerService.updateBanner(id, bannerData);
+      const updatedBanner = await getBannerService().updateBanner(id, bannerData);
       setBanners(prev => prev.map(banner => banner.id === id ? updatedBanner : banner));
       setError(null);
       return updatedBanner;
@@ -214,9 +231,9 @@ export const useSupabase = () => {
   const deleteBanner = async (id: string): Promise<void> => {
     try {
       setLoading(true);
-      await mockBannerService.deleteBanner(id);
+      await getBannerService().deleteBanner(id);
       setBanners(prev => prev.filter(banner => banner.id !== id));
-      const updatedProjects = await mockProjectService.getProjects();
+      const updatedProjects = await getProjectService().getProjects();
       setProjects(updatedProjects);
       setError(null);
     } catch (err) {
@@ -231,7 +248,7 @@ export const useSupabase = () => {
   const uploadBannerImage = async (file: File): Promise<string> => {
     try {
       setLoading(true);
-      const imageUrl = await mockStorageService.uploadBannerImage(file);
+      const imageUrl = await getStorageService().uploadBannerImage(file);
       setError(null);
       return imageUrl;
     } catch (err) {
@@ -246,7 +263,7 @@ export const useSupabase = () => {
   const uploadLogo = async (file: File): Promise<string> => {
     try {
       setLoading(true);
-      const logoUrl = await mockStorageService.uploadLogo(file);
+      const logoUrl = await getStorageService().uploadLogo(file);
       setError(null);
       return logoUrl;
     } catch (err) {
@@ -261,7 +278,7 @@ export const useSupabase = () => {
   const getDashboardStats = async () => {
     try {
       setLoading(true);
-      const stats = await mockDashboardService.getDashboardStats();
+      const stats = await getDashboardService().getDashboardStats();
       setError(null);
       return stats;
     } catch (err) {
@@ -276,7 +293,7 @@ export const useSupabase = () => {
   const getRecentActivity = async () => {
     try {
       setLoading(true);
-      const activity = await mockDashboardService.getRecentActivity();
+      const activity = await getDashboardService().getRecentActivity();
       setError(null);
       return activity;
     } catch (err) {
