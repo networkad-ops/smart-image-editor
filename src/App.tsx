@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BannerSelector from './components/BannerSelector';
 import { BannerEditor } from './components/BannerEditor';
@@ -16,13 +16,12 @@ function App() {
   const [bannerSelection, setBannerSelection] = useState<BannerSelection | null>(null);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
-  const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
   const [textElements, setTextElements] = useState<TextElement[]>([]);
   const [finalImage, setFinalImage] = useState<Blob | null>(null);
   const [showBannerProjectModal, setShowBannerProjectModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [previewCanvasRef, setPreviewCanvasRef] = useState<React.RefObject<HTMLCanvasElement> | null>(null);
-  const [logoImage, setLogoImage] = useState<File | null>(null);
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
 
   const { uploadBannerImage, uploadLogo, createBanner, updateBanner, createProject, createTeam, teams, projects } = useSupabase();
 
@@ -226,7 +225,7 @@ function App() {
       setLoading(true);
 
       const bannerBlob = await new Promise<Blob | null>((resolve) => {
-        if (previewCanvasRef?.current) {
+        if (previewCanvasRef.current) {
           previewCanvasRef.current.toBlob(
             (blob) => {
               if (blob) {
@@ -403,21 +402,14 @@ function App() {
               transition={{ duration: 0.3 }}
             >
               <BannerEditor
-                config={bannerSelection.config}
-                onImageUpload={handleImageUpload}
-                onLogoUpload={handleLogoUpload}
-                onAddText={handleAddText}
-                onTextUpdate={handleTextUpdate}
-                onTextDelete={handleTextDelete}
-                onComplete={handleComplete}
-                uploadedImage={uploadedImage}
-                uploadedLogo={uploadedLogo}
+                ref={previewCanvasRef}
+                bannerConfig={bannerSelection.config}
                 textElements={textElements}
-                isEditing={!!editingBanner}
-                editingBanner={editingBanner || undefined}
-                onBannerTypeChange={handleBannerTypeChange}
-                onTitleChange={handleTitleChange}
-                onGoHome={() => setStep('project-manager')}
+                onTextElementsChange={setTextElements}
+                onSave={handleSaveBanner}
+                onLogoUpload={setUploadedLogo}
+                editingBanner={editingBanner}
+                isLoading={loading}
               />
             </motion.div>
           )}

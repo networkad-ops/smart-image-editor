@@ -1,6 +1,7 @@
 // BannerPreview.tsx 수정
-import { forwardRef, useEffect, RefObject } from 'react';
+import React, { forwardRef, useEffect, RefObject } from 'react';
 import { BannerConfig, TextElement } from '../types';
+import { drawMultilineText, drawTextWithLineBreaks, applyRangeColor } from '../utils/canvasUtils';
 
 interface BannerPreviewProps {
   config: BannerConfig;
@@ -11,7 +12,7 @@ interface BannerPreviewProps {
   existingLogoUrl?: string | null;
 }
 
-export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>(({
+export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewProps>(({
   config,
   uploadedImage,
   uploadedLogo,
