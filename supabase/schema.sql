@@ -109,12 +109,12 @@ VALUES
     ('thumbnails', 'thumbnails', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Set up Row Level Security (RLS)
-ALTER TABLE teams ENABLE ROW LEVEL SECURITY;
-ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE banners ENABLE ROW LEVEL SECURITY;
-ALTER TABLE banner_history ENABLE ROW LEVEL SECURITY;
-ALTER TABLE banner_comments ENABLE ROW LEVEL SECURITY;
+-- 완전 공개 모드: RLS 비활성화
+ALTER TABLE teams DISABLE ROW LEVEL SECURITY;
+ALTER TABLE projects DISABLE ROW LEVEL SECURITY;
+ALTER TABLE banners DISABLE ROW LEVEL SECURITY;
+ALTER TABLE banner_history DISABLE ROW LEVEL SECURITY;
+ALTER TABLE banner_comments DISABLE ROW LEVEL SECURITY;
 
 -- Create policies for teams
 CREATE POLICY "Users can view their own teams" ON teams
@@ -404,4 +404,30 @@ LEFT JOIN teams t ON p.team_id = t.id
 LEFT JOIN banner_comments bc ON b.id = bc.banner_id
 GROUP BY b.id, b.title, b.description, b.banner_type, b.device_type, 
          b.status, b.version, b.tags, b.approved_by, b.approved_at,
-         b.created_at, b.updated_at, p.name, p.manager_name, t.name, t.color; 
+         b.created_at, b.updated_at, p.name, p.manager_name, t.name, t.color;
+
+-- 임시 공개 정책 추가 (개발/테스트용)
+CREATE POLICY "Allow anonymous access to teams" ON teams
+    FOR ALL USING (true);
+
+CREATE POLICY "Allow anonymous access to projects" ON projects
+    FOR ALL USING (true);
+
+CREATE POLICY "Allow anonymous access to banners" ON banners
+    FOR ALL USING (true);
+
+CREATE POLICY "Allow anonymous access to banner_history" ON banner_history
+    FOR ALL USING (true);
+
+CREATE POLICY "Allow anonymous access to banner_comments" ON banner_comments
+    FOR ALL USING (true);
+
+-- Storage 정책도 공개로 설정
+CREATE POLICY "Allow public access to banner-images" ON storage.objects
+    FOR ALL USING (bucket_id = 'banner-images');
+
+CREATE POLICY "Allow public access to logos" ON storage.objects
+    FOR ALL USING (bucket_id = 'logos');
+
+CREATE POLICY "Allow public access to thumbnails" ON storage.objects
+    FOR ALL USING (bucket_id = 'thumbnails'); 

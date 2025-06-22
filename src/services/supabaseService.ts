@@ -19,28 +19,69 @@ import {
 export const teamService = {
   // 팀 목록 조회
   async getTeams(): Promise<Team[]> {
-    const { data, error } = await supabase
-      .from('teams')
-      .select('*')
-      .order('created_at', { ascending: false })
+    console.log('📋 팀 목록 조회 시도...');
+    
+    try {
+      const { data, error } = await supabase
+        .from('teams')
+        .select('*')
+        .order('created_at', { ascending: false })
 
-    if (error) throw error
-    return data || []
+      console.log('📋 팀 목록 조회 결과:', { data, error });
+
+      if (error) {
+        console.error('❌ 팀 목록 조회 오류:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+      
+      return data || []
+    } catch (err) {
+      console.error('💥 팀 목록 조회 실패:', err);
+      throw err;
+    }
   },
 
   // 팀 생성
   async createTeam(teamData: TeamFormData): Promise<Team> {
-    const { data, error } = await supabase
-      .from('teams')
-      .insert([{
+    console.log('🚀 팀 생성 시도:', teamData);
+    
+    try {
+      const insertData = {
         ...teamData,
-        user_id: 'temp-user-id' // 임시 사용자 ID
-      }])
-      .select()
-      .single()
+        user_id: null // 완전 공개 모드: user_id 없음
+      };
+      
+      console.log('📝 삽입할 데이터:', insertData);
+      
+      const { data, error } = await supabase
+        .from('teams')
+        .insert([insertData])
+        .select()
+        .single()
 
-    if (error) throw error
-    return data
+      console.log('✅ Supabase 응답:', { data, error });
+
+      if (error) {
+        console.error('❌ Supabase 오류 상세:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+      
+      console.log('🎉 팀 생성 성공:', data);
+      return data
+    } catch (err) {
+      console.error('💥 팀 생성 실패:', err);
+      throw err;
+    }
   },
 
   // 팀 수정
@@ -115,7 +156,7 @@ export const projectService = {
       .from('projects')
       .insert([{
         ...projectData,
-        user_id: 'temp-user-id' // 임시 사용자 ID
+        user_id: null // 완전 공개 모드: user_id 없음
       }])
       .select(`
         *,

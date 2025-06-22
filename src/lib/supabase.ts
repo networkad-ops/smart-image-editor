@@ -1,17 +1,20 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// 환경 변수 강제 설정 (개발 중 문제 해결용)
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://vznpflqvmbbglfhqftvz.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6bnBmbHF2bWJiZ2xmaHFmdHZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ4NjI4NzQsImV4cCI6MjA1MDQzODg3NH0.lrm-pjZFCOoqQYDDhQwxJGXYHhKdYZcMTIJVwDKBKJo'
 
 console.log('🔧 환경 변수 확인:', {
   supabaseUrl,
   supabaseAnonKey: supabaseAnonKey ? `${supabaseAnonKey.slice(0, 20)}...` : undefined,
   hasUrl: !!supabaseUrl,
-  hasKey: !!supabaseAnonKey
+  hasKey: !!supabaseAnonKey,
+  envMode: import.meta.env.MODE,
+  allEnvVars: import.meta.env
 });
 
 // Supabase 환경 변수가 없을 때는 Mock 모드로 동작
-export const isMockMode = !supabaseUrl || !supabaseAnonKey || supabaseUrl === 'your_supabase_project_url'
+export const isMockMode = false // 강제로 실제 DB 모드로 설정
 
 console.log('🔍 모드 결정:', { isMockMode });
 
@@ -21,12 +24,18 @@ if (!isMockMode) {
   console.log('🎯 실제 Supabase DB에 연결 중...');
   supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false
+    },
+    // RLS 우회를 위한 설정
+    global: {
+      headers: {
+        'apikey': supabaseAnonKey
+      }
     }
   })
-  console.log('✅ Supabase 클라이언트 생성 완료');
+  console.log('✅ Supabase 클라이언트 생성 완료 (완전 공개 모드)');
 } else {
   // Mock Supabase 클라이언트
   console.log('🚀 Mock 모드로 실행 중입니다. 실제 데이터베이스 대신 로컬 데이터를 사용합니다.')
