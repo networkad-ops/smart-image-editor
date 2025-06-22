@@ -49,28 +49,42 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     <div className="bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-xl font-semibold mb-4">텍스트 편집</h2>
       
+      {/* 서브타이틀 편집 */}
+      {config.subTitle && (
+        <div className="mb-6">
+          <h3 className="font-medium mb-2">서브타이틀</h3>
+          <input
+            type="text"
+            value={subTitle?.text || ''}
+            onChange={(e) => onUpdateText('sub-title', { text: e.target.value })}
+            className="w-full px-3 py-2 border rounded"
+            placeholder="서브타이틀 입력 (한 줄만 가능)"
+            maxLength={config.subTitle.maxLength}
+          />
+        </div>
+      )}
+
       {/* 메인타이틀 편집 */}
       {config.mainTitle && (
         <div className="mb-6">
           <h3 className="font-medium mb-2">메인타이틀</h3>
           <textarea
             value={mainTitle?.text || ''}
-            onChange={(e) => onUpdateText('main-title', { text: e.target.value })}
-            className="w-full px-3 py-2 border rounded min-h-[100px] resize-y"
-            placeholder="메인타이틀 입력"
-          />
-        </div>
-      )}
-
-      {/* 서브타이틀 편집 */}
-      {config.subTitle && (
-        <div className="mb-6">
-          <h3 className="font-medium mb-2">서브타이틀</h3>
-          <textarea
-            value={subTitle?.text || ''}
-            onChange={(e) => onUpdateText('sub-title', { text: e.target.value })}
-            className="w-full px-3 py-2 border rounded min-h-[100px] resize-y"
-            placeholder="서브타이틀 입력"
+            onChange={(e) => {
+              const lines = e.target.value.split('\n');
+              // 최대 1번만 줄바꿈 허용 (총 2줄)
+              if (lines.length <= 1) {
+                onUpdateText('main-title', { text: e.target.value });
+              } else {
+                // 첫 번째 줄바꿈까지만 허용
+                const limitedText = lines.slice(0, 1).join('\n');
+                onUpdateText('main-title', { text: limitedText });
+              }
+            }}
+            className="w-full px-3 py-2 border rounded min-h-[80px] resize-y"
+            placeholder="메인타이틀 입력 (줄바꿈 불가)"
+            maxLength={config.mainTitle.maxLength}
+            rows={1}
           />
         </div>
       )}

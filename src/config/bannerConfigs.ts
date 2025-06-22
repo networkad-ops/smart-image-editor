@@ -8,21 +8,9 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     maxFileSize: 1.5 * 1024 * 1024,
     fixedText: true,
     allowCustomText: false,
-    mainTitle: {
-      x: 100,
-      y: 100,
-      width: 2680,
-      height: 100,
-      fontSize: 84,
-      lineHeight: 104,
-      fontFamily: 'Pretendard',
-      fontWeight: 700,
-      maxLength: 36,
-      maxLines: 2
-    },
     subTitle: {
-      x: 100,
-      y: 220,
+      x: 110,
+      y: 190,
       width: 2680,
       height: 60,
       fontSize: 54,
@@ -30,6 +18,18 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 500,
       maxLength: 20,
+      maxLines: 1
+    },
+    mainTitle: {
+      x: 110,
+      y: 182,
+      width: 2680,
+      height: 100,
+      fontSize: 84,
+      lineHeight: 104,
+      fontFamily: 'Pretendard',
+      fontWeight: 700,
+      maxLength: 36,
       maxLines: 1
     }
   },
@@ -41,21 +41,9 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     maxFileSize: 500 * 1024,
     fixedText: true,
     allowCustomText: false,
-    mainTitle: {
-      x: 50,
-      y: 80,
-      width: 1460,
-      height: 90,
-      fontSize: 80,
-      lineHeight: 99,
-      fontFamily: 'Pretendard',
-      fontWeight: 700,
-      maxLength: 24,
-      maxLines: 2
-    },
     subTitle: {
-      x: 50,
-      y: 190,
+      x: 81,
+      y: 86,
       width: 1460,
       height: 60,
       fontSize: 60,
@@ -63,6 +51,18 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 500,
       maxLength: 20,
+      maxLines: 1
+    },
+    mainTitle: {
+      x: 81,
+      y: 187,
+      width: 1460,
+      height: 90,
+      fontSize: 80,
+      lineHeight: 99,
+      fontFamily: 'Pretendard',
+      fontWeight: 700,
+      maxLength: 24,
       maxLines: 1
     }
   },
@@ -76,7 +76,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     allowCustomText: false,
     mainTitle: {
       x: 100,
-      y: 100,
+      y: 182,
       width: 2680,
       height: 100,
       fontSize: 84,
@@ -103,8 +103,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     fixedText: true,
     allowCustomText: false,
     mainTitle: {
-      x: 50,
-      y: 80,
+      x: 81,
+      y: 187,
       width: 1460,
       height: 90,
       fontSize: 80,
@@ -116,7 +116,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     },
     logo: {
       x: 81,
-      y: 98,
+      y: 96,
       width: 266,
       height: 56,
       maxFileSize: 300 * 1024
@@ -141,15 +141,6 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     allowCustomText: true
   },
 
-  'interactive-pc': {
-    name: '인터랙티브 배너 (PC)',
-    width: 2880,
-    height: 570,
-    maxFileSize: 10 * 1024 * 1024,
-    fixedText: false,
-    allowCustomText: true
-  },
-
   'interactive-mobile': {
     name: '인터랙티브 배너 (모바일)',
     width: 1050,
@@ -164,15 +155,6 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     width: 2880,
     height: 570,
     maxFileSize: 10 * 1024 * 1024,
-    fixedText: false,
-    allowCustomText: true
-  },
-
-  'fullscreen-mobile': {
-    name: '전면 배너 (모바일)',
-    width: 1050,
-    height: 1050,
-    maxFileSize: 5 * 1024 * 1024,
     fixedText: false,
     allowCustomText: true
   }
