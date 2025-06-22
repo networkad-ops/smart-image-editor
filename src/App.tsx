@@ -67,7 +67,7 @@ function App() {
         height: selection.config.subTitle.height,
         fontSize: selection.config.subTitle.fontSize,
         fontFamily: selection.config.subTitle.fontFamily,
-        fontWeight: selection.config.subTitle.fontWeight ?? 400,
+        fontWeight: selection.config.subTitle.fontWeight ?? 500,
         color: '#000000',
         editable: { position: false, size: false, color: true }
       });

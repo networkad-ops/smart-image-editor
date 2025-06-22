@@ -73,18 +73,18 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             onChange={(e) => {
               const lines = e.target.value.split('\n');
               // 최대 1번만 줄바꿈 허용 (총 2줄)
-              if (lines.length <= 1) {
+              if (lines.length <= 2) {
                 onUpdateText('main-title', { text: e.target.value });
               } else {
-                // 첫 번째 줄바꿈까지만 허용
-                const limitedText = lines.slice(0, 1).join('\n');
+                // 첫 번째 줄바꿈까지만 허용 (2줄까지)
+                const limitedText = lines.slice(0, 2).join('\n');
                 onUpdateText('main-title', { text: limitedText });
               }
             }}
             className="w-full px-3 py-2 border rounded min-h-[80px] resize-y"
-            placeholder="메인타이틀 입력 (줄바꿈 불가)"
+            placeholder="메인타이틀 입력 (최대 2줄, 줄바꿈 1번만 가능)"
             maxLength={config.mainTitle.maxLength}
-            rows={1}
+            rows={2}
           />
         </div>
       )}
