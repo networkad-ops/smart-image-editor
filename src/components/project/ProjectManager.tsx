@@ -15,15 +15,13 @@ import { useSupabase } from '../../hooks/useSupabase';
 interface ProjectManagerProps {
   onBannerEdit: (banner: Banner) => void;
   onBannerCreate: (projectId: string) => void;
-  onQuickBannerStart?: () => void;
 }
 
 type ViewMode = 'dashboard' | 'teams' | 'projects';
 
 export const ProjectManager: React.FC<ProjectManagerProps> = ({
   onBannerEdit,
-  onBannerCreate,
-  onQuickBannerStart
+  onBannerCreate
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard');
   const [showTeamForm, setShowTeamForm] = useState(false);

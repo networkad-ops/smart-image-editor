@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { BannerWork } from '../types';
+// import { BannerWork } from '../types'; // 현재 사용하지 않음
 
 interface CompletionFormProps {
   finalImage: Blob;

@@ -278,7 +278,7 @@ function App() {
               <ProjectManager 
                 onBannerCreate={handleBannerCreate}
                 onBannerEdit={handleBannerEdit}
-                onQuickBannerStart={handleShowBannerProjectModal}
+
               />
             </motion.div>
           )}

@@ -123,7 +123,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
 
     const newElement: TextElement = {
       id: Date.now().toString(),
-      type: 'custom',
+      type: 'free',
       text: newText,
       x: 50,
       y: 50,

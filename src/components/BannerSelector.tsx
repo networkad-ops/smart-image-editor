@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { bannerConfigs } from '../config/bannerConfigs';
-import { BannerWork, BannerConfig, Project, BannerSelection } from '../types';
+import { BannerWork, Project, BannerSelection } from '../types';
 
 interface BannerSelectorProps {
   onSelect: (selection: BannerSelection) => void;

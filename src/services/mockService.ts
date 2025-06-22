@@ -201,8 +201,8 @@ export const mockBannerService = {
       id: generateId(),
       ...bannerData,
       version: 1,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      created_at: new Date(),
+      updated_at: new Date()
     };
     
     const project = projects.find(p => p.id === bannerData.project_id);
@@ -224,7 +224,7 @@ export const mockBannerService = {
     banners[index] = {
       ...banners[index],
       ...bannerData,
-      updated_at: new Date().toISOString()
+      updated_at: new Date()
     };
     
     saveToStorage(BANNERS_KEY, banners);

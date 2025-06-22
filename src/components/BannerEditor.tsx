@@ -31,8 +31,8 @@ export function BannerEditor({
   textElements,
   uploadedImage,
   uploadedLogo,
-  isEditing = false,
-  editingBanner
+  // isEditing = false,
+  // editingBanner
 }: BannerEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
