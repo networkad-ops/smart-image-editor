@@ -20,7 +20,7 @@ if (!isMockMode) {
   // Mock Supabase 클라이언트
   console.log('🚀 Mock 모드로 실행 중입니다. 실제 데이터베이스 대신 로컬 데이터를 사용합니다.')
   supabase = {
-    from: (table: string) => ({
+    from: (_table: string) => ({
       select: () => ({
         order: () => ({ data: [], error: null }),
         single: () => ({ data: null, error: null }),

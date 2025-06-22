@@ -9,8 +9,8 @@ import {
   ProjectFormData,
   BannerFormData,
   FilterOptions,
-  SortOptions,
-  Pagination,
+  // SortOptions,
+  // Pagination,
   ProjectStats
 } from '../types'
 
@@ -84,7 +84,7 @@ export const projectService = {
     if (error) throw error
 
     // 배너 통계 계산
-    return (data || []).map(project => ({
+    return (data || []).map((project: any) => ({
       ...project,
       total_banners: project.banners?.length || 0,
       draft_banners: project.banners?.filter((b: any) => b.status === 'draft').length || 0,
@@ -202,7 +202,7 @@ export const bannerService = {
     if (error) throw error
 
     // 댓글 수 계산
-    return (data || []).map(banner => ({
+    return (data || []).map((banner: any) => ({
       ...banner,
       comment_count: banner.comments?.length || 0
     }))
@@ -395,7 +395,7 @@ export const storageService = {
   // 배너 이미지 업로드
   async uploadBannerImage(file: File, path?: string): Promise<string> {
     const fileName = path || `${Date.now()}-${file.name}`
-    const { data, error } = await supabase.storage
+    const { data: _data, error } = await supabase.storage
       .from('banner-images')
       .upload(fileName, file)
 
@@ -411,7 +411,7 @@ export const storageService = {
   // 로고 업로드
   async uploadLogo(file: File, path?: string): Promise<string> {
     const fileName = path || `${Date.now()}-${file.name}`
-    const { data, error } = await supabase.storage
+    const { data: _data, error } = await supabase.storage
       .from('logos')
       .upload(fileName, file)
 
@@ -427,7 +427,7 @@ export const storageService = {
   // 썸네일 업로드
   async uploadThumbnail(file: File, path?: string): Promise<string> {
     const fileName = path || `${Date.now()}-${file.name}`
-    const { data, error } = await supabase.storage
+    const { data: _data, error } = await supabase.storage
       .from('thumbnails')
       .upload(fileName, file)
 
@@ -478,9 +478,9 @@ export const dashboardService = {
       totalTeams: teamsResult.count || 0,
       totalProjects: projectsResult.count || 0,
       totalBanners: bannersResult.count || 0,
-      completedBanners: banners.filter(b => b.status === 'completed').length,
-      inProgressBanners: banners.filter(b => b.status === 'in_progress').length,
-      draftBanners: banners.filter(b => b.status === 'draft').length
+      completedBanners: banners.filter((b: any) => b.status === 'completed').length,
+      inProgressBanners: banners.filter((b: any) => b.status === 'in_progress').length,
+      draftBanners: banners.filter((b: any) => b.status === 'draft').length
     }
   },
 
