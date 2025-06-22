@@ -4,7 +4,6 @@ import { ImageUpload } from './ImageUpload';
 import { LogoUpload } from './LogoUpload';
 import { TextEditSidebar } from './TextEditSidebar';
 import { BannerPreview } from './BannerPreview';
-import { bannerConfigs } from '../config/bannerConfigs';
 
 interface BannerEditorProps {
   config: BannerConfig;
