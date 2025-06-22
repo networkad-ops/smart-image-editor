@@ -24,20 +24,8 @@ let supabase: any = null
 
 if (!isMockMode) {
   console.log('🎯 실제 Supabase DB에 연결 중...');
-  supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false
-    },
-    // RLS 우회를 위한 설정
-    global: {
-      headers: {
-        'apikey': supabaseAnonKey
-      }
-    }
-  })
-  console.log('✅ Supabase 클라이언트 생성 완료 (완전 공개 모드)');
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
+  console.log('✅ Supabase 클라이언트 생성 완료 (가장 단순한 표준 설정)');
 } else {
   // Mock Supabase 클라이언트
   console.log('🚀 Mock 모드로 실행 중입니다. 실제 데이터베이스 대신 로컬 데이터를 사용합니다.')
