@@ -14,24 +14,28 @@ export const deviceConfigs: Record<DeviceType, DeviceConfig> = {
     },
     text: {
       title: {
-        maxLength: 50,
-        fontFamily: 'Pretendard',
+        x: 81,
+        y: 187,
+        width: 1758,
+        height: 60,
         fontSize: 48,
+        lineHeight: 1.2,
+        fontFamily: 'Pretendard',
         fontWeight: 700,
         letterSpacing: -0.02,
-        lineHeight: 1.2,
-        x: 81,
-        y: 187
+        maxLength: 50
       },
       subtitle: {
-        maxLength: 100,
-        fontFamily: 'Pretendard',
+        x: 81,
+        y: 86,
+        width: 1758,
+        height: 40,
         fontSize: 24,
+        lineHeight: 1.4,
+        fontFamily: 'Pretendard',
         fontWeight: 500,
         letterSpacing: -0.01,
-        lineHeight: 1.4,
-        x: 81,
-        y: 86
+        maxLength: 100
       }
     }
   },
@@ -48,24 +52,28 @@ export const deviceConfigs: Record<DeviceType, DeviceConfig> = {
     },
     text: {
       title: {
-        maxLength: 30,
-        fontFamily: 'Pretendard',
+        x: 81,
+        y: 187,
+        width: 588,
+        height: 40,
         fontSize: 32,
+        lineHeight: 1.2,
+        fontFamily: 'Pretendard',
         fontWeight: 700,
         letterSpacing: -0.02,
-        lineHeight: 1.2,
-        x: 81,
-        y: 187
+        maxLength: 30
       },
       subtitle: {
-        maxLength: 50,
-        fontFamily: 'Pretendard',
+        x: 81,
+        y: 86,
+        width: 588,
+        height: 25,
         fontSize: 18,
+        lineHeight: 1.4,
+        fontFamily: 'Pretendard',
         fontWeight: 500,
         letterSpacing: -0.01,
-        lineHeight: 1.4,
-        x: 81,
-        y: 86
+        maxLength: 50
       }
     }
   }

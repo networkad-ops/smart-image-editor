@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Project, BannerWork } from '../../types';
+import { Project } from '../../types';
 
 interface ProjectManagerProps {
   onProjectSelect: (project: Project) => void;
