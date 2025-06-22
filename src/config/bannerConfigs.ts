@@ -2,7 +2,7 @@ import { BannerConfig } from '../types';
 
 export const bannerConfigs: Record<string, BannerConfig> = {
   'basic-no-logo-pc': {
-    name: '기본 배너',
+    name: '기본 배너 (PC, 로고 없음)',
     width: 2880,
     height: 480,
     maxFileSize: 1.5 * 1024 * 1024,
@@ -35,7 +35,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'basic-no-logo-mobile': {
-    name: '기본 배너',
+    name: '기본 배너 (Mobile, 로고 없음)',
     width: 1560,
     height: 468,
     maxFileSize: 500 * 1024,
@@ -68,7 +68,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'basic-with-logo-pc': {
-    name: '로고 배너',
+    name: '기본 배너 (PC, 로고 포함)',
     width: 2880,
     height: 480,
     maxFileSize: 1.5 * 1024 * 1024,
@@ -96,7 +96,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'basic-with-logo-mobile': {
-    name: '로고 배너',
+    name: '기본 배너 (Mobile, 로고 포함)',
     width: 1560,
     height: 468,
     maxFileSize: 500 * 1024,
@@ -124,7 +124,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'splash-mobile': {
-    name: '스플래시',
+    name: '스플래시 (Mobile)',
     width: 390,
     height: 844,
     maxFileSize: 5 * 1024 * 1024,
@@ -133,7 +133,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'event-pc': {
-    name: '이벤트 배너',
+    name: '이벤트 배너 (PC)',
     width: 2880,
     height: 480,
     maxFileSize: 2 * 1024 * 1024,
@@ -166,7 +166,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'event-mobile': {
-    name: '이벤트 배너',
+    name: '이벤트 배너 (Mobile)',
     width: 1560,
     height: 468,
     maxFileSize: 1 * 1024 * 1024,

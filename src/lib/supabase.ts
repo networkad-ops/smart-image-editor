@@ -3,12 +3,22 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+console.log('🔧 환경 변수 확인:', {
+  supabaseUrl,
+  supabaseAnonKey: supabaseAnonKey ? `${supabaseAnonKey.slice(0, 20)}...` : undefined,
+  hasUrl: !!supabaseUrl,
+  hasKey: !!supabaseAnonKey
+});
+
 // Supabase 환경 변수가 없을 때는 Mock 모드로 동작
 export const isMockMode = !supabaseUrl || !supabaseAnonKey || supabaseUrl === 'your_supabase_project_url'
+
+console.log('🔍 모드 결정:', { isMockMode });
 
 let supabase: any = null
 
 if (!isMockMode) {
+  console.log('🎯 실제 Supabase DB에 연결 중...');
   supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: true,
@@ -16,6 +26,7 @@ if (!isMockMode) {
       detectSessionInUrl: true
     }
   })
+  console.log('✅ Supabase 클라이언트 생성 완료');
 } else {
   // Mock Supabase 클라이언트
   console.log('🚀 Mock 모드로 실행 중입니다. 실제 데이터베이스 대신 로컬 데이터를 사용합니다.')
