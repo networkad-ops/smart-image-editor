@@ -390,6 +390,7 @@ function App() {
                 editingBanner={editingBanner || undefined}
                 onBannerTypeChange={handleBannerTypeChange}
                 onTitleChange={handleTitleChange}
+                onGoHome={() => setStep('project-manager')}
               />
             </motion.div>
           )}
