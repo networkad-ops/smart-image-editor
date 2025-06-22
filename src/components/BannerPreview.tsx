@@ -84,9 +84,8 @@ export const BannerPreview = forwardRef<HTMLCanvasElement, BannerPreviewProps>((
             
             // 부분 색상이 있는 경우
             if (element.colorSegments && element.colorSegments.length > 0) {
-              // 현재 줄의 시작/끝 인덱스 계산
+              // 현재 줄의 시작 인덱스 계산
               const lineStart = lines.slice(0, lineIndex).join('\n').length + (lineIndex > 0 ? 1 : 0);
-              const lineEnd = lineStart + line.length;
               
               let lastIndex = 0;
               
