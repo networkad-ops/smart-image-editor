@@ -18,6 +18,8 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
 }) => {
   const [newText, setNewText] = useState('');
   const [selectedRange, setSelectedRange] = useState<{elementId: string, start: number, end: number} | null>(null);
+  const [previewColor, setPreviewColor] = useState<string>('#000000');
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState<boolean>(false);
   const subTitleInputRef = useRef<HTMLInputElement>(null);
   const mainTitleInputRef = useRef<HTMLTextAreaElement>(null);
   
@@ -31,9 +33,45 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     
     if (start !== end) {
       setSelectedRange({ elementId, start, end });
+      setIsColorPickerOpen(false); // 새로 선택하면 컬러 피커 닫기
     } else {
       setSelectedRange(null);
+      setIsColorPickerOpen(false);
     }
+  };
+
+  // 미리보기용 색상 변경
+  const handleColorPreview = (color: string) => {
+    setPreviewColor(color);
+  };
+
+  // 색상 선택 시작
+  const startColorPicking = () => {
+    if (selectedRange) {
+      setIsColorPickerOpen(true);
+      // 현재 선택된 부분의 색상을 가져와서 초기값으로 설정
+      const element = textElements.find(el => el.id === selectedRange.elementId);
+      if (element) {
+        const existingSegment = element.colorSegments?.find(seg => 
+          seg.start <= selectedRange.start && seg.end >= selectedRange.end
+        );
+        setPreviewColor(existingSegment?.color || element.color || '#000000');
+      }
+    }
+  };
+
+  // 색상 적용 완료
+  const applyColorFinal = () => {
+    if (selectedRange) {
+      applyPartialColor(selectedRange.elementId, previewColor);
+      setIsColorPickerOpen(false);
+    }
+  };
+
+  // 색상 적용 취소
+  const cancelColorPicking = () => {
+    setIsColorPickerOpen(false);
+    setSelectedRange(null);
   };
 
   // 부분 색상 변경 함수
@@ -225,24 +263,60 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               <div className="text-xs text-gray-600 mb-2">
                 {selectedRange && selectedRange.elementId === 'sub-title' ? '선택 부분에 적용할 색상' : '부분 색상 (텍스트 선택 후 사용)'}
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  onChange={(e) => applyPartialColor('sub-title', e.target.value)}
-                  className={`w-10 h-10 border-2 rounded-lg cursor-pointer transition-all ${
-                    selectedRange && selectedRange.elementId === 'sub-title' 
-                      ? 'border-blue-400' 
-                      : 'border-gray-300 opacity-60 cursor-not-allowed'
-                  }`}
+              
+              {/* 색상 선택 UI */}
+              {!isColorPickerOpen ? (
+                // 색상 선택 시작 버튼
+                <button
+                  onClick={startColorPicking}
                   disabled={!selectedRange || selectedRange.elementId !== 'sub-title'}
-                  title="선택된 텍스트에 색상 적용"
-                />
-                <span className="text-xs text-gray-500">
+                  className={`w-full px-4 py-3 rounded-lg border-2 transition-all ${
+                    selectedRange && selectedRange.elementId === 'sub-title' 
+                      ? 'border-blue-400 bg-blue-50 text-blue-700 hover:bg-blue-100' 
+                      : 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
                   {selectedRange && selectedRange.elementId === 'sub-title' 
-                    ? '색상을 선택하면 선택된 부분에 적용됩니다' 
-                    : '텍스트를 먼저 선택해주세요'}
-                </span>
-              </div>
+                    ? '🎨 선택 부분 색상 변경하기' 
+                    : '텍스트를 먼저 드래그로 선택해주세요'}
+                </button>
+              ) : selectedRange && selectedRange.elementId === 'sub-title' ? (
+                // 색상 선택 중
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-3">
+                  <div className="text-sm font-medium text-blue-800">
+                    🎨 색상 선택 중... (미리보기)
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={previewColor}
+                      onChange={(e) => handleColorPreview(e.target.value)}
+                      className="w-12 h-12 border-2 border-blue-400 rounded-lg cursor-pointer"
+                      title="색상을 선택하여 미리보기"
+                    />
+                    <div className="flex-1">
+                      <div className="text-xs text-blue-700 font-medium">선택한 색상: {previewColor}</div>
+                      <div className="text-xs text-blue-600">색상을 바꿔가며 미리보기하세요</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <button
+                      onClick={applyColorFinal}
+                      className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm font-medium"
+                    >
+                      ✅ 적용 완료
+                    </button>
+                    <button
+                      onClick={cancelColorPicking}
+                      className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 text-sm"
+                    >
+                      ❌ 취소
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
             
             {/* 초기화 버튼 */}
@@ -328,24 +402,60 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               <div className="text-xs text-gray-600 mb-2">
                 {selectedRange && selectedRange.elementId === 'main-title' ? '선택 부분에 적용할 색상' : '부분 색상 (텍스트 선택 후 사용)'}
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  onChange={(e) => applyPartialColor('main-title', e.target.value)}
-                  className={`w-10 h-10 border-2 rounded-lg cursor-pointer transition-all ${
-                    selectedRange && selectedRange.elementId === 'main-title' 
-                      ? 'border-blue-400' 
-                      : 'border-gray-300 opacity-60 cursor-not-allowed'
-                  }`}
+              
+              {/* 색상 선택 UI */}
+              {!isColorPickerOpen ? (
+                // 색상 선택 시작 버튼
+                <button
+                  onClick={startColorPicking}
                   disabled={!selectedRange || selectedRange.elementId !== 'main-title'}
-                  title="선택된 텍스트에 색상 적용"
-                />
-                <span className="text-xs text-gray-500">
+                  className={`w-full px-4 py-3 rounded-lg border-2 transition-all ${
+                    selectedRange && selectedRange.elementId === 'main-title' 
+                      ? 'border-blue-400 bg-blue-50 text-blue-700 hover:bg-blue-100' 
+                      : 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
                   {selectedRange && selectedRange.elementId === 'main-title' 
-                    ? '색상을 선택하면 선택된 부분에 적용됩니다' 
-                    : '텍스트를 먼저 선택해주세요'}
-                </span>
-              </div>
+                    ? '🎨 선택 부분 색상 변경하기' 
+                    : '텍스트를 먼저 드래그로 선택해주세요'}
+                </button>
+              ) : selectedRange && selectedRange.elementId === 'main-title' ? (
+                // 색상 선택 중
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-3">
+                  <div className="text-sm font-medium text-blue-800">
+                    🎨 색상 선택 중... (미리보기)
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={previewColor}
+                      onChange={(e) => handleColorPreview(e.target.value)}
+                      className="w-12 h-12 border-2 border-blue-400 rounded-lg cursor-pointer"
+                      title="색상을 선택하여 미리보기"
+                    />
+                    <div className="flex-1">
+                      <div className="text-xs text-blue-700 font-medium">선택한 색상: {previewColor}</div>
+                      <div className="text-xs text-blue-600">색상을 바꿔가며 미리보기하세요</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <button
+                      onClick={applyColorFinal}
+                      className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm font-medium"
+                    >
+                      ✅ 적용 완료
+                    </button>
+                    <button
+                      onClick={cancelColorPicking}
+                      className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 text-sm"
+                    >
+                      ❌ 취소
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
             
             {/* 초기화 버튼 */}
