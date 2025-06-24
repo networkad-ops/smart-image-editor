@@ -46,7 +46,7 @@ function App() {
   };
 
   // 프로젝트 매니저에서 배너 편집 요청
-  const handleBannerEdit = (banner: Banner) => {
+  const handleBannerEdit = async (banner: Banner) => {
     console.log('handleBannerEdit 호출됨:', banner);
     
     setEditingBanner(banner);
@@ -84,6 +84,32 @@ function App() {
         config
       });
       setTextElements(banner.text_elements);
+      
+      // 기존 이미지와 로고 로드
+      try {
+        // 배경 이미지 로드
+        const imageUrl = banner.background_image_url || banner.image_url;
+        if (imageUrl) {
+          console.log('배경 이미지 로드 중:', imageUrl);
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+          const file = new File([blob], 'background.jpg', { type: blob.type });
+          setUploadedImage(file);
+        }
+        
+        // 로고 이미지 로드
+        if (banner.logo_url) {
+          console.log('로고 이미지 로드 중:', banner.logo_url);
+          const response = await fetch(banner.logo_url);
+          const blob = await response.blob();
+          const file = new File([blob], 'logo.png', { type: blob.type });
+          setUploadedLogo(file);
+        }
+      } catch (error) {
+        console.error('이미지 로드 실패:', error);
+        // 이미지 로드에 실패해도 편집은 계속 진행
+      }
+      
       console.log('Editor 단계로 이동');
       setStep('editor');
     } else {
@@ -291,9 +317,14 @@ function App() {
         deviceType
       });
 
+      // 배너 이름 기본값: 드롭다운에서 선택한 배너 타입 이름 사용
+      const defaultTitle = editingBanner?.title || 
+        bannerSelection.config.name || 
+        `배너_${Date.now()}`;
+
       // 배너 데이터 구성
       const bannerData: Partial<Banner> = {
-        title: editingBanner?.title || `배너_${Date.now()}`,
+        title: defaultTitle,
         description: editingBanner?.description || '',
         banner_type: bannerType as any,
         device_type: deviceType as any,
