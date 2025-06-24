@@ -56,12 +56,14 @@ const BannerEditor = React.forwardRef<HTMLCanvasElement, BannerEditorProps>(
           title: editingBanner.title,
           banner_type: editingBanner.banner_type,
           device_type: editingBanner.device_type,
+          background_image_url: editingBanner.background_image_url,
           image_url: editingBanner.image_url
         });
         setCurrentTitle(editingBanner.title);
         setCurrentBannerType(editingBanner.banner_type);
         setCurrentDeviceType(editingBanner.device_type);
-        setExistingImageUrl(editingBanner.image_url);
+        // 우선순위: background_image_url > image_url (호환성)
+        setExistingImageUrl(editingBanner.background_image_url || editingBanner.image_url || null);
       } else if (!isEditing) {
         // 편집 모드가 아닐 때는 초기화
         setExistingImageUrl(null);

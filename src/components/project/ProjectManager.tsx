@@ -551,19 +551,23 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                                         <div className="flex items-center space-x-4 flex-1">
                                           {/* 배너 썸네일 */}
                                           <div className="w-20 h-12 bg-gray-100 rounded border flex-shrink-0 overflow-hidden">
-                                            {banner.image_url ? (
-                                              <img 
-                                                src={banner.image_url} 
-                                                alt={banner.title}
-                                                className="w-full h-full object-cover"
-                                              />
-                                            ) : (
-                                              <div className="w-full h-full flex items-center justify-center">
-                                                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
-                                              </div>
-                                            )}
+                                            {(() => {
+                                              // 우선순위: final_banner_url > background_image_url > image_url
+                                              const imageUrl = banner.final_banner_url || banner.background_image_url || banner.image_url;
+                                              return imageUrl ? (
+                                                <img 
+                                                  src={imageUrl} 
+                                                  alt={banner.title}
+                                                  className="w-full h-full object-cover"
+                                                />
+                                              ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z" />
+                                                  </svg>
+                                                </div>
+                                              );
+                                            })()}
                                           </div>
                                           
                                           {/* 배너 정보 */}
