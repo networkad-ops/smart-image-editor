@@ -142,7 +142,8 @@ function App() {
   const initializeTextElements = (selection: BannerSelection) => {
     const elements: TextElement[] = [];
     
-    if (selection.config.mainTitle) {
+    // 기본 배너인 경우에만 고정 텍스트 요소 추가
+    if (selection.config.mainTitle && selection.config.fixedText) {
       elements.push({
         id: 'main-title',
         type: 'fixed',
@@ -160,7 +161,7 @@ function App() {
       });
     }
     
-    if (selection.config.subTitle) {
+    if (selection.config.subTitle && selection.config.fixedText) {
       elements.push({
         id: 'sub-title',
         type: 'fixed',

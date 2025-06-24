@@ -141,8 +141,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     width: 2880,
     height: 480,
     maxFileSize: 2 * 1024 * 1024,
-    fixedText: true,
-    allowCustomText: false,
+    fixedText: false,
+    allowCustomText: true,
     subTitle: {
       x: 110,
       y: 90,
@@ -176,8 +176,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     width: 1560,
     height: 468,
     maxFileSize: 1 * 1024 * 1024,
-    fixedText: true,
-    allowCustomText: false,
+    fixedText: false,
+    allowCustomText: true,
     subTitle: {
       x: 81,
       y: 86,
@@ -211,7 +211,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     width: 2880,
     height: 1620,
     maxFileSize: 10 * 1024 * 1024,
-    fixedText: true,
+    fixedText: false,
     allowCustomText: true,
     buttonText: {
       x: 975,  // 버튼 정중앙 (2880/2 - 465)
@@ -233,7 +233,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     width: 1050,
     height: 1050,
     maxFileSize: 5 * 1024 * 1024,
-    fixedText: true,
+    fixedText: false,
     allowCustomText: true,
     buttonText: {
       x: 60,  // 버튼 정중앙 (1050/2 - 465)
@@ -255,8 +255,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   width: 2880,
   height: 570,
   maxFileSize: 10 * 1024 * 1024,
-  fixedText: true,
-  allowCustomText: false,
+  fixedText: false,
+  allowCustomText: true,
   subTitle: {
     x: 165,
     y: 197,

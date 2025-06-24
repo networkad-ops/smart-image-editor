@@ -204,8 +204,23 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     <div className="bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-xl font-semibold mb-4">📝 텍스트 편집</h2>
       
+      {/* 배너 타입 안내 */}
+      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="text-xs text-blue-700">
+          {config.fixedText ? (
+            <>
+              💡 <strong>기본 배너:</strong> 고정된 위치의 텍스트를 편집할 수 있습니다.
+            </>
+          ) : (
+            <>
+              🎨 <strong>자유 배너:</strong> 텍스트를 자유롭게 추가하고 위치와 크기를 조정할 수 있습니다.
+            </>
+          )}
+        </div>
+      </div>
+      
       {/* 서브타이틀 편집 */}
-      {config.subTitle && (
+      {config.subTitle && config.fixedText && (
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">
@@ -346,7 +361,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       )}
 
       {/* 메인타이틀 편집 */}
-      {config.mainTitle && (
+      {config.mainTitle && config.fixedText && (
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">
@@ -606,34 +621,36 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       )}
 
       {/* 추가 텍스트 입력 */}
-      <div className="mb-6">
-        <h3 className="font-medium mb-2">🆕 자유 텍스트 추가</h3>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-          <div className="text-xs text-blue-700 mb-2">
-            💡 <strong>자유 텍스트:</strong> 원하는 위치에 텍스트를 추가할 수 있습니다
+      {config.allowCustomText && (
+        <div className="mb-6">
+          <h3 className="font-medium mb-2">🆕 자유 텍스트 추가</h3>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+            <div className="text-xs text-green-700 mb-2">
+              ✨ <strong>자유 텍스트:</strong> 원하는 위치에 텍스트를 추가할 수 있습니다
+            </div>
+            <div className="text-xs text-green-600">
+              • 색상, 크기, 굵기, 위치와 크기를 자유롭게 조정 가능<br/>
+              • 여러 줄 텍스트 지원<br/>
+              • Position Control Panel로 정밀한 위치 조정
+            </div>
           </div>
-          <div className="text-xs text-blue-600">
-            • 색상, 크기, 굵기, 위치를 자유롭게 조정 가능<br/>
-            • 여러 줄 텍스트 지원<br/>
-            • 추가한 후 상세 설정에서 스타일 변경
+          <div className="space-y-2">
+            <textarea
+              value={newText}
+              onChange={(e) => setNewText(e.target.value)}
+              className="w-full px-3 py-2 border rounded min-h-[60px] resize-y"
+              placeholder="새 텍스트를 입력하세요&#10;(여러 줄 입력 가능)"
+            />
+            <button
+              onClick={handleAddText}
+              disabled={!newText.trim()}
+              className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            >
+              ➕ 텍스트 추가하기
+            </button>
           </div>
         </div>
-        <div className="space-y-2">
-          <textarea
-            value={newText}
-            onChange={(e) => setNewText(e.target.value)}
-            className="w-full px-3 py-2 border rounded min-h-[60px] resize-y"
-            placeholder="새 텍스트를 입력하세요&#10;(여러 줄 입력 가능)"
-          />
-          <button
-            onClick={handleAddText}
-            disabled={!newText.trim()}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-          >
-            ➕ 텍스트 추가하기
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Position Control Panel - 선택된 요소가 있을 때만 표시 */}
       {selectedElementId && (
@@ -649,9 +666,9 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       )}
 
       {/* 추가된 텍스트 목록 */}
-      {otherTexts.length > 0 && (
+      {config.allowCustomText && otherTexts.length > 0 && (
         <div>
-          <h3 className="font-medium mb-2">추가된 텍스트 ({otherTexts.length}개)</h3>
+          <h3 className="font-medium mb-2">추가된 자유 텍스트 ({otherTexts.length}개)</h3>
           <div className="space-y-4">
             {otherTexts.map((element) => (
               <div 
@@ -738,27 +755,34 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                     </select>
                   </div>
                   
-                  {/* 위치 조정 */}
+                  {/* 크기 조정 */}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">X 위치</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">너비</label>
                       <input
                         type="number"
-                        value={element.x}
-                        onChange={(e) => onUpdateText(element.id, { x: parseInt(e.target.value) || 0 })}
+                        value={element.width}
+                        onChange={(e) => onUpdateText(element.id, { width: parseInt(e.target.value) || 100 })}
                         className="w-full px-2 py-1 text-sm border rounded"
-                        min="0"
+                        min="10"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Y 위치</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">높이</label>
                       <input
                         type="number"
-                        value={element.y}
-                        onChange={(e) => onUpdateText(element.id, { y: parseInt(e.target.value) || 0 })}
+                        value={element.height}
+                        onChange={(e) => onUpdateText(element.id, { height: parseInt(e.target.value) || 30 })}
                         className="w-full px-2 py-1 text-sm border rounded"
-                        min="0"
+                        min="10"
                       />
+                    </div>
+                  </div>
+                  
+                  {/* 위치 조정 안내 */}
+                  <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                    <div className="text-xs text-blue-700">
+                      💡 <strong>위치 조정:</strong> 상단의 "위치 조정" 버튼을 클릭하여 Position Control Panel을 사용하세요!
                     </div>
                   </div>
                   
