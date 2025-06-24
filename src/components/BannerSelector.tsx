@@ -22,10 +22,24 @@ const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, onProjectSele
     if (!selectedOption) return;
     
     const config = bannerConfigs[selectedOption];
-    const [bannerTypeString, deviceTypeString] = selectedOption.split('-');
     
-    const bannerType = bannerTypeString as 'basic-no-logo' | 'basic-with-logo' | 'event' | 'interactive' | 'fullscreen';
-    const deviceType = (deviceTypeString === 'mobile' ? 'mobile' : 'pc') as 'pc' | 'mobile';
+    // 올바른 방법으로 bannerType과 deviceType 분리
+    let bannerType: 'basic-no-logo' | 'basic-with-logo' | 'event' | 'interactive' | 'fullscreen';
+    let deviceType: 'pc' | 'mobile';
+    
+    if (selectedOption.endsWith('-pc')) {
+      bannerType = selectedOption.replace('-pc', '') as any;
+      deviceType = 'pc';
+    } else if (selectedOption.endsWith('-mobile')) {
+      bannerType = selectedOption.replace('-mobile', '') as any;
+      deviceType = 'mobile';
+    } else {
+      // fallback
+      console.error('올바르지 않은 selectedOption:', selectedOption);
+      return;
+    }
+
+    console.log('BannerSelector에서 분리된 타입:', { selectedOption, bannerType, deviceType });
 
     onSelect({
       bannerType,
