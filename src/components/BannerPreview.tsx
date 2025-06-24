@@ -1,6 +1,7 @@
 // BannerPreview.tsx 수정
 import React, { useEffect, RefObject } from 'react';
 import { BannerConfig, TextElement } from '../types';
+import { drawTextWithLetterSpacing } from '../utils/canvasUtils';
 
 interface BannerPreviewProps {
   config: BannerConfig;
@@ -23,21 +24,98 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   const drawTextElements = (ctx: CanvasRenderingContext2D, elements: TextElement[]) => {
     elements.forEach(element => {
       ctx.save();
+      
+      // 버튼 텍스트인 경우 배경 그리기 (텍스트가 없어도 표시)
+      if (element.id === 'button-text') {
+        console.log('버튼 텍스트 렌더링:', {
+          text: element.text,
+          x: element.x,
+          y: element.y,
+          width: element.width,
+          height: element.height,
+          backgroundColor: element.backgroundColor
+        });
+        
+        // 버튼 배경 스타일 (큰 버튼에 맞게 조정)
+        const padding = 30;  // 패딩 증가
+        const borderRadius = 18;  // 둥근 모서리 증가
+        
+        // 버튼 배경 그리기 (둥근 모서리)
+        const buttonX = element.x - padding;
+        const buttonY = element.y - padding/2;
+        const buttonWidth = element.width + padding * 2;
+        const buttonHeight = element.height + padding;
+        
+        // 사용자 설정 배경색 또는 기본값
+        const backgroundColor = element.backgroundColor || '#4F46E5';
+        ctx.fillStyle = backgroundColor;
+        
+        ctx.beginPath();
+        ctx.moveTo(buttonX + borderRadius, buttonY);
+        ctx.lineTo(buttonX + buttonWidth - borderRadius, buttonY);
+        ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY, buttonX + buttonWidth, buttonY + borderRadius);
+        ctx.lineTo(buttonX + buttonWidth, buttonY + buttonHeight - borderRadius);
+        ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY + buttonHeight, buttonX + buttonWidth - borderRadius, buttonY + buttonHeight);
+        ctx.lineTo(buttonX + borderRadius, buttonY + buttonHeight);
+        ctx.quadraticCurveTo(buttonX, buttonY + buttonHeight, buttonX, buttonY + buttonHeight - borderRadius);
+        ctx.lineTo(buttonX, buttonY + borderRadius);
+        ctx.quadraticCurveTo(buttonX, buttonY, buttonX + borderRadius, buttonY);
+        ctx.closePath();
+        ctx.fill();
+        
+        // 버튼 그림자 효과
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 3;
+        ctx.fill();
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+      }
+      
       // 폰트 두께 설정 (기본값 400)
       const fontWeight = element.fontWeight || 400;
       ctx.font = `${fontWeight} ${element.fontSize}px Pretendard`;
       ctx.textBaseline = 'top'; // 텍스트의 기준선을 상단으로 설정
+      
+      // 버튼 텍스트인 경우 가운데 정렬 설정
+      if (element.id === 'button-text') {
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+      } else {
+        ctx.textAlign = 'start';
+        ctx.textBaseline = 'top';
+      }
       
       // 줄바꿈 처리
       const lines = element.text.split('\n');
       const lineHeight = element.fontSize * 1.2; // 줄 간격 설정
       
       lines.forEach((line, lineIndex) => {
-        const y = element.y + (lineIndex * lineHeight);
-        let currentX = element.x;
+        let y, currentX;
         
+        if (element.id === 'button-text') {
+          // 버튼 텍스트는 가운데 정렬
+          y = element.y + element.height / 2 + (lineIndex * lineHeight);
+          currentX = element.x + element.width / 2;
+        } else {
+          // 일반 텍스트는 왼쪽 정렬
+          y = element.y + (lineIndex * lineHeight);
+          currentX = element.x;
+        }
+        
+        // 버튼 텍스트는 간단하게 처리 (부분 색상 없음)
+        if (element.id === 'button-text') {
+          ctx.fillStyle = element.color;
+          const displayText = line || 'Button'; // 텍스트가 없으면 기본값 표시
+          if (element.letterSpacing) {
+            drawTextWithLetterSpacing(ctx, displayText, currentX, y, element.letterSpacing);
+          } else {
+            ctx.fillText(displayText, currentX, y);
+          }
+        }
         // 부분 색상이 있는 경우
-        if (element.colorSegments && element.colorSegments.length > 0) {
+        else if (element.colorSegments && element.colorSegments.length > 0) {
           // 현재 줄의 시작 인덱스 계산
           const lineStart = lines.slice(0, lineIndex).join('\n').length + (lineIndex > 0 ? 1 : 0);
           
@@ -61,15 +139,31 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
             if (!nextChar || segment?.color !== nextSegment?.color) {
               const textPart = line.substring(lastIndex, i + 1);
               ctx.fillStyle = segment?.color || element.color;
-              ctx.fillText(textPart, currentX, y);
-              currentX += ctx.measureText(textPart).width;
+              
+              // letterSpacing 적용
+              if (element.letterSpacing) {
+                drawTextWithLetterSpacing(ctx, textPart, currentX, y, element.letterSpacing);
+                // letterSpacing이 적용된 텍스트의 너비 계산
+                let partWidth = 0;
+                for (let j = 0; j < textPart.length; j++) {
+                  partWidth += ctx.measureText(textPart[j]).width + (j < textPart.length - 1 ? element.letterSpacing : 0);
+                }
+                currentX += partWidth;
+              } else {
+                ctx.fillText(textPart, currentX, y);
+                currentX += ctx.measureText(textPart).width;
+              }
               lastIndex = i + 1;
             }
           }
         } else {
           // 부분 색상이 없는 경우 전체 색상으로 렌더링
           ctx.fillStyle = element.color;
-          ctx.fillText(line, currentX, y);
+          if (element.letterSpacing) {
+            drawTextWithLetterSpacing(ctx, line, currentX, y, element.letterSpacing);
+          } else {
+            ctx.fillText(line, currentX, y);
+          }
         }
       });
       
@@ -211,31 +305,42 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       console.log('최종 img.src 설정:', img.src);
     }
 
-    // 텍스트 그리기 (이미지가 없는 경우에만)
+    // 텍스트 그리기 (이미지가 없는 경우)
     if (!imageToUse) {
+      console.log('이미지 없음, 텍스트 요소 그리기:', textElements.length);
       drawTextElements(ctx, textElements);
     }
   }, [uploadedImage, uploadedLogo, textElements, existingImageUrl, existingLogoUrl, config.width, config.height, ref]);
 
   // 미리보기 프레임 크기 계산
-  const previewScale = Math.min(1, 800 / Math.max(config.width, config.height));
+  const maxPreviewSize = 600; // 최대 미리보기 크기 증가
+  const previewScale = Math.min(1, maxPreviewSize / Math.max(config.width, config.height));
   const previewWidth = config.width * previewScale;
   const previewHeight = config.height * previewScale;
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-xl font-semibold mb-4">미리보기</h2>
-      <div className="relative" style={{ width: previewWidth, height: previewHeight }}>
-        <canvas
-          ref={ref}
-          width={config.width}
-          height={config.height}
-          className="border border-gray-200"
-          style={{
-            width: previewWidth,
-            height: previewHeight
-          }}
-        />
+      <h2 className="text-xl font-semibold mb-4">
+        미리보기 
+        <span className="text-sm text-gray-500 ml-2">
+          ({config.width} × {config.height})
+        </span>
+      </h2>
+      <div className="flex justify-center">
+        <div className="relative" style={{ width: previewWidth, height: previewHeight }}>
+          <canvas
+            ref={ref}
+            width={config.width}
+            height={config.height}
+            className="border-2 border-gray-300 rounded-lg shadow-sm"
+            style={{
+              width: previewWidth,
+              height: previewHeight,
+              maxWidth: '100%',
+              backgroundColor: '#f8f9fa' // 기본 배경색 추가
+            }}
+          />
+        </div>
       </div>
     </div>
   );

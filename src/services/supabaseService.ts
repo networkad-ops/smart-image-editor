@@ -278,20 +278,38 @@ export const bannerService = {
     canvas_width: number;
     canvas_height: number;
   }): Promise<Banner> {
-    const { data, error } = await supabase
-      .from('banners')
-      .insert([bannerData])
-      .select(`
-        *,
-        project:projects(
+    console.log('🚀 배너 생성 시작:', bannerData);
+    
+    try {
+      const { data, error } = await supabase
+        .from('banners')
+        .insert([bannerData])
+        .select(`
           *,
-          team:teams(*)
-        )
-      `)
-      .single()
+          project:projects(
+            *,
+            team:teams(*)
+          )
+        `)
+        .single()
 
-    if (error) throw error
-    return data
+      console.log('✅ Supabase 응답:', { data, error });
+
+      if (error) {
+        console.error('❌ Supabase 오류 상세:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw new Error(`배너 생성 중 오류가 발생했습니다: ${error.message} (${error.code})`);
+      }
+      
+      return data;
+    } catch (err) {
+      console.error('💥 배너 생성 실패:', err);
+      throw err;
+    }
   },
 
   // 배너 수정

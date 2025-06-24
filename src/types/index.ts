@@ -20,6 +20,7 @@ export interface BannerConfig {
   mainTitle?: TextConfig;
   subTitle?: TextConfig;
   logo?: LogoConfig;
+  buttonText?: TextConfig;
 }
 
 // 텍스트 설정 타입
@@ -65,7 +66,9 @@ export interface TextElement {
   fontSize: number;
   fontFamily: string;
   fontWeight?: number;
+  letterSpacing?: number;
   color: string;
+  backgroundColor?: string; // 버튼 배경색 (button-text일 때만 사용)
   colorSegments?: ColorSegment[];
   editable: {
     position: boolean;

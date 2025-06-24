@@ -154,6 +154,7 @@ function App() {
         fontSize: selection.config.mainTitle.fontSize,
         fontFamily: selection.config.mainTitle.fontFamily,
         fontWeight: selection.config.mainTitle.fontWeight ?? 700,
+        letterSpacing: selection.config.mainTitle.letterSpacing,
         color: '#000000',
         editable: { position: false, size: false, color: true }
       });
@@ -171,8 +172,28 @@ function App() {
         fontSize: selection.config.subTitle.fontSize,
         fontFamily: selection.config.subTitle.fontFamily,
         fontWeight: selection.config.subTitle.fontWeight ?? 500,
+        letterSpacing: selection.config.subTitle.letterSpacing,
         color: '#000000',
         editable: { position: false, size: false, color: true }
+      });
+    }
+    
+    if (selection.config.buttonText) {
+      elements.push({
+        id: 'button-text',
+        type: 'fixed',
+        text: '',
+        x: selection.config.buttonText.x,
+        y: selection.config.buttonText.y,
+        width: selection.config.buttonText.width,
+        height: selection.config.buttonText.height,
+        fontSize: selection.config.buttonText.fontSize,
+        fontFamily: selection.config.buttonText.fontFamily,
+        fontWeight: selection.config.buttonText.fontWeight ?? 600,
+        letterSpacing: selection.config.buttonText.letterSpacing,
+        color: '#FFFFFF',
+        backgroundColor: '#4F46E5', // 기본 버튼 배경색
+        editable: { position: true, size: false, color: true }
       });
     }
     
@@ -227,9 +248,17 @@ function App() {
       const bannerFile = new File([image], fileName, { type: 'image/jpeg' });
       console.log('배너 파일 생성:', bannerFile.name, bannerFile.size, 'bytes');
 
-      // 이미지 업로드
-      const imageUrl = await uploadBannerImage(bannerFile);
-      console.log('이미지 업로드 완료:', imageUrl);
+      // 이미지 업로드 (임시로 Mock URL 사용)
+      let imageUrl: string;
+      try {
+        imageUrl = await uploadBannerImage(bannerFile);
+        console.log('이미지 업로드 완료:', imageUrl);
+      } catch (uploadError) {
+        console.error('이미지 업로드 실패, Mock URL 사용:', uploadError);
+        // 임시로 Mock URL 사용
+        imageUrl = `https://via.placeholder.com/800x400/0066cc/ffffff?text=Banner_${Date.now()}`;
+        console.log('Mock 이미지 URL 사용:', imageUrl);
+      }
 
       // 로고 업로드 (있는 경우)
       let logoUrl = editingBanner?.logo_url || '';

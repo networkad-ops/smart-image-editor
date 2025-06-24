@@ -78,4 +78,43 @@ export function applyRangeColor(
     ctx.fillStyle = defaultColor;
     ctx.fillText(segment, currentX, y);
   }
+}
+
+// Letter Spacing이 적용된 텍스트 그리기
+export function drawTextWithLetterSpacing(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  letterSpacing: number = 0
+) {
+  if (letterSpacing === 0) {
+    ctx.fillText(text, x, y);
+    return;
+  }
+
+  // 중앙 정렬인 경우 시작 위치 계산
+  let startX = x;
+  if (ctx.textAlign === 'center') {
+    // 전체 텍스트 너비 계산 (letterSpacing 포함)
+    let totalWidth = 0;
+    for (let i = 0; i < text.length; i++) {
+      totalWidth += ctx.measureText(text[i]).width;
+      if (i < text.length - 1) {
+        totalWidth += letterSpacing;
+      }
+    }
+    startX = x - totalWidth / 2;
+  }
+
+  let currentX = startX;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    // 개별 문자는 왼쪽 정렬로 그리기
+    const originalAlign = ctx.textAlign;
+    ctx.textAlign = 'start';
+    ctx.fillText(char, currentX, y);
+    ctx.textAlign = originalAlign;
+    currentX += ctx.measureText(char).width + letterSpacing;
+  }
 } 

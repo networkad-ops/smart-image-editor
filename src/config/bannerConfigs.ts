@@ -17,6 +17,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       lineHeight: 67,
       fontFamily: 'Pretendard',
       fontWeight: 500,
+      letterSpacing: -0.54,
       maxLength: 20,
       maxLines: 1
     },
@@ -29,6 +30,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       lineHeight: 104,
       fontFamily: 'Pretendard',
       fontWeight: 700,
+      letterSpacing: -1.68,
       maxLength: 36,
       maxLines: 1
     }
@@ -50,6 +52,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       lineHeight: 74,
       fontFamily: 'Pretendard',
       fontWeight: 500,
+      letterSpacing: -0.6,
       maxLength: 20,
       maxLines: 1
     },
@@ -62,6 +65,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       lineHeight: 99,
       fontFamily: 'Pretendard',
       fontWeight: 700,
+      letterSpacing: -1.6,
       maxLength: 24,
       maxLines: 1
     }
@@ -148,6 +152,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       lineHeight: 67,
       fontFamily: 'Pretendard',
       fontWeight: 500,
+      letterSpacing: -0.54,
       maxLength: 20,
       maxLines: 1
     },
@@ -160,6 +165,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       lineHeight: 104,
       fontFamily: 'Pretendard',
       fontWeight: 700,
+      letterSpacing: -1.68,
       maxLength: 36,
       maxLines: 1
     }
@@ -181,6 +187,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       lineHeight: 74,
       fontFamily: 'Pretendard',
       fontWeight: 500,
+      letterSpacing: -0.6,
       maxLength: 20,
       maxLines: 1
     },
@@ -193,18 +200,54 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       lineHeight: 99,
       fontFamily: 'Pretendard',
       fontWeight: 700,
+      letterSpacing: -1.6,
       maxLength: 24,
       maxLines: 1
     }
   },
 
+  'interactive-pc': {
+    name: '인터랙티브 (PC)',
+    width: 2880,
+    height: 1620,
+    maxFileSize: 10 * 1024 * 1024,
+    fixedText: true,
+    allowCustomText: true,
+    buttonText: {
+      x: 975,  // 버튼 정중앙 (2880/2 - 465)
+      y: 1400,  // 하단 버튼 위치
+      width: 930,  // 버튼 너비
+      height: 144,  // 버튼 높이
+      fontSize: 48,  // 큰 버튼에 맞춰 폰트 크기 증가
+      lineHeight: 60,
+      fontFamily: 'Pretendard',
+      fontWeight: 600,
+      letterSpacing: -0.96,
+      maxLength: 7,  // 띄어쓰기 포함 7글자
+      maxLines: 1
+    }
+  },
+
   'interactive-mobile': {
-    name: '인터랙티브',
+    name: '인터랙티브 (Mobile)',
     width: 1050,
     height: 1050,
     maxFileSize: 5 * 1024 * 1024,
-    fixedText: false,
-    allowCustomText: true
+    fixedText: true,
+    allowCustomText: true,
+    buttonText: {
+      x: 60,  // 버튼 정중앙 (1050/2 - 465)
+      y: 850,  // 하단 버튼 위치
+      width: 930,  // 버튼 너비
+      height: 144,  // 버튼 높이
+      fontSize: 42,  // 모바일에 맞춰 조정
+      lineHeight: 52,
+      fontFamily: 'Pretendard',
+      fontWeight: 600,
+      letterSpacing: -0.84,
+      maxLength: 7,  // 띄어쓰기 포함 7글자
+      maxLines: 1
+    }
   },
 
   'fullscreen-pc': {
