@@ -24,7 +24,7 @@ const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, onProjectSele
     const config = bannerConfigs[selectedOption];
     const [bannerTypeString, deviceTypeString] = selectedOption.split('-');
     
-    const bannerType = bannerTypeString as 'basic-no-logo' | 'basic-with-logo' | 'splash' | 'event';
+    const bannerType = bannerTypeString as 'basic-no-logo' | 'basic-with-logo' | 'event' | 'interactive' | 'fullscreen';
     const deviceType = (deviceTypeString === 'mobile' ? 'mobile' : 'pc') as 'pc' | 'mobile';
 
     onSelect({
