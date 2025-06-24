@@ -2,8 +2,7 @@
 export type BannerType =
   | 'basic-no-logo'
   | 'basic-with-logo'
-  | 'splash'
-  | 'main-popup'
+  | 'event'
   | 'interactive'
   | 'fullscreen';
 
@@ -126,11 +125,16 @@ export interface Banner {
   project_id: string;
   title: string;
   description?: string;
-  banner_type: 'basic-no-logo' | 'basic-with-logo' | 'splash' | 'event';
+  banner_type: 'basic-no-logo' | 'basic-with-logo' | 'event' | 'interactive' | 'fullscreen';
   device_type: 'pc' | 'mobile';
   status: BannerStatus;
-  image_url: string;
-  logo_url?: string;
+  // 새로운 URL 구조
+  background_image_url: string;  // 배경 이미지
+  logo_url?: string;             // 로고 이미지  
+  final_banner_url?: string;     // 최종 완성된 배너
+  thumbnail_url?: string;        // 썸네일
+  // 기존 호환성을 위해 유지 (deprecated)
+  image_url?: string;
   text_elements: TextElement[];
   canvas_width: number;
   canvas_height: number;
@@ -155,8 +159,13 @@ export interface BannerHistory {
   banner_id: string;
   version: number;
   title: string;
-  image_url: string;
+  // 새로운 URL 구조
+  background_image_url: string;
   logo_url?: string;
+  final_banner_url?: string;
+  thumbnail_url?: string;
+  // 기존 호환성을 위해 유지 (deprecated)
+  image_url?: string;
   text_elements: TextElement[];
   notes?: string;
   created_at: Date;
@@ -176,7 +185,7 @@ export interface BannerComment {
 
 // 배너 선택 타입
 export interface BannerSelection {
-  bannerType: 'basic-no-logo' | 'basic-with-logo' | 'splash' | 'event';
+  bannerType: 'basic-no-logo' | 'basic-with-logo' | 'event' | 'interactive' | 'fullscreen';
   deviceType: 'pc' | 'mobile';
   config: BannerConfig;
 }
@@ -185,7 +194,7 @@ export interface BannerSelection {
 export interface BannerWork {
   id: string;
   title: string;
-  bannerType: 'basic-no-logo' | 'basic-with-logo' | 'splash' | 'event';
+  bannerType: 'basic-no-logo' | 'basic-with-logo' | 'event' | 'interactive' | 'fullscreen';
   deviceType: 'pc' | 'mobile';
   originalImageUrl: string;
   editedImageUrl: string;
@@ -267,7 +276,7 @@ export interface ProjectFormData {
 export interface BannerFormData {
   title: string;
   description?: string;
-  banner_type: 'basic-no-logo' | 'basic-with-logo' | 'splash' | 'event';
+  banner_type: 'basic-no-logo' | 'basic-with-logo' | 'event' | 'interactive' | 'fullscreen';
   device_type: 'pc' | 'mobile';
   status: BannerStatus;
   tags?: string[];

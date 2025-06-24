@@ -272,8 +272,10 @@ export const bannerService = {
   // 배너 생성
   async createBanner(bannerData: BannerFormData & {
     project_id: string;
-    image_url: string;
+    background_image_url: string;
     logo_url?: string;
+    final_banner_url?: string;
+    thumbnail_url?: string;
     text_elements: any[];
     canvas_width: number;
     canvas_height: number;
@@ -360,14 +362,14 @@ export const bannerService = {
     return data
   },
 
-  // 배너 이미지 업로드 (경로 포함)
-  async uploadBannerImage(file: File, path?: string): Promise<string> {
-    console.log('🚀 이미지 업로드 시작:', { file, path });
+  // 배경 이미지 업로드
+  async uploadBackgroundImage(file: File, path?: string): Promise<string> {
+    console.log('🚀 배경 이미지 업로드 시작:', { file, path });
     try {
       const bucket = 'banner-images';
       const fileExt = file.name.split('.').pop();
       const randomName = Math.random().toString(36).substring(2);
-      const fileName = path || `${Date.now()}-${randomName}.${fileExt}`;
+      const fileName = path || `background-${Date.now()}-${randomName}.${fileExt}`;
       
       console.log('📝 업로드 정보:', { bucket, fileName });
 
@@ -375,7 +377,7 @@ export const bannerService = {
         .from(bucket)
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: true, // 덮어쓰기 허용
+          upsert: true,
         });
 
       console.log('✅ Supabase Storage 응답:', { data, error });
@@ -386,7 +388,7 @@ export const bannerService = {
           stack: (error as any).stack,
           originalError: (error as any).error,
         });
-        throw new Error(`이미지 업로드 중 오류가 발생했습니다: ${error.message}`);
+        throw new Error(`배경 이미지 업로드 중 오류가 발생했습니다: ${error.message}`);
       }
 
       const { data: publicUrlData } = supabase.storage
@@ -396,9 +398,55 @@ export const bannerService = {
       console.log('🔗 생성된 공개 URL:', publicUrlData.publicUrl);
       return publicUrlData.publicUrl;
     } catch (err) {
-      console.error('💥 이미지 업로드 실패:', err);
+      console.error('💥 배경 이미지 업로드 실패:', err);
       throw err;
     }
+  },
+
+  // 최종 배너 업로드
+  async uploadFinalBanner(file: File, path?: string): Promise<string> {
+    console.log('🚀 최종 배너 업로드 시작:', { file, path });
+    try {
+      const bucket = 'final-banners';
+      const fileExt = file.name.split('.').pop();
+      const randomName = Math.random().toString(36).substring(2);
+      const fileName = path || `final-${Date.now()}-${randomName}.${fileExt}`;
+      
+      console.log('📝 업로드 정보:', { bucket, fileName });
+
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      console.log('✅ Supabase Storage 응답:', { data, error });
+
+      if (error) {
+        console.error('❌ Supabase Storage 오류 상세:', {
+          message: error.message,
+          stack: (error as any).stack,
+          originalError: (error as any).error,
+        });
+        throw new Error(`최종 배너 업로드 중 오류가 발생했습니다: ${error.message}`);
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(data.path);
+
+      console.log('🔗 생성된 공개 URL:', publicUrlData.publicUrl);
+      return publicUrlData.publicUrl;
+    } catch (err) {
+      console.error('💥 최종 배너 업로드 실패:', err);
+      throw err;
+    }
+  },
+
+  // 배너 이미지 업로드 (기존 호환성 유지)
+  async uploadBannerImage(file: File, path?: string): Promise<string> {
+    return this.uploadBackgroundImage(file, path);
   },
 
   // 로고 업로드

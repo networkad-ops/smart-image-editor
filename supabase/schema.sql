@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS banners (
     banner_type VARCHAR(50) NOT NULL CHECK (banner_type IN ('basic-no-logo', 'basic-with-logo', 'event', 'interactive', 'fullscreen')),
     device_type VARCHAR(20) NOT NULL CHECK (device_type IN ('pc', 'mobile')),
     status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'in_progress', 'review', 'approved', 'rejected', 'completed')),
-    image_url TEXT NOT NULL,
+    background_image_url TEXT,
     logo_url TEXT,
     text_elements JSONB NOT NULL DEFAULT '[]',
     canvas_width INTEGER NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS banner_history (
     banner_id UUID REFERENCES banners(id) ON DELETE CASCADE NOT NULL,
     version INTEGER NOT NULL,
     title VARCHAR(255) NOT NULL,
-    image_url TEXT NOT NULL,
+    background_image_url TEXT,
     logo_url TEXT,
     text_elements JSONB NOT NULL DEFAULT '[]',
     notes TEXT,
@@ -134,14 +134,14 @@ BEGIN
     -- 업데이트 시에만 히스토리 생성
     IF TG_OP = 'UPDATE' AND (
         OLD.title != NEW.title OR 
-        OLD.image_url != NEW.image_url OR 
+        OLD.background_image_url != NEW.background_image_url OR 
         OLD.logo_url != NEW.logo_url OR 
         OLD.text_elements != NEW.text_elements
     ) THEN
         INSERT INTO banner_history (
-            banner_id, version, title, image_url, logo_url, text_elements, notes
+            banner_id, version, title, background_image_url, logo_url, text_elements, notes
         ) VALUES (
-            OLD.id, OLD.version, OLD.title, OLD.image_url, OLD.logo_url, OLD.text_elements, 
+            OLD.id, OLD.version, OLD.title, OLD.background_image_url, OLD.logo_url, OLD.text_elements, 
             'Auto-saved version ' || OLD.version
         );
         
