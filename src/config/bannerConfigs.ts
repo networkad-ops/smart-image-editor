@@ -289,13 +289,6 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       letterSpacing: -1.08,
       maxLength: 30,
       maxLines: 2
-    },
-    logo: {
-      x: 165,
-      y: 120,
-      width: 200,
-      height: 52,
-      maxFileSize: 500 * 1024
     }
   }
 

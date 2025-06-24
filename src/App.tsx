@@ -299,7 +299,7 @@ function App() {
         device_type: deviceType as any,
         status: 'draft' as const,
         project_id: selectedProjectId,
-        image_url: imageUrl,
+        background_image_url: imageUrl,
         logo_url: logoUrl,
         text_elements: textElements,
         canvas_width: bannerSelection.config.width,
