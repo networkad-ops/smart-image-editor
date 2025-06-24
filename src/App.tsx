@@ -294,25 +294,11 @@ function App() {
         console.log('로고 업로드 완료:', logoUrl);
       }
       
-      // 배너 타입과 디바이스 타입 분리 (예: 'basic-no-logo-pc' -> 'basic-no-logo', 'pc')
-      let bannerType: string;
-      let deviceType: string;
-      
-      const configKey = bannerSelection.bannerType;
-      if (configKey.endsWith('-pc')) {
-        bannerType = configKey.replace('-pc', '');
-        deviceType = 'pc';
-      } else if (configKey.endsWith('-mobile')) {
-        bannerType = configKey.replace('-mobile', '');
-        deviceType = 'mobile';
-      } else {
-        // fallback
-        bannerType = bannerSelection.bannerType;
-        deviceType = bannerSelection.deviceType;
-      }
+      // 배너 타입과 디바이스 타입은 이미 BannerSelection에서 올바르게 분리되어 있음
+      const bannerType = bannerSelection.bannerType;
+      const deviceType = bannerSelection.deviceType;
 
-      console.log('배너 타입 분리:', {
-        configKey,
+      console.log('배너 타입 확인:', {
         bannerType,
         deviceType
       });
