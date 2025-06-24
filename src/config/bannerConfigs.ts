@@ -127,14 +127,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     }
   },
 
-  'splash-mobile': {
-    name: '스플래시 (Mobile)',
-    width: 390,
-    height: 844,
-    maxFileSize: 5 * 1024 * 1024,
-    fixedText: false,
-    allowCustomText: true
-  },
+
 
   'event-pc': {
     name: '이벤트 배너 (PC)',
@@ -206,27 +199,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     }
   },
 
-  'interactive-pc': {
-    name: '인터랙티브 (PC)',
-    width: 2880,
-    height: 1620,
-    maxFileSize: 10 * 1024 * 1024,
-    fixedText: false,
-    allowCustomText: true,
-    buttonText: {
-      x: 975,  // 버튼 정중앙 (2880/2 - 465)
-      y: 1400,  // 하단 버튼 위치
-      width: 930,  // 버튼 너비
-      height: 144,  // 버튼 높이
-      fontSize: 48,  // 큰 버튼에 맞춰 폰트 크기 증가
-      lineHeight: 60,
-      fontFamily: 'Pretendard',
-      fontWeight: 600,
-      letterSpacing: -0.96,
-      maxLength: 7,  // 띄어쓰기 포함 7글자
-      maxLines: 1
-    }
-  },
+
+
 
   'interactive-mobile': {
     name: '인터랙티브 (Mobile)',
@@ -235,6 +209,39 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     maxFileSize: 5 * 1024 * 1024,
     fixedText: false,
     allowCustomText: true,
+    subTitle: {
+      x: 199.86,
+      y: 105,
+      width: 650,  // 적절한 너비 설정
+      height: 52,  // 42 * 1.24
+      fontSize: 42,
+      lineHeight: 52,
+      fontFamily: 'Pretendard',
+      fontWeight: 600,  // Semibold
+      letterSpacing: -0.42,
+      maxLength: 20,
+      maxLines: 1
+    },
+    mainTitle: {
+      x: 180,
+      y: 163.56,
+      width: 690,  // 적절한 너비 설정
+      height: 104,  // 84 * 1.24
+      fontSize: 84,
+      lineHeight: 104,
+      fontFamily: 'Pretendard',
+      fontWeight: 700,  // Bold
+      letterSpacing: -1.68,
+      maxLength: 24,
+      maxLines: 2
+    },
+    logo: {
+      x: 444,
+      y: 776,
+      width: 162,
+      height: 42,
+      maxFileSize: 300 * 1024
+    },
     buttonText: {
       x: 60,  // 버튼 정중앙 (1050/2 - 465)
       y: 850,  // 하단 버튼 위치
@@ -251,35 +258,46 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'fullscreen-pc': {
-  name: '전면 배너',
-  width: 2880,
-  height: 570,
-  maxFileSize: 10 * 1024 * 1024,
-  fixedText: false,
-  allowCustomText: true,
-  subTitle: {
-    x: 165,
-    y: 197,
-    width: 679,
-    height: 50, // 실제 렌더링 기준 보정 가능
-    fontSize: 38,
-    lineHeight: 47, // 38 * 1.24
-    fontFamily: 'Pretendard',
-    fontWeight: 600, // Semibold
-    letterSpacing: -2
-  },
-  mainTitle: {
-    x: 165,
-    y: 250,
-    width: 679,
-    height: 100,
-    fontSize: 54,
-    lineHeight: 67, // 54 * 1.24
-    fontFamily: 'Pretendard',
-    fontWeight: 700, // Bold
-    letterSpacing: -2
+    name: '전면 배너',
+    width: 2880,
+    height: 570,
+    maxFileSize: 10 * 1024 * 1024,
+    fixedText: true,
+    allowCustomText: false,
+    subTitle: {
+      x: 165,
+      y: 197,
+      width: 679,
+      height: 50,
+      fontSize: 38,
+      lineHeight: 47,
+      fontFamily: 'Pretendard',
+      fontWeight: 600,
+      letterSpacing: -0.76,
+      maxLength: 25,
+      maxLines: 1
+    },
+    mainTitle: {
+      x: 165,
+      y: 250,
+      width: 679,
+      height: 100,
+      fontSize: 54,
+      lineHeight: 67,
+      fontFamily: 'Pretendard',
+      fontWeight: 700,
+      letterSpacing: -1.08,
+      maxLength: 30,
+      maxLines: 2
+    },
+    logo: {
+      x: 165,
+      y: 120,
+      width: 200,
+      height: 52,
+      maxFileSize: 500 * 1024
+    }
   }
-}
 
 };
 
