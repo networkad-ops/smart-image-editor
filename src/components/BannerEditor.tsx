@@ -228,7 +228,6 @@ const BannerEditor = React.forwardRef<HTMLCanvasElement, BannerEditorProps>(
                       <option value="basic-no-logo">기본형 (로고 없음)</option>
                       <option value="basic-with-logo">기본형 (로고 포함)</option>
                       <option value="splash">스플래시</option>
-                      <option value="event">이벤트</option>
                     </select>
                   </div>
 

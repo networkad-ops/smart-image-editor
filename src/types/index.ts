@@ -2,7 +2,6 @@
 export type BannerType =
   | 'basic-no-logo'
   | 'basic-with-logo'
-  | 'event'
   | 'interactive'
   | 'fullscreen';
 
@@ -125,7 +124,7 @@ export interface Banner {
   project_id: string;
   title: string;
   description?: string;
-  banner_type: 'basic-no-logo' | 'basic-with-logo' | 'event' | 'interactive' | 'fullscreen';
+  banner_type: 'basic-no-logo' | 'basic-with-logo' | 'interactive' | 'fullscreen';
   device_type: 'pc' | 'mobile';
   status: BannerStatus;
   // 새로운 URL 구조
@@ -185,7 +184,7 @@ export interface BannerComment {
 
 // 배너 선택 타입
 export interface BannerSelection {
-  bannerType: 'basic-no-logo' | 'basic-with-logo' | 'event' | 'interactive' | 'fullscreen';
+  bannerType: 'basic-no-logo' | 'basic-with-logo' | 'interactive' | 'fullscreen';
   deviceType: 'pc' | 'mobile';
   config: BannerConfig;
 }
@@ -194,7 +193,7 @@ export interface BannerSelection {
 export interface BannerWork {
   id: string;
   title: string;
-  bannerType: 'basic-no-logo' | 'basic-with-logo' | 'event' | 'interactive' | 'fullscreen';
+  bannerType: 'basic-no-logo' | 'basic-with-logo' | 'interactive' | 'fullscreen';
   deviceType: 'pc' | 'mobile';
   originalImageUrl: string;
   editedImageUrl: string;
@@ -276,7 +275,7 @@ export interface ProjectFormData {
 export interface BannerFormData {
   title: string;
   description?: string;
-  banner_type: 'basic-no-logo' | 'basic-with-logo' | 'event' | 'interactive' | 'fullscreen';
+  banner_type: 'basic-no-logo' | 'basic-with-logo' | 'interactive' | 'fullscreen';
   device_type: 'pc' | 'mobile';
   status: BannerStatus;
   tags?: string[];

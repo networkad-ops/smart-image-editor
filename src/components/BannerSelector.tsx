@@ -24,7 +24,7 @@ const BannerSelector: React.FC<BannerSelectorProps> = ({ onSelect, onProjectSele
     const config = bannerConfigs[selectedOption];
     
     // 올바른 방법으로 bannerType과 deviceType 분리
-    let bannerType: 'basic-no-logo' | 'basic-with-logo' | 'event' | 'interactive' | 'fullscreen';
+    let bannerType: 'basic-no-logo' | 'basic-with-logo' | 'interactive' | 'fullscreen';
     let deviceType: 'pc' | 'mobile';
     
     if (selectedOption.endsWith('-pc')) {

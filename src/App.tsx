@@ -59,22 +59,11 @@ function App() {
     console.log('Config Key:', configKey);
     console.log('Config:', config);
     
-    // Config가 없는 경우 fallback 로직
+    // Config가 없는 경우 기본 설정 사용
     if (!config) {
-      console.warn('Config를 찾을 수 없음. Fallback 적용:', configKey);
-      
-      // event 타입인 경우 basic-no-logo로 fallback
-      if (banner.banner_type === 'event') {
-        const fallbackKey = `basic-no-logo-${banner.device_type}`;
-        config = bannerConfigs[fallbackKey];
-        console.log('Event 타입 fallback:', fallbackKey, config);
-      }
-      
-      // 그래도 없으면 기본 PC 설정 사용
-      if (!config) {
-        config = bannerConfigs['basic-no-logo-pc'];
-        console.log('기본 설정 사용:', config);
-      }
+      console.warn('Config를 찾을 수 없음. 기본 설정 사용:', configKey);
+      config = bannerConfigs['basic-no-logo-pc'];
+      console.log('기본 설정 사용:', config);
     }
     
     if (config) {
@@ -345,8 +334,6 @@ function App() {
       setLoading(false);
     }
   };
-
-
 
   // 상태 초기화
   const handleReset = () => {
