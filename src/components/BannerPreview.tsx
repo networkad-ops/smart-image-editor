@@ -36,26 +36,36 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           backgroundColor: element.backgroundColor
         });
         
-        // 버튼 배경 그리기 (사각형) - 패딩 포함
-        const paddingX = 48;  // 좌우 패딩
-        const paddingY = 42;  // 상하 패딩
-        const buttonX = element.x - paddingX;
-        const buttonY = element.y - paddingY;
-        const buttonWidth = element.width + (paddingX * 2);
-        const buttonHeight = element.height + (paddingY * 2);
+        // 버튼 배경 그리기 (끝만 둥근 사각형)
+        const buttonX = element.x;
+        const buttonY = element.y;
+        const buttonWidth = element.width;
+        const buttonHeight = element.height;
+        const borderRadius = 20;  // 적당한 둥근 모서리
         
         // 사용자 설정 배경색 또는 기본값
         const backgroundColor = element.backgroundColor || '#4F46E5';
         ctx.fillStyle = backgroundColor;
         
-        // 단순한 사각형으로 그리기
-        ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+        // 둥근 모서리 사각형 그리기
+        ctx.beginPath();
+        ctx.moveTo(buttonX + borderRadius, buttonY);
+        ctx.lineTo(buttonX + buttonWidth - borderRadius, buttonY);
+        ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY, buttonX + buttonWidth, buttonY + borderRadius);
+        ctx.lineTo(buttonX + buttonWidth, buttonY + buttonHeight - borderRadius);
+        ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY + buttonHeight, buttonX + buttonWidth - borderRadius, buttonY + buttonHeight);
+        ctx.lineTo(buttonX + borderRadius, buttonY + buttonHeight);
+        ctx.quadraticCurveTo(buttonX, buttonY + buttonHeight, buttonX, buttonY + buttonHeight - borderRadius);
+        ctx.lineTo(buttonX, buttonY + borderRadius);
+        ctx.quadraticCurveTo(buttonX, buttonY, buttonX + borderRadius, buttonY);
+        ctx.closePath();
+        ctx.fill();
         
         // 버튼 그림자 효과
         ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
         ctx.shadowBlur = 6;
         ctx.shadowOffsetY = 3;
-        ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+        ctx.fill();
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
         ctx.shadowOffsetY = 0;
