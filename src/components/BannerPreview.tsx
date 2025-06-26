@@ -36,11 +36,13 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           backgroundColor: element.backgroundColor
         });
         
-        // 버튼 배경 그리기 (사각형) - 설정된 크기 그대로 사용
-        const buttonX = element.x;
-        const buttonY = element.y;
-        const buttonWidth = element.width;
-        const buttonHeight = element.height;
+        // 버튼 배경 그리기 (사각형) - 패딩 포함
+        const paddingX = 48;  // 좌우 패딩
+        const paddingY = 42;  // 상하 패딩
+        const buttonX = element.x - paddingX;
+        const buttonY = element.y - paddingY;
+        const buttonWidth = element.width + (paddingX * 2);
+        const buttonHeight = element.height + (paddingY * 2);
         
         // 사용자 설정 배경색 또는 기본값
         const backgroundColor = element.backgroundColor || '#4F46E5';

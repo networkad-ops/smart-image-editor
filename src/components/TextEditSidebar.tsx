@@ -843,9 +843,19 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 <div className="flex justify-between items-center mb-2">
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-medium text-gray-700">텍스트 #{element.id.slice(-4)}</span>
-                    {selectedElementId === element.id && (
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">선택됨</span>
-                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedElementId(element.id === selectedElementId ? null : element.id);
+                      }}
+                      className={`text-xs px-2 py-1 rounded transition-all ${
+                        selectedElementId === element.id
+                          ? 'bg-blue-500 text-white font-medium'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200 font-medium'
+                      }`}
+                    >
+                      {selectedElementId === element.id ? '✅ 선택됨' : '🎯 위치 조정'}
+                    </button>
                   </div>
                   <button
                     onClick={(e) => {
@@ -940,9 +950,25 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                   </div>
                   
                   {/* 위치 조정 안내 */}
-                  <div className="bg-blue-50 border border-blue-200 rounded p-2">
-                    <div className="text-xs text-blue-700">
-                      💡 <strong>위치 조정:</strong> 상단의 "위치 조정" 버튼을 클릭하여 Position Control Panel을 사용하세요!
+                  <div className={`border rounded p-2 ${
+                    selectedElementId === element.id 
+                      ? 'bg-green-50 border-green-200' 
+                      : 'bg-blue-50 border-blue-200'
+                  }`}>
+                    <div className={`text-xs ${
+                      selectedElementId === element.id 
+                        ? 'text-green-700' 
+                        : 'text-blue-700'
+                    }`}>
+                      {selectedElementId === element.id ? (
+                        <>
+                          ✅ <strong>위치 조정 활성화:</strong> 상단의 "위치 및 정렬 조정" 패널에서 정밀한 위치 조정이 가능합니다!
+                        </>
+                      ) : (
+                        <>
+                          💡 <strong>위치 조정:</strong> 🎯위치 조정 버튼을 클릭하면 상단에 Position Control Panel이 나타납니다!
+                        </>
+                      )}
                     </div>
                   </div>
                   
