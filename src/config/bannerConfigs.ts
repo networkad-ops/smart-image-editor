@@ -135,7 +135,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     fixedText: false,
     allowCustomText: true,
     subTitle: {
-      x: 199.86,
+      x: 200,  // 중앙 정렬: 1050/2 - 650/2 = 525 - 325 = 200
       y: 105,
       width: 650,  // 적절한 너비 설정
       height: 52,  // 42 * 1.24
@@ -148,7 +148,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       maxLines: 1
     },
     mainTitle: {
-      x: 180,
+      x: 180,  // 중앙 정렬: 1050/2 - 690/2 = 525 - 345 = 180
       y: 163.56,
       width: 690,  // 적절한 너비 설정
       height: 104,  // 84 * 1.24
@@ -168,10 +168,10 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       maxFileSize: 300 * 1024
     },
     buttonText: {
-      x: 60,  // 버튼 정중앙 (1050/2 - 465)
-      y: 850,  // 하단 버튼 위치
-      width: 930,  // 버튼 너비
-      height: 144,  // 버튼 높이
+      x: 48,   // 버튼 정중앙 (1050/2 - 477) = 48
+      y: 828,  // 하단 버튼 위치 상향 조정 
+      width: 954,  // 버튼 너비 확대
+      height: 180,  // 버튼 높이 증가
       fontSize: 42,  // 모바일에 맞춰 조정
       lineHeight: 52,
       fontFamily: 'Pretendard',

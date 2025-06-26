@@ -216,7 +216,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             </>
           ) : (
             <>
-              🎨 <strong>자유 배너:</strong> 텍스트를 자유롭게 추가하고 위치와 크기를 조정할 수 있습니다.
+              🎨 <strong>인터랙티브 배너:</strong> 서브타이틀과 메인타이틀은 중앙 정렬되며, 🎯위치 조정 버튼으로 자유롭게 이동할 수 있습니다.
             </>
           )}
         </div>
@@ -271,11 +271,13 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 onClick={() => setSelectedElementId(selectedElementId === 'sub-title' ? null : 'sub-title')}
                 className={`text-xs px-2 py-1 rounded transition-all ${
                   selectedElementId === 'sub-title'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-blue-500 text-white font-medium'
+                    : config.fixedText 
+                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-green-100 text-green-700 hover:bg-green-200 font-medium'
                 }`}
               >
-                {selectedElementId === 'sub-title' ? '선택됨' : '위치 조정'}
+                {selectedElementId === 'sub-title' ? '✅ 선택됨' : config.fixedText ? '위치 조정' : '🎯 위치 조정'}
               </button>
               {/* 텍스트 초기화 버튼 추가 */}
               <button
@@ -450,11 +452,13 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 onClick={() => setSelectedElementId(selectedElementId === 'main-title' ? null : 'main-title')}
                 className={`text-xs px-2 py-1 rounded transition-all ${
                   selectedElementId === 'main-title'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-blue-500 text-white font-medium'
+                    : config.fixedText 
+                      ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-green-100 text-green-700 hover:bg-green-200 font-medium'
                 }`}
               >
-                {selectedElementId === 'main-title' ? '선택됨' : '위치 조정'}
+                {selectedElementId === 'main-title' ? '✅ 선택됨' : config.fixedText ? '위치 조정' : '🎯 위치 조정'}
               </button>
               {/* 텍스트 초기화 버튼 추가 */}
               <button

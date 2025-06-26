@@ -36,9 +36,9 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           backgroundColor: element.backgroundColor
         });
         
-        // 버튼 배경 스타일 (큰 버튼에 맞게 조정)
-        const padding = 30;  // 패딩 증가
-        const borderRadius = 18;  // 둥근 모서리 증가
+        // 버튼 배경 스타일 (이미지 규격에 맞게 조정)
+        const padding = 24;  // 패딩 조정
+        const borderRadius = 72;  // 둥근 모서리 크게 증가 (완전히 둥근 버튼)
         
         // 버튼 배경 그리기 (둥근 모서리)
         const buttonX = element.x - padding;
@@ -78,10 +78,14 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       ctx.font = `${fontWeight} ${element.fontSize}px Pretendard`;
       ctx.textBaseline = 'top'; // 텍스트의 기준선을 상단으로 설정
       
-      // 버튼 텍스트인 경우 가운데 정렬 설정
+      // 텍스트 정렬 설정
       if (element.id === 'button-text') {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+      } else if (element.id === 'sub-title' || element.id === 'main-title') {
+        // 서브타이틀과 메인타이틀은 중앙 정렬
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
       } else {
         ctx.textAlign = 'start';
         ctx.textBaseline = 'top';
@@ -97,6 +101,10 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         if (element.id === 'button-text') {
           // 버튼 텍스트는 가운데 정렬
           y = element.y + element.height / 2 + (lineIndex * lineHeight);
+          currentX = element.x + element.width / 2;
+        } else if (element.id === 'sub-title' || element.id === 'main-title') {
+          // 서브타이틀과 메인타이틀은 중앙 정렬
+          y = element.y + (lineIndex * lineHeight);
           currentX = element.x + element.width / 2;
         } else {
           // 일반 텍스트는 왼쪽 정렬
@@ -118,6 +126,15 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         else if (element.colorSegments && element.colorSegments.length > 0) {
           // 현재 줄의 시작 인덱스 계산
           const lineStart = lines.slice(0, lineIndex).join('\n').length + (lineIndex > 0 ? 1 : 0);
+          
+          // 중앙 정렬인 경우 전체 텍스트 너비를 계산해서 시작 위치 조정
+          if (element.id === 'sub-title' || element.id === 'main-title') {
+            const totalWidth = element.letterSpacing 
+              ? line.split('').reduce((sum, char, idx) => 
+                  sum + ctx.measureText(char).width + (idx < line.length - 1 ? (element.letterSpacing || 0) : 0), 0)
+              : ctx.measureText(line).width;
+            currentX = currentX - totalWidth / 2;
+          }
           
           let lastIndex = 0;
           
