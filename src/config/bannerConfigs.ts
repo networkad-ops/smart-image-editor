@@ -182,6 +182,61 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     }
   },
 
+  'interactive-pc': {
+    name: '인터랙티브 (PC)',
+    width: 1800,
+    height: 1800,
+    maxFileSize: 8 * 1024 * 1024,
+    fixedText: false,
+    allowCustomText: true,
+    subTitle: {
+      x: 342,
+      y: 180,
+      width: 1116,  // PC에 맞게 더 넓게
+      height: 89,   // 72 * 1.24
+      fontSize: 72,
+      lineHeight: 89,
+      fontFamily: 'Pretendard',
+      fontWeight: 600,  // Semibold
+      letterSpacing: -0.72,
+      maxLength: 20,
+      maxLines: 1
+    },
+    mainTitle: {
+      x: 309,
+      y: 280,
+      width: 1182,  // PC에 맞게 더 넓게
+      height: 178,  // 144 * 1.24
+      fontSize: 144,
+      lineHeight: 178,
+      fontFamily: 'Pretendard',
+      fontWeight: 700,  // Bold
+      letterSpacing: -2.88,
+      maxLength: 24,
+      maxLines: 2
+    },
+    logo: {
+      x: 762,
+      y: 1330,
+      width: 276,
+      height: 72,
+      maxFileSize: 500 * 1024
+    },
+    buttonText: {
+      x: 103,  // 버튼 정중앙 (1800/2 - 797)
+      y: 1456,  // 하단 버튼 위치
+      width: 1594,  // 버튼 너비
+      height: 246,  // 버튼 높이
+      fontSize: 72,  // PC에 맞춰 조정
+      lineHeight: 89,
+      fontFamily: 'Pretendard',
+      fontWeight: 600,
+      letterSpacing: -1.44,
+      maxLength: 7,  // 띄어쓰기 포함 7글자
+      maxLines: 1
+    }
+  },
+
   'fullscreen-pc': {
     name: '전면 배너',
     width: 2880,
