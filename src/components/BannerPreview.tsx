@@ -36,10 +36,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           backgroundColor: element.backgroundColor
         });
         
-        // 버튼 배경 스타일 (이미지 규격에 맞게 조정)
-        const borderRadius = 72;  // 둥근 모서리 크게 증가 (완전히 둥근 버튼)
-        
-        // 버튼 배경 그리기 (둥근 모서리) - 설정된 크기 그대로 사용
+        // 버튼 배경 그리기 (사각형) - 설정된 크기 그대로 사용
         const buttonX = element.x;
         const buttonY = element.y;
         const buttonWidth = element.width;
@@ -49,24 +46,14 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         const backgroundColor = element.backgroundColor || '#4F46E5';
         ctx.fillStyle = backgroundColor;
         
-        ctx.beginPath();
-        ctx.moveTo(buttonX + borderRadius, buttonY);
-        ctx.lineTo(buttonX + buttonWidth - borderRadius, buttonY);
-        ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY, buttonX + buttonWidth, buttonY + borderRadius);
-        ctx.lineTo(buttonX + buttonWidth, buttonY + buttonHeight - borderRadius);
-        ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY + buttonHeight, buttonX + buttonWidth - borderRadius, buttonY + buttonHeight);
-        ctx.lineTo(buttonX + borderRadius, buttonY + buttonHeight);
-        ctx.quadraticCurveTo(buttonX, buttonY + buttonHeight, buttonX, buttonY + buttonHeight - borderRadius);
-        ctx.lineTo(buttonX, buttonY + borderRadius);
-        ctx.quadraticCurveTo(buttonX, buttonY, buttonX + borderRadius, buttonY);
-        ctx.closePath();
-        ctx.fill();
+        // 단순한 사각형으로 그리기
+        ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
         
         // 버튼 그림자 효과
         ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
         ctx.shadowBlur = 6;
         ctx.shadowOffsetY = 3;
-        ctx.fill();
+        ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
         ctx.shadowOffsetY = 0;

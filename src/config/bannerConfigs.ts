@@ -169,9 +169,9 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     },
     buttonText: {
       x: 48,   // 버튼 정중앙 (1050/2 - 477) = 48
-      y: 828,  // 하단 버튼 위치 상향 조정 
+      y: 846,  // 하단 버튼 위치 (이미지 기준)
       width: 954,  // 버튼 너비 확대
-      height: 180,  // 버튼 높이 증가
+      height: 144,  // 버튼 높이 (이미지 기준)
       fontSize: 42,  // 모바일에 맞춰 조정
       lineHeight: 52,
       fontFamily: 'Pretendard',
