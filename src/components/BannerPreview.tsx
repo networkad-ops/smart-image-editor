@@ -37,14 +37,13 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         });
         
         // 버튼 배경 스타일 (이미지 규격에 맞게 조정)
-        const padding = 24;  // 패딩 조정
         const borderRadius = 72;  // 둥근 모서리 크게 증가 (완전히 둥근 버튼)
         
-        // 버튼 배경 그리기 (둥근 모서리)
-        const buttonX = element.x - padding;
-        const buttonY = element.y - padding/2;
-        const buttonWidth = element.width + padding * 2;
-        const buttonHeight = element.height + padding;
+        // 버튼 배경 그리기 (둥근 모서리) - 설정된 크기 그대로 사용
+        const buttonX = element.x;
+        const buttonY = element.y;
+        const buttonWidth = element.width;
+        const buttonHeight = element.height;
         
         // 사용자 설정 배경색 또는 기본값
         const backgroundColor = element.backgroundColor || '#4F46E5';
