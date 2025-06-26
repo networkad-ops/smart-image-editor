@@ -262,7 +262,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       </div>
       
       {/* 서브타이틀 편집 */}
-      {config.subTitle && config.fixedText && (
+      {config.subTitle && (
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">
@@ -441,7 +441,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       )}
 
       {/* 메인타이틀 편집 */}
-      {config.mainTitle && config.fixedText && (
+      {config.mainTitle && (
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">

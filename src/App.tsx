@@ -157,8 +157,8 @@ function App() {
   const initializeTextElements = (selection: BannerSelection) => {
     const elements: TextElement[] = [];
     
-    // 기본 배너인 경우에만 고정 텍스트 요소 추가
-    if (selection.config.mainTitle && selection.config.fixedText) {
+    // 메인타이틀 설정이 있는 경우 텍스트 요소 추가
+    if (selection.config.mainTitle) {
       elements.push({
         id: 'main-title',
         type: 'fixed',
@@ -172,11 +172,11 @@ function App() {
         fontWeight: selection.config.mainTitle.fontWeight ?? 700,
         letterSpacing: selection.config.mainTitle.letterSpacing,
         color: '#000000',
-        editable: { position: false, size: false, color: true }
+        editable: { position: !selection.config.fixedText, size: false, color: true }
       });
     }
     
-    if (selection.config.subTitle && selection.config.fixedText) {
+    if (selection.config.subTitle) {
       elements.push({
         id: 'sub-title',
         type: 'fixed',
@@ -190,7 +190,7 @@ function App() {
         fontWeight: selection.config.subTitle.fontWeight ?? 500,
         letterSpacing: selection.config.subTitle.letterSpacing,
         color: '#000000',
-        editable: { position: false, size: false, color: true }
+        editable: { position: !selection.config.fixedText, size: false, color: true }
       });
     }
     
