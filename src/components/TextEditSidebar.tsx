@@ -25,6 +25,9 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   const subTitleInputRef = useRef<HTMLInputElement>(null);
   const mainTitleInputRef = useRef<HTMLTextAreaElement>(null);
   
+  // 텍스트 지우기 상태 추가
+  const [clearStatus, setClearStatus] = useState<{[key: string]: boolean}>({});
+
   // 텍스트 선택 감지
   const handleTextSelect = (elementId: string, inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = inputRef.current;
@@ -240,11 +243,20 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                     onDeleteText(element.id);
                   }
                 });
+                // 전체 지우기 상태 표시
+                setClearStatus(prev => ({ ...prev, 'all': true }));
+                setTimeout(() => {
+                  setClearStatus(prev => ({ ...prev, 'all': false }));
+                }, 3000);
               }
             }}
-            className="text-xs px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-all"
+            className={`text-xs px-3 py-1 rounded transition-all ${
+              clearStatus['all'] 
+                ? 'bg-green-500 text-white border border-green-400' 
+                : 'bg-red-500 text-white hover:bg-red-600'
+            }`}
           >
-            🗑️ 전체 지우기
+            {clearStatus['all'] ? '✅ 모두 지워짐' : '🗑️ 전체 지우기'}
           </button>
         </div>
       </div>
@@ -267,11 +279,28 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               </button>
               {/* 텍스트 초기화 버튼 추가 */}
               <button
-                onClick={() => onUpdateText('sub-title', { text: '' })}
-                className="text-xs px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-all"
+                onClick={() => {
+                  onUpdateText('sub-title', { text: '', colorSegments: [] });
+                  // 사용자에게 명확한 피드백 제공
+                  const inputElement = subTitleInputRef.current;
+                  if (inputElement) {
+                    inputElement.focus();
+                    inputElement.select();
+                  }
+                  // 지우기 상태 표시
+                  setClearStatus(prev => ({ ...prev, 'sub-title': true }));
+                  setTimeout(() => {
+                    setClearStatus(prev => ({ ...prev, 'sub-title': false }));
+                  }, 2000);
+                }}
+                className={`text-xs px-2 py-1 rounded transition-all ${
+                  clearStatus['sub-title'] 
+                    ? 'bg-green-100 text-green-600 border border-green-300' 
+                    : 'bg-red-100 text-red-600 hover:bg-red-200'
+                }`}
                 title="서브타이틀 내용 지우기"
               >
-                🗑️ 지우기
+                {clearStatus['sub-title'] ? '✅ 지워짐' : '🗑️ 지우기'}
               </button>
               {/* 텍스트 복사 버튼 */}
               <button
@@ -429,11 +458,28 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               </button>
               {/* 텍스트 초기화 버튼 추가 */}
               <button
-                onClick={() => onUpdateText('main-title', { text: '' })}
-                className="text-xs px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-all"
+                onClick={() => {
+                  onUpdateText('main-title', { text: '', colorSegments: [] });
+                  // 사용자에게 명확한 피드백 제공
+                  const inputElement = mainTitleInputRef.current;
+                  if (inputElement) {
+                    inputElement.focus();
+                    inputElement.select();
+                  }
+                  // 지우기 상태 표시
+                  setClearStatus(prev => ({ ...prev, 'main-title': true }));
+                  setTimeout(() => {
+                    setClearStatus(prev => ({ ...prev, 'main-title': false }));
+                  }, 2000);
+                }}
+                className={`text-xs px-2 py-1 rounded transition-all ${
+                  clearStatus['main-title'] 
+                    ? 'bg-green-100 text-green-600 border border-green-300' 
+                    : 'bg-red-100 text-red-600 hover:bg-red-200'
+                }`}
                 title="메인타이틀 내용 지우기"
               >
-                🗑️ 지우기
+                {clearStatus['main-title'] ? '✅ 지워짐' : '🗑️ 지우기'}
               </button>
               {/* 텍스트 복사 버튼 */}
               <button
@@ -601,11 +647,28 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               </button>
               {/* 버튼 텍스트 초기화 버튼 추가 */}
               <button
-                onClick={() => onUpdateText('button-text', { text: '' })}
-                className="text-xs px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-all"
+                onClick={() => {
+                  onUpdateText('button-text', { text: '', colorSegments: [] });
+                  // 사용자에게 명확한 피드백 제공 (버튼 텍스트는 일반 input)
+                  const buttonTextInput = document.querySelector('input[placeholder*="버튼 텍스트"]') as HTMLInputElement;
+                  if (buttonTextInput) {
+                    buttonTextInput.focus();
+                    buttonTextInput.select();
+                  }
+                  // 지우기 상태 표시
+                  setClearStatus(prev => ({ ...prev, 'button-text': true }));
+                  setTimeout(() => {
+                    setClearStatus(prev => ({ ...prev, 'button-text': false }));
+                  }, 2000);
+                }}
+                className={`text-xs px-2 py-1 rounded transition-all ${
+                  clearStatus['button-text'] 
+                    ? 'bg-green-100 text-green-600 border border-green-300' 
+                    : 'bg-red-100 text-red-600 hover:bg-red-200'
+                }`}
                 title="버튼 텍스트 내용 지우기"
               >
-                🗑️ 지우기
+                {clearStatus['button-text'] ? '✅ 지워짐' : '🗑️ 지우기'}
               </button>
               {/* 텍스트 복사 버튼 */}
               <button
