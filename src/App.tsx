@@ -72,7 +72,83 @@ function App() {
         deviceType: banner.device_type,
         config
       });
-      setTextElements(banner.text_elements);
+      
+      console.log('기존 배너의 텍스트 요소:', banner.text_elements);
+      console.log('기존 배너의 텍스트 요소 타입:', typeof banner.text_elements);
+      console.log('기존 배너의 텍스트 요소 배열 여부:', Array.isArray(banner.text_elements));
+      
+      // 기존 텍스트 요소가 올바른 형태인지 확인하고 설정
+      if (Array.isArray(banner.text_elements)) {
+        // 기존 배너에 누락된 기본 텍스트 요소들을 보완
+        const existingElements = [...banner.text_elements];
+        const selection = { bannerType: banner.banner_type, deviceType: banner.device_type, config };
+        
+        // 메인타이틀이 없고 설정에 있는 경우 추가
+        if (config.mainTitle && !existingElements.find(el => el.id === 'main-title')) {
+          console.log('메인타이틀 요소 추가');
+          existingElements.push({
+            id: 'main-title',
+            type: 'fixed',
+            text: '',
+            x: config.mainTitle.x,
+            y: config.mainTitle.y,
+            width: config.mainTitle.width,
+            height: config.mainTitle.height,
+            fontSize: config.mainTitle.fontSize,
+            fontFamily: config.mainTitle.fontFamily,
+            fontWeight: config.mainTitle.fontWeight ?? 700,
+            letterSpacing: config.mainTitle.letterSpacing,
+            color: '#000000',
+            editable: { position: !config.fixedText, size: false, color: true }
+          });
+        }
+        
+        // 서브타이틀이 없고 설정에 있는 경우 추가
+        if (config.subTitle && !existingElements.find(el => el.id === 'sub-title')) {
+          console.log('서브타이틀 요소 추가');
+          existingElements.push({
+            id: 'sub-title',
+            type: 'fixed',
+            text: '',
+            x: config.subTitle.x,
+            y: config.subTitle.y,
+            width: config.subTitle.width,
+            height: config.subTitle.height,
+            fontSize: config.subTitle.fontSize,
+            fontFamily: config.subTitle.fontFamily,
+            fontWeight: config.subTitle.fontWeight ?? 500,
+            letterSpacing: config.subTitle.letterSpacing,
+            color: '#000000',
+            editable: { position: !config.fixedText, size: false, color: true }
+          });
+        }
+        
+        // 버튼 텍스트가 없고 설정에 있는 경우 추가
+        if (config.buttonText && !existingElements.find(el => el.id === 'button-text')) {
+          console.log('버튼 텍스트 요소 추가');
+          existingElements.push({
+            id: 'button-text',
+            type: 'fixed',
+            text: '',
+            x: config.buttonText.x,
+            y: config.buttonText.y,
+            width: config.buttonText.width,
+            height: config.buttonText.height,
+            fontSize: config.buttonText.fontSize,
+            fontFamily: config.buttonText.fontFamily,
+            fontWeight: config.buttonText.fontWeight ?? 600,
+            letterSpacing: config.buttonText.letterSpacing,
+            color: '#FFFFFF',
+            backgroundColor: '#4F46E5',
+            editable: { position: true, size: false, color: true }
+          });
+        }
+        
+        setTextElements(existingElements);
+      } else {
+        console.warn('텍스트 요소가 배열이 아닙니다. 기본 설정으로 초기화합니다.');
+        initializeTextElements({ bannerType: banner.banner_type, deviceType: banner.device_type, config });
+      }
       
       // 기존 이미지와 로고 로드
       try {
@@ -233,11 +309,14 @@ function App() {
 
   // 텍스트 요소 업데이트
   const handleTextUpdate = (id: string, updates: Partial<TextElement>) => {
-    setTextElements(prev =>
-      prev.map(text =>
+    console.log('텍스트 업데이트 호출됨:', id, updates);
+    setTextElements(prev => {
+      const updated = prev.map(text =>
         text.id === id ? { ...text, ...updates } : text
-      )
-    );
+      );
+      console.log('업데이트된 텍스트 요소들:', updated);
+      return updated;
+    });
   };
 
   // 텍스트 요소 삭제

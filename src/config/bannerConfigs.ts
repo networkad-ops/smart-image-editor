@@ -168,8 +168,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       maxFileSize: 300 * 1024
     },
     buttonText: {
-      x: 48,   // 버튼 정중앙 (1050/2 - 477) = 48
-      y: 846,  // 하단 버튼 위치 (이미지 기준)
+      x: 60,   // 버튼 위치 조정
+      y: 848,  // 하단 버튼 위치 (2px 아래로 조정)
       width: 954,  // 버튼 너비 확대
       height: 144,  // 버튼 높이 (이미지 기준)
       fontSize: 42,  // 모바일에 맞춰 조정

@@ -198,10 +198,18 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   };
 
   // 메인타이틀과 서브타이틀, 버튼 텍스트 분리
+  console.log('TextEditSidebar에서 받은 textElements:', textElements);
   const mainTitle = textElements.find(el => el.id === 'main-title');
   const subTitle = textElements.find(el => el.id === 'sub-title');
   const buttonText = textElements.find(el => el.id === 'button-text');
   const otherTexts = textElements.filter(el => el.id !== 'main-title' && el.id !== 'sub-title' && el.id !== 'button-text');
+  
+  console.log('분리된 텍스트 요소들:', {
+    mainTitle: mainTitle?.text || 'undefined',
+    subTitle: subTitle?.text || 'undefined',
+    buttonText: buttonText?.text || 'undefined',
+    otherTexts: otherTexts.length
+  });
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">

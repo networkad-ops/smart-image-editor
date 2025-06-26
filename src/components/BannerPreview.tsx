@@ -77,14 +77,17 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       ctx.textBaseline = 'top'; // 텍스트의 기준선을 상단으로 설정
       
       // 텍스트 정렬 설정
+      const isInteractiveBanner = config.name === '인터랙티브';
+      
       if (element.id === 'button-text') {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-      } else if (element.id === 'sub-title' || element.id === 'main-title') {
-        // 서브타이틀과 메인타이틀은 중앙 정렬
+      } else if ((element.id === 'sub-title' || element.id === 'main-title') && isInteractiveBanner) {
+        // 인터랙티브 배너의 서브타이틀과 메인타이틀만 중앙 정렬
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
       } else {
+        // 나머지는 모두 왼쪽 정렬 (기본 배너, 전면 배너 등)
         ctx.textAlign = 'start';
         ctx.textBaseline = 'top';
       }
@@ -100,12 +103,12 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           // 버튼 텍스트는 가운데 정렬
           y = element.y + element.height / 2 + (lineIndex * lineHeight);
           currentX = element.x + element.width / 2;
-        } else if (element.id === 'sub-title' || element.id === 'main-title') {
-          // 서브타이틀과 메인타이틀은 중앙 정렬
+        } else if ((element.id === 'sub-title' || element.id === 'main-title') && isInteractiveBanner) {
+          // 인터랙티브 배너의 서브타이틀과 메인타이틀만 중앙 정렬
           y = element.y + (lineIndex * lineHeight);
           currentX = element.x + element.width / 2;
         } else {
-          // 일반 텍스트는 왼쪽 정렬
+          // 나머지는 모두 왼쪽 정렬 (기본 배너, 전면 배너 등)
           y = element.y + (lineIndex * lineHeight);
           currentX = element.x;
         }
@@ -125,8 +128,8 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           // 현재 줄의 시작 인덱스 계산
           const lineStart = lines.slice(0, lineIndex).join('\n').length + (lineIndex > 0 ? 1 : 0);
           
-          // 중앙 정렬인 경우 전체 텍스트 너비를 계산해서 시작 위치 조정
-          if (element.id === 'sub-title' || element.id === 'main-title') {
+          // 인터랙티브 배너의 중앙 정렬인 경우 전체 텍스트 너비를 계산해서 시작 위치 조정
+          if ((element.id === 'sub-title' || element.id === 'main-title') && isInteractiveBanner) {
             const totalWidth = element.letterSpacing 
               ? line.split('').reduce((sum, char, idx) => 
                   sum + ctx.measureText(char).width + (idx < line.length - 1 ? (element.letterSpacing || 0) : 0), 0)
