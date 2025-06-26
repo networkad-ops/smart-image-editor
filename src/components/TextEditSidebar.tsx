@@ -218,6 +218,36 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           )}
         </div>
       </div>
+
+      {/* 전체 텍스트 초기화 */}
+      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+        <div className="flex items-center justify-between">
+          <div className="text-xs text-red-700">
+            💥 <strong>전체 초기화:</strong> 모든 텍스트를 한 번에 지웁니다
+          </div>
+          <button
+            onClick={() => {
+              if (window.confirm('모든 텍스트를 지우시겠습니까? (취소할 수 없습니다)')) {
+                // 모든 고정 텍스트 초기화
+                textElements.forEach(element => {
+                  if (element.type === 'fixed') {
+                    onUpdateText(element.id, { text: '', colorSegments: [] });
+                  }
+                });
+                // 자유 텍스트는 삭제
+                textElements.forEach(element => {
+                  if (element.type === 'free') {
+                    onDeleteText(element.id);
+                  }
+                });
+              }
+            }}
+            className="text-xs px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-all"
+          >
+            🗑️ 전체 지우기
+          </button>
+        </div>
+      </div>
       
       {/* 서브타이틀 편집 */}
       {config.subTitle && config.fixedText && (
@@ -234,6 +264,27 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 }`}
               >
                 {selectedElementId === 'sub-title' ? '선택됨' : '위치 조정'}
+              </button>
+              {/* 텍스트 초기화 버튼 추가 */}
+              <button
+                onClick={() => onUpdateText('sub-title', { text: '' })}
+                className="text-xs px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-all"
+                title="서브타이틀 내용 지우기"
+              >
+                🗑️ 지우기
+              </button>
+              {/* 텍스트 복사 버튼 */}
+              <button
+                onClick={async () => {
+                  if (subTitle?.text) {
+                    await navigator.clipboard.writeText(subTitle.text);
+                    alert('서브타이틀이 복사되었습니다!');
+                  }
+                }}
+                className="text-xs px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-all"
+                title="서브타이틀 복사"
+              >
+                📋 복사
               </button>
             </div>
             <span className="text-sm text-gray-500">
@@ -375,6 +426,27 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 }`}
               >
                 {selectedElementId === 'main-title' ? '선택됨' : '위치 조정'}
+              </button>
+              {/* 텍스트 초기화 버튼 추가 */}
+              <button
+                onClick={() => onUpdateText('main-title', { text: '' })}
+                className="text-xs px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-all"
+                title="메인타이틀 내용 지우기"
+              >
+                🗑️ 지우기
+              </button>
+              {/* 텍스트 복사 버튼 */}
+              <button
+                onClick={async () => {
+                  if (mainTitle?.text) {
+                    await navigator.clipboard.writeText(mainTitle.text);
+                    alert('메인타이틀이 복사되었습니다!');
+                  }
+                }}
+                className="text-xs px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-all"
+                title="메인타이틀 복사"
+              >
+                📋 복사
               </button>
             </div>
             <span className="text-sm text-gray-500">
@@ -526,6 +598,27 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 }`}
               >
                 {selectedElementId === 'button-text' ? '선택됨' : '위치 조정'}
+              </button>
+              {/* 버튼 텍스트 초기화 버튼 추가 */}
+              <button
+                onClick={() => onUpdateText('button-text', { text: '' })}
+                className="text-xs px-2 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-all"
+                title="버튼 텍스트 내용 지우기"
+              >
+                🗑️ 지우기
+              </button>
+              {/* 텍스트 복사 버튼 */}
+              <button
+                onClick={async () => {
+                  if (buttonText?.text) {
+                    await navigator.clipboard.writeText(buttonText.text);
+                    alert('버튼 텍스트가 복사되었습니다!');
+                  }
+                }}
+                className="text-xs px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-all"
+                title="버튼 텍스트 복사"
+              >
+                📋 복사
               </button>
             </div>
             <span className="text-sm text-gray-500">
