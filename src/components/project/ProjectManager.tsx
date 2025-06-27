@@ -28,6 +28,8 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [quickTeamName, setQuickTeamName] = useState('');
+  const [quickProjectName, setQuickProjectName] = useState('');
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
@@ -87,6 +89,24 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
     setExpandedProjects(new Set());
   };
 
+  // 빠른 팀 생성
+  const handleQuickTeamCreate = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && quickTeamName.trim()) {
+      try {
+        await createTeam({
+          name: quickTeamName.trim(),
+          description: '',
+          color: '#3B82F6' // 기본 파란색
+        });
+        setQuickTeamName('');
+        fetchTeams();
+      } catch (error) {
+        console.error('Error creating team:', error);
+        alert('팀 생성에 실패했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
+      }
+    }
+  };
+
   // 팀 생성/수정
   const handleTeamSubmit = async (data: TeamFormData) => {
     try {
@@ -101,6 +121,30 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
     } catch (error) {
       console.error('Error saving team:', error);
       alert('팀 저장에 실패했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
+    }
+  };
+
+  // 빠른 프로젝트 생성
+  const handleQuickProjectCreate = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && quickProjectName.trim()) {
+      try {
+        await createProject({
+          name: quickProjectName.trim(),
+          description: '',
+          team_id: '',
+          manager_name: '',
+          manager_email: '',
+          manager_phone: '',
+          status: 'completed',
+          priority: 'low',
+          deadline: undefined
+        });
+        setQuickProjectName('');
+        fetchProjects();
+      } catch (error) {
+        console.error('Error creating project:', error);
+        alert('프로젝트 생성에 실패했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
+      }
     }
   };
 
@@ -338,10 +382,26 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                 <h2 className="text-xl font-semibold text-gray-900">팀 관리</h2>
                 <button
                   onClick={() => setShowTeamForm(true)}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                  className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm"
                 >
-                  새 팀 추가
+                  상세 추가
                 </button>
+              </div>
+
+              {/* 빠른 팀 추가 */}
+              <div className="bg-white rounded-lg shadow-sm p-4 border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="w-4 h-4 rounded-full bg-blue-500"></div>
+                  <input
+                    type="text"
+                    placeholder="팀 이름을 입력하고 Enter를 누르세요..."
+                    value={quickTeamName}
+                    onChange={(e) => setQuickTeamName(e.target.value)}
+                    onKeyPress={handleQuickTeamCreate}
+                    className="flex-1 border-0 focus:outline-none text-gray-900 placeholder-gray-500 bg-transparent"
+                  />
+                  <span className="text-xs text-gray-400">Enter</span>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -420,11 +480,29 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                 </div>
                 <button
                   onClick={() => setShowProjectForm(true)}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                  className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm"
                 >
-                  새 프로젝트 추가
+                  상세 추가
                 </button>
               </div>
+
+              {/* 빠른 프로젝트 추가 */}
+              {!selectedProjectId && (
+                <div className="bg-white rounded-lg shadow-sm p-4 border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                    <input
+                      type="text"
+                      placeholder="프로젝트 이름을 입력하고 Enter를 누르세요..."
+                      value={quickProjectName}
+                      onChange={(e) => setQuickProjectName(e.target.value)}
+                      onKeyPress={handleQuickProjectCreate}
+                      className="flex-1 border-0 focus:outline-none text-gray-900 placeholder-gray-500 bg-transparent"
+                    />
+                    <span className="text-xs text-gray-400">Enter</span>
+                  </div>
+                </div>
+              )}
 
               <div className="bg-white rounded-lg shadow-sm">
                 <div className="divide-y">
