@@ -583,204 +583,67 @@ const BannerProjectModal: React.FC<BannerProjectModalProps> = ({
   onCreateProject,
   onClose
 }) => {
-  const [selectedTeamId, setSelectedTeamId] = useState<string>('');
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
-  const [showNewTeamForm, setShowNewTeamForm] = useState(false);
-  const [showNewProjectForm, setShowNewProjectForm] = useState(false);
-  const [newTeamName, setNewTeamName] = useState('');
-  const [newProjectName, setNewProjectName] = useState('');
-  const [newProjectDescription, setNewProjectDescription] = useState('');
+  const [bannerTitle, setBannerTitle] = useState('');
 
-  // 팀별 프로젝트 필터링
-  const filteredProjects = selectedTeamId 
-    ? projects.filter(p => p.team_id === selectedTeamId)
-    : projects;
-
-  // 새 팀 생성
-  const handleCreateTeam = async () => {
-    if (!newTeamName.trim()) return;
+  // 배너 생성 처리
+  const handleCreateBanner = async () => {
+    if (!bannerTitle.trim()) return;
     
     try {
-      const newTeam = await onCreateTeam({
-        name: newTeamName,
-        description: '',
-        color: '#3B82F6'
-      });
-      setSelectedTeamId(newTeam.id);
-      setNewTeamName('');
-      setShowNewTeamForm(false);
-    } catch (error) {
-      console.error('팀 생성 실패:', error);
-      alert('팀 생성에 실패했습니다.');
-    }
-  };
-
-  // 새 프로젝트 생성
-  const handleCreateProject = async () => {
-    if (!newProjectName.trim()) return;
-    
-    try {
+      // 임시 프로젝트 생성 (제목을 프로젝트명으로 사용)
       const newProject = await onCreateProject({
-        name: newProjectName,
-        description: newProjectDescription,
-        team_id: selectedTeamId || undefined,
-        status: 'active',
-        priority: 'medium'
+        name: bannerTitle,
+        description: '',
+        team_id: undefined,
+        status: 'completed',
+        priority: 'low'
       });
+      
       // 프로젝트 생성 후 배너 만들기 시작
       onProjectSelect(newProject.id);
       onClose(); // 모달 닫기
     } catch (error) {
-      console.error('프로젝트 생성 실패:', error);
-      alert('프로젝트 생성에 실패했습니다.');
-    }
-  };
-
-  // 기존 프로젝트 선택
-  const handleProjectSelect = () => {
-    if (selectedProjectId) {
-      onProjectSelect(selectedProjectId);
-      onClose(); // 모달 닫기
+      console.error('배너 생성 실패:', error);
+      alert('배너 생성에 실패했습니다.');
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg p-6 w-full max-w-lg">
         <h3 className="text-xl font-semibold mb-6">새 배너 만들기</h3>
         
-        {/* 팀 선택 */}
+        {/* 제목 입력 */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <label className="block text-sm font-medium text-gray-700">
-              담당사업팀
-            </label>
-            <button
-              onClick={() => setShowNewTeamForm(!showNewTeamForm)}
-              className="text-blue-500 hover:text-blue-700 text-sm"
-            >
-              + 새 팀 추가
-            </button>
-          </div>
-          
-          {showNewTeamForm && (
-            <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  placeholder="팀 이름"
-                  value={newTeamName}
-                  onChange={(e) => setNewTeamName(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  onClick={handleCreateTeam}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-                >
-                  추가
-                </button>
-                <button
-                  onClick={() => setShowNewTeamForm(false)}
-                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
-                >
-                  취소
-                </button>
-              </div>
-            </div>
-          )}
-          
-          <select
-            value={selectedTeamId}
-            onChange={(e) => {
-              setSelectedTeamId(e.target.value);
-              setSelectedProjectId(''); // 팀 변경 시 프로젝트 선택 초기화
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">팀 선택 (선택사항)</option>
-            {teams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* 프로젝트 선택 */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <label className="block text-sm font-medium text-gray-700">
-              프로젝트 <span className="text-red-500">*</span>
-            </label>
-            <button
-              onClick={() => setShowNewProjectForm(!showNewProjectForm)}
-              className="text-blue-500 hover:text-blue-700 text-sm"
-            >
-              + 새 프로젝트 추가
-            </button>
-          </div>
-          
-          {showNewProjectForm && (
-            <div className="mb-3 p-4 bg-gray-50 rounded-lg">
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  placeholder="프로젝트 이름"
-                  value={newProjectName}
-                  onChange={(e) => setNewProjectName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <textarea
-                  placeholder="프로젝트 설명 (선택사항)"
-                  value={newProjectDescription}
-                  onChange={(e) => setNewProjectDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={2}
-                />
-                <div className="flex space-x-2">
-                  <button
-                    onClick={handleCreateProject}
-                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
-                  >
-                    프로젝트 생성 후 배너 만들기
-                  </button>
-                  <button
-                    onClick={() => setShowNewProjectForm(false)}
-                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
-                  >
-                    취소
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <select
-            value={selectedProjectId}
-            onChange={(e) => setSelectedProjectId(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">프로젝트 선택</option>
-            {filteredProjects.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name} {project.team && `(${project.team.name})`}
-              </option>
-            ))}
-          </select>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            제목 <span className="text-red-500">*</span>
+          </label>
+          <p className="text-sm text-gray-500 mb-3">
+            담당 사업팀/프로젝트를 입력해주세요. <br/>
+            <span className="text-gray-400">ex. 광고사업팀/00월 프로모션</span>
+          </p>
+          <input
+            type="text"
+            placeholder="광고사업팀/00월 프로모션"
+            value={bannerTitle}
+            onChange={(e) => setBannerTitle(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+            autoFocus
+          />
         </div>
 
         {/* 버튼 */}
         <div className="flex space-x-3">
           <button
-            onClick={handleProjectSelect}
-            disabled={!selectedProjectId}
-            className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+            onClick={handleCreateBanner}
+            disabled={!bannerTitle.trim()}
+            className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
           >
             배너 만들기 시작
           </button>
           <button
             onClick={onClose}
-            className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition-colors"
+            className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition-colors font-medium"
           >
             취소
           </button>
