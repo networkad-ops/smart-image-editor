@@ -3,11 +3,6 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "public": true,
-  "functions": {
-    "app/api/**/*.ts": {
-      "runtime": "@vercel/node"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",

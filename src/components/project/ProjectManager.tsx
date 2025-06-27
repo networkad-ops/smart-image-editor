@@ -128,6 +128,11 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
         await deleteTeam(teamId);
         fetchTeams();
         fetchProjects();
+        // 모달이 열려있다면 닫기 (최신 데이터 반영을 위해)
+        setShowTeamForm(false);
+        setShowProjectForm(false);
+        setEditingTeam(null);
+        setEditingProject(null);
       } catch (error) {
         console.error('Error deleting team:', error);
         alert('팀 삭제에 실패했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
@@ -142,6 +147,9 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
         await deleteProject(projectId);
         fetchProjects();
         fetchBanners();
+        // 모달이 열려있다면 닫기 (최신 데이터 반영을 위해)
+        setShowProjectForm(false);
+        setEditingProject(null);
       } catch (error) {
         console.error('Error deleting project:', error);
         alert('프로젝트 삭제에 실패했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
