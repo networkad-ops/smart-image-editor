@@ -62,8 +62,8 @@ function App() {
     // Config가 없는 경우 기본 설정 사용
     if (!config) {
       console.warn('Config를 찾을 수 없음. 기본 설정 사용:', configKey);
-      config = bannerConfigs['basic-no-logo-pc'];
-      console.log('기본 설정 사용:', config);
+        config = bannerConfigs['basic-no-logo-pc'];
+        console.log('기본 설정 사용:', config);
     }
     
     if (config) {
@@ -313,7 +313,7 @@ function App() {
     setTextElements(prev => {
       const updated = prev.map(text =>
         text.id === id ? { ...text, ...updates } : text
-      );
+    );
       console.log('업데이트된 텍스트 요소들:', updated);
       return updated;
     });

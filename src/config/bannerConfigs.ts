@@ -183,7 +183,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
   },
 
   'fullscreen-pc': {
-    name: '전면 배너',
+    name: '메인 홈 전면 배너',
     width: 2880,
     height: 570,
     maxFileSize: 10 * 1024 * 1024,

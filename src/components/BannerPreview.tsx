@@ -345,19 +345,19 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         </span>
       </h2>
       <div className="flex justify-center">
-        <div className="relative" style={{ width: previewWidth, height: previewHeight }}>
-          <canvas
-            ref={ref}
-            width={config.width}
-            height={config.height}
+      <div className="relative" style={{ width: previewWidth, height: previewHeight }}>
+        <canvas
+          ref={ref}
+          width={config.width}
+          height={config.height}
             className="border-2 border-gray-300 rounded-lg shadow-sm"
-            style={{
-              width: previewWidth,
+          style={{
+            width: previewWidth,
               height: previewHeight,
               maxWidth: '100%',
               backgroundColor: '#f8f9fa' // 기본 배경색 추가
-            }}
-          />
+          }}
+        />
         </div>
       </div>
     </div>

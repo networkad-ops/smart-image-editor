@@ -265,14 +265,12 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                           <p className="text-sm text-gray-500">{project.description}</p>
                           <div className="flex items-center space-x-3 mt-2">
                             <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(project.status)}`}>
-                              {project.status === 'active' && '진행중'}
                               {project.status === 'completed' && '완료'}
                               {project.status === 'on_hold' && '보류'}
                               {project.status === 'cancelled' && '취소'}
                             </span>
                             <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(project.priority)}`}>
                               {project.priority === 'low' && '낮음'}
-                              {project.priority === 'medium' && '보통'}
                               {project.priority === 'high' && '높음'}
                               {project.priority === 'urgent' && '긴급'}
                             </span>
@@ -578,7 +576,6 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                                               </h5>
                                               <span className={`px-2 py-1 text-xs rounded-full font-medium ${getStatusColor(banner.status)}`}>
                                                 {banner.status === 'draft' && '초안'}
-                                                {banner.status === 'in_progress' && '진행중'}
                                                 {banner.status === 'review' && '검토중'}
                                                 {banner.status === 'approved' && '승인됨'}
                                                 {banner.status === 'rejected' && '거부됨'}
@@ -790,8 +787,8 @@ const ProjectFormModal: React.FC<ProjectFormModalProps> = ({ project, teams, onS
     manager_name: project?.manager_name || '',
     manager_email: project?.manager_email || '',
     manager_phone: project?.manager_phone || '',
-    status: project?.status || 'active',
-    priority: project?.priority || 'medium',
+    status: project?.status || 'completed',
+    priority: project?.priority || 'low',
     deadline: project?.deadline || undefined
   });
 
@@ -890,7 +887,6 @@ const ProjectFormModal: React.FC<ProjectFormModalProps> = ({ project, teams, onS
                 onChange={(e) => setFormData({ ...formData, status: e.target.value as ProjectStatus })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="active">진행중</option>
                 <option value="completed">완료</option>
                 <option value="on_hold">보류</option>
                 <option value="cancelled">취소</option>
@@ -906,7 +902,6 @@ const ProjectFormModal: React.FC<ProjectFormModalProps> = ({ project, teams, onS
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="low">낮음</option>
-                <option value="medium">보통</option>
                 <option value="high">높음</option>
                 <option value="urgent">긴급</option>
               </select>
