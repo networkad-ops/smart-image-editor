@@ -321,11 +321,6 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                               {project.status === 'on_hold' && '보류'}
                               {project.status === 'cancelled' && '취소'}
                             </span>
-                            <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(project.priority)}`}>
-                              {project.priority === 'low' && '낮음'}
-                              {project.priority === 'high' && '높음'}
-                              {project.priority === 'urgent' && '긴급'}
-                            </span>
                             {project.manager_name && (
                               <span className="text-xs text-gray-500">담당자: {project.manager_name}</span>
                             )}
@@ -397,7 +392,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                     placeholder="팀 이름을 입력하고 Enter를 누르세요..."
                     value={quickTeamName}
                     onChange={(e) => setQuickTeamName(e.target.value)}
-                    onKeyPress={handleQuickTeamCreate}
+                    onKeyDown={handleQuickTeamCreate}
                     className="flex-1 border-0 focus:outline-none text-gray-900 placeholder-gray-500 bg-transparent"
                   />
                   <span className="text-xs text-gray-400">Enter</span>
@@ -491,14 +486,14 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                 <div className="bg-white rounded-lg shadow-sm p-4 border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors">
                   <div className="flex items-center space-x-3">
                     <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                    <input
-                      type="text"
-                      placeholder="프로젝트 이름을 입력하고 Enter를 누르세요..."
-                      value={quickProjectName}
-                      onChange={(e) => setQuickProjectName(e.target.value)}
-                      onKeyPress={handleQuickProjectCreate}
-                      className="flex-1 border-0 focus:outline-none text-gray-900 placeholder-gray-500 bg-transparent"
-                    />
+                                          <input
+                        type="text"
+                        placeholder="프로젝트 이름을 입력하고 Enter를 누르세요..."
+                        value={quickProjectName}
+                        onChange={(e) => setQuickProjectName(e.target.value)}
+                        onKeyDown={handleQuickProjectCreate}
+                        className="flex-1 border-0 focus:outline-none text-gray-900 placeholder-gray-500 bg-transparent"
+                      />
                     <span className="text-xs text-gray-400">Enter</span>
                   </div>
                 </div>
@@ -524,9 +519,6 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                               <h3 className="font-semibold text-gray-900">{project.name}</h3>
                               <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(project.status)}`}>
                                 {project.status}
-                              </span>
-                              <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(project.priority)}`}>
-                                {project.priority}
                               </span>
                             </div>
                             {project.description && (
