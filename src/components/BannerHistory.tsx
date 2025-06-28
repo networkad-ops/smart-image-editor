@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Banner } from '../types';
 import { useSupabase } from '../hooks/useSupabase';
 
@@ -128,10 +127,8 @@ export const BannerHistory: React.FC<BannerHistoryProps> = ({ onBannerEdit, onBa
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBanners.map((banner) => (
-              <motion.div
+              <div
                 key={banner.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
                 className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
               >
                 {/* 썸네일 */}
@@ -208,7 +205,7 @@ export const BannerHistory: React.FC<BannerHistoryProps> = ({ onBannerEdit, onBa
                     </button>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         )}

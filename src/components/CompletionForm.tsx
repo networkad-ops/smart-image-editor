@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 // import { BannerWork } from '../types'; // 현재 사용하지 않음
 
 interface CompletionFormProps {
@@ -70,12 +69,7 @@ export function CompletionForm({ finalImage, bannerType, deviceType, onSave, onE
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="bg-white rounded-lg shadow-lg p-6"
-    >
+    <div className="bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-2xl font-bold mb-6">
         {isEditing ? '배너 수정' : '배너 저장'}
       </h2>
@@ -150,6 +144,6 @@ export function CompletionForm({ finalImage, bannerType, deviceType, onSave, onE
           </button>
         </div>
       </form>
-    </motion.div>
+    </div>
   );
 } 
