@@ -2,55 +2,42 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BannerSelector from './components/BannerSelector';
 import { BannerEditor } from './components/BannerEditor';
-
-import { ProjectManager } from './components/project/ProjectManager';
-import { TextElement, Banner, BannerSelection, Team, Project, ProjectFormData, TeamFormData } from './types';
+import { BannerHistory } from './components/BannerHistory';
+import { TextElement, Banner, BannerSelection } from './types';
 import { bannerConfigs } from './config/bannerConfigs';
 import { useSupabase } from './hooks/useSupabase';
 
-type AppStep = 'project-manager' | 'banner-selection' | 'editor';
+type AppStep = 'home' | 'banner-selection' | 'banner-history' | 'editor';
 
 function App() {
-  const [step, setStep] = useState<AppStep>('project-manager');
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [step, setStep] = useState<AppStep>('home');
   const [bannerSelection, setBannerSelection] = useState<BannerSelection | null>(null);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [textElements, setTextElements] = useState<TextElement[]>([]);
   const [finalImage, setFinalImage] = useState<Blob | null>(null);
-  const [showBannerProjectModal, setShowBannerProjectModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
 
-  const { uploadBannerImage, uploadLogo, createBanner, updateBanner, createProject, createTeam, teams, projects } = useSupabase();
+  const { uploadBannerImage, uploadLogo, createBanner, updateBanner } = useSupabase();
 
-  // 새 배너 만들기 모달 표시
-  const handleShowBannerProjectModal = () => {
-    setShowBannerProjectModal(true);
-  };
-
-  // 배너 프로젝트 선택 완료
-  const handleBannerProjectSelect = (projectId: string) => {
-    setSelectedProjectId(projectId);
-    setEditingBanner(null);
-    setShowBannerProjectModal(false);
-    setStep('banner-selection');
-  };
-
-  // 프로젝트 매니저에서 새 배너 생성 요청
-  const handleBannerCreate = (projectId: string) => {
-    setSelectedProjectId(projectId);
+  // 새 배너 만들기 시작
+  const handleNewBanner = () => {
     setEditingBanner(null);
     setStep('banner-selection');
   };
 
-  // 프로젝트 매니저에서 배너 편집 요청
+  // 배너 히스토리 보기
+  const handleBannerHistory = () => {
+    setStep('banner-history');
+  };
+
+  // 배너 편집 (히스토리에서)
   const handleBannerEdit = async (banner: Banner) => {
     console.log('handleBannerEdit 호출됨:', banner);
     
     setEditingBanner(banner);
-    setSelectedProjectId(banner.project_id);
     
     // 배너 설정으로 BannerSelection 생성
     const configKey = `${banner.banner_type}-${banner.device_type}` as keyof typeof bannerConfigs;
@@ -198,42 +185,25 @@ function App() {
       
       // 편집 모드에서 배너 타입이 변경되면 텍스트 요소도 업데이트
       if (editingBanner) {
-        setEditingBanner({
-          ...editingBanner,
-          banner_type: bannerType as any,
-          device_type: deviceType as any
+        initializeTextElements({
+          bannerType: bannerType as any,
+          deviceType: deviceType as any,
+          config
         });
       }
     }
   };
 
-  // 타이틀 변경 처리
-  const handleTitleChange = (title: string) => {
-    if (editingBanner) {
-      setEditingBanner({
-        ...editingBanner,
-        title
-      });
-    }
-  };
-
-  // 배너 + 디바이스 선택
   const handleBannerSelect = (selection: BannerSelection) => {
     setBannerSelection(selection);
-    
-    // 편집 모드가 아닌 경우 기본 텍스트 요소 초기화
-    if (!editingBanner) {
-      initializeTextElements(selection);
-    }
-    
+    initializeTextElements(selection);
     setStep('editor');
   };
 
-  // 기본 텍스트 요소 초기화
   const initializeTextElements = (selection: BannerSelection) => {
     const elements: TextElement[] = [];
     
-    // 메인타이틀 설정이 있는 경우 텍스트 요소 추가
+    // 메인 타이틀
     if (selection.config.mainTitle) {
       elements.push({
         id: 'main-title',
@@ -248,10 +218,15 @@ function App() {
         fontWeight: selection.config.mainTitle.fontWeight ?? 700,
         letterSpacing: selection.config.mainTitle.letterSpacing,
         color: '#000000',
-        editable: { position: !selection.config.fixedText, size: false, color: true }
+        editable: {
+          position: !selection.config.fixedText,
+          size: false,
+          color: true
+        }
       });
     }
     
+    // 서브 타이틀
     if (selection.config.subTitle) {
       elements.push({
         id: 'sub-title',
@@ -266,10 +241,15 @@ function App() {
         fontWeight: selection.config.subTitle.fontWeight ?? 500,
         letterSpacing: selection.config.subTitle.letterSpacing,
         color: '#000000',
-        editable: { position: !selection.config.fixedText, size: false, color: true }
+        editable: {
+          position: !selection.config.fixedText,
+          size: false,
+          color: true
+        }
       });
     }
     
+    // 버튼 텍스트
     if (selection.config.buttonText) {
       elements.push({
         id: 'button-text',
@@ -284,116 +264,113 @@ function App() {
         fontWeight: selection.config.buttonText.fontWeight ?? 600,
         letterSpacing: selection.config.buttonText.letterSpacing,
         color: '#FFFFFF',
-        backgroundColor: '#4F46E5', // 기본 버튼 배경색
-        editable: { position: true, size: false, color: true }
+        backgroundColor: '#4F46E5',
+        editable: {
+          position: true,
+          size: false,
+          color: true
+        }
       });
     }
     
     setTextElements(elements);
   };
 
-  // 이미지 업로드
   const handleImageUpload = (file: File) => {
     setUploadedImage(file);
   };
 
-  // 로고 업로드
   const handleLogoUpload = (file: File) => {
     setUploadedLogo(file);
   };
 
-  // 텍스트 요소 추가 (자유도 높은 배너만)
   const handleAddText = (text: TextElement) => {
     setTextElements(prev => [...prev, text]);
   };
 
-  // 텍스트 요소 업데이트
   const handleTextUpdate = (id: string, updates: Partial<TextElement>) => {
-    console.log('텍스트 업데이트 호출됨:', id, updates);
-    setTextElements(prev => {
-      const updated = prev.map(text =>
-        text.id === id ? { ...text, ...updates } : text
+    setTextElements(prev => 
+      prev.map(element => 
+        element.id === id 
+          ? { ...element, ...updates }
+          : element
+      )
     );
-      console.log('업데이트된 텍스트 요소들:', updated);
-      return updated;
-    });
   };
 
-  // 텍스트 요소 삭제
   const handleTextDelete = (id: string) => {
-    setTextElements(prev => prev.filter(text => text.id !== id));
+    setTextElements(prev => prev.filter(element => element.id !== id));
   };
 
-  // 완료 버튼 클릭 시 바로 저장
   const handleComplete = async (image: Blob) => {
-    if (!selectedProjectId || !bannerSelection) {
-      alert('프로젝트 정보가 없습니다.');
-      return;
-    }
-
+    if (!bannerSelection) return;
+    
+    setLoading(true);
     try {
-      setLoading(true);
-      console.log('handleComplete 호출됨 - 바로 저장 시작');
-
-      // Blob을 File로 변환
-      const fileName = editingBanner?.title 
-        ? `${editingBanner.title.replace(/[^\w\s-]/g, '').trim()}_${Date.now()}.jpg`
-        : `banner_${Date.now()}.jpg`;
+      setFinalImage(image);
       
-      const bannerFile = new File([image], fileName, { type: 'image/jpeg' });
-      console.log('배너 파일 생성:', bannerFile.name, bannerFile.size, 'bytes');
-
-      // 이미지 업로드 (임시로 Mock URL 사용)
-      let imageUrl: string;
-      try {
-        imageUrl = await uploadBannerImage(bannerFile);
-        console.log('이미지 업로드 완료:', imageUrl);
-      } catch (uploadError) {
-        console.error('이미지 업로드 실패, Mock URL 사용:', uploadError);
-        // 임시로 Mock URL 사용
-        imageUrl = `https://via.placeholder.com/800x400/0066cc/ffffff?text=Banner_${Date.now()}`;
-        console.log('Mock 이미지 URL 사용:', imageUrl);
+      let backgroundImageUrl = '';
+      let logoUrl = '';
+      let finalBannerUrl = '';
+      
+      // 배경 이미지 업로드
+      if (uploadedImage) {
+        backgroundImageUrl = await uploadBannerImage(uploadedImage, 'background');
       }
-
-      // 로고 업로드 (있는 경우)
-      let logoUrl = editingBanner?.logo_url || '';
+      
+      // 로고 이미지 업로드
       if (uploadedLogo) {
         logoUrl = await uploadLogo(uploadedLogo);
-        console.log('로고 업로드 완료:', logoUrl);
       }
       
-      // 배너 타입과 디바이스 타입은 이미 BannerSelection에서 올바르게 분리되어 있음
-      const bannerType = bannerSelection.bannerType;
-      const deviceType = bannerSelection.deviceType;
-
-      console.log('배너 타입 확인:', {
-        bannerType,
-        deviceType
+      // 최종 배너 이미지 업로드
+      const finalImageFile = new File([image], 'final-banner.png', { type: 'image/png' });
+      finalBannerUrl = await uploadBannerImage(finalImageFile, 'final');
+      
+      // 썸네일 생성 및 업로드
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      const thumbnailUrl = await new Promise<string>((resolve) => {
+        img.onload = async () => {
+          const maxSize = 300;
+          const ratio = Math.min(maxSize / img.width, maxSize / img.height);
+          canvas.width = img.width * ratio;
+          canvas.height = img.height * ratio;
+          
+          ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+          
+          canvas.toBlob(async (thumbnailBlob) => {
+            if (thumbnailBlob) {
+              const thumbnailFile = new File([thumbnailBlob], 'thumbnail.png', { type: 'image/png' });
+              const url = await uploadBannerImage(thumbnailFile, 'thumbnail');
+              resolve(url);
+            }
+          }, 'image/png', 0.8);
+        };
+        img.src = URL.createObjectURL(image);
       });
-
-      // 배너 이름 기본값: 드롭다운에서 선택한 배너 타입 이름 사용
-      const defaultTitle = editingBanner?.title || 
-        bannerSelection.config.name || 
-        `배너_${Date.now()}`;
-
-      // 배너 데이터 구성
-      const bannerData: Partial<Banner> = {
-        title: defaultTitle,
+      
+      const bannerData = {
+        // 프로젝트 연결 제거 - title에 통합
+        title: editingBanner?.title || '새 배너',
         description: editingBanner?.description || '',
-        banner_type: bannerType as any,
-        device_type: deviceType as any,
-        status: 'draft' as const,
-        project_id: selectedProjectId,
-        background_image_url: imageUrl,
+        banner_type: bannerSelection.bannerType,
+        device_type: bannerSelection.deviceType,
+        status: editingBanner?.status || 'draft' as const,
+        background_image_url: backgroundImageUrl,
         logo_url: logoUrl,
+        final_banner_url: finalBannerUrl,
+        thumbnail_url: thumbnailUrl,
         text_elements: textElements,
         canvas_width: bannerSelection.config.width,
-        canvas_height: bannerSelection.config.height
+        canvas_height: bannerSelection.config.height,
+        version: editingBanner ? editingBanner.version + 1 : 1,
+        tags: editingBanner?.tags || [],
+        notes: editingBanner?.notes || ''
       };
-
-      console.log('배너 데이터:', bannerData);
-
-      // 배너 저장 또는 업데이트
+      
       if (editingBanner) {
         await updateBanner(editingBanner.id, bannerData);
         console.log('배너 업데이트 완료');
@@ -401,256 +378,149 @@ function App() {
         await createBanner(bannerData);
         console.log('새 배너 생성 완료');
       }
-
-      alert('배너가 성공적으로 저장되었습니다!');
       
-      // 상태 초기화 후 프로젝트 매니저로 돌아가기
+      // 완료 후 홈으로 이동
       handleReset();
+      setStep('home');
+      
     } catch (error) {
       console.error('배너 저장 실패:', error);
-      alert(`배너 저장에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+      alert('배너 저장에 실패했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
     } finally {
       setLoading(false);
     }
   };
 
-  // 상태 초기화
   const handleReset = () => {
-    console.log('상태 초기화');
-    setSelectedProjectId(null);
     setBannerSelection(null);
     setEditingBanner(null);
     setUploadedImage(null);
     setUploadedLogo(null);
     setTextElements([]);
     setFinalImage(null);
-    setShowBannerProjectModal(false);
-    setStep('project-manager');
   };
 
-  // 뒤로 가기
   const handleGoBack = () => {
     if (step === 'editor') {
-      if (editingBanner) {
-        handleReset();
-      } else {
-        setStep('banner-selection');
-      }
-    } else if (step === 'banner-selection') {
-      handleReset();
+      setStep('banner-selection');
+    } else if (step === 'banner-selection' || step === 'banner-history') {
+      setStep('home');
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <header className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">배너 에디터</h1>
-              <p className="mt-2 text-gray-600">
-                {step === 'project-manager' && '프로젝트를 관리하고 배너를 생성하세요'}
-                {step === 'banner-selection' && '배너 타입과 디바이스를 선택하세요'}
-                {step === 'editor' && '배너를 편집하세요'}
+      <AnimatePresence mode="wait">
+        {/* 홈 화면 */}
+        {step === 'home' && (
+          <motion.div
+            key="home"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="min-h-screen flex items-center justify-center bg-white"
+          >
+            <div className="max-w-4xl mx-auto px-4 py-8 text-center">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                배너 에디터
+              </h1>
+              <p className="text-xl text-gray-600 mb-12">
+                원하는 작업을 선택해주세요
               </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              {step === 'project-manager' && (
-                <button
-                  onClick={handleShowBannerProjectModal}
-                  className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium flex items-center space-x-2"
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+                {/* 새 배너 만들기 */}
+                <motion.button
+                  onClick={handleNewBanner}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-sky-500 hover:bg-sky-600 text-white p-8 rounded-2xl shadow-lg transition-colors group"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  <span>새 배너 만들기</span>
-                </button>
-              )}
-              {step !== 'project-manager' && (
-                <button
-                  onClick={handleGoBack}
-                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  <h2 className="text-2xl font-bold mb-2">새 배너 만들기</h2>
+                  <p className="text-white group-hover:text-white transition-colors">
+                    빠르게 새 배너 제작 시작하기
+                  </p>
+                </motion.button>
+
+                {/* 배너 히스토리 */}
+                <motion.button
+                  onClick={handleBannerHistory}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-sky-500 hover:bg-sky-600 text-white p-8 rounded-2xl shadow-lg transition-colors group"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                  <span>뒤로</span>
-                </button>
-              )}
+                  <h2 className="text-2xl font-bold mb-2">배너 히스토리</h2>
+                  <p className="text-white group-hover:text-white transition-colors">
+                    이전 배너 보기 및 재편집
+                  </p>
+                </motion.button>
+              </div>
             </div>
-          </div>
-        </header>
+          </motion.div>
+        )}
 
-        <AnimatePresence mode="wait">
-          {/* 프로젝트 관리 */}
-          {step === 'project-manager' && (
-            <motion.div
-              key="project-manager"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <ProjectManager 
-                onBannerCreate={handleBannerCreate}
-                onBannerEdit={handleBannerEdit}
-              />
-            </motion.div>
-          )}
+        {/* 배너 선택 화면 */}
+        {step === 'banner-selection' && (
+          <motion.div
+            key="banner-selection"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <BannerSelector
+              onBannerSelect={handleBannerSelect}
+              onBannerTypeChange={handleBannerTypeChange}
+              onBack={handleGoBack}
+              editingBanner={editingBanner}
+            />
+          </motion.div>
+        )}
 
-          {/* 배너 선택 */}
-          {step === 'banner-selection' && (
-            <motion.div
-              key="banner-selection"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <BannerSelector
-                onSelect={handleBannerSelect}
-                onProjectCreate={() => {}} // 사용하지 않음
-                onProjectSelect={() => {}} // 사용하지 않음
-                onDownload={() => {}} // 사용하지 않음
-                onEdit={() => {}} // 사용하지 않음
-                projects={[]} // 사용하지 않음
-                hideProjectManagement={true} // 프로젝트 관리 UI 숨김
-              />
-            </motion.div>
-          )}
+        {/* 배너 히스토리 화면 */}
+        {step === 'banner-history' && (
+          <motion.div
+            key="banner-history"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <BannerHistory
+              onBannerEdit={handleBannerEdit}
+              onBack={handleGoBack}
+            />
+          </motion.div>
+        )}
 
-          {/* 배너 에디터 */}
-          {step === 'editor' && bannerSelection && (
-            <motion.div
-              key="editor"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <BannerEditor
-                ref={previewCanvasRef}
-                config={bannerSelection.config}
-                textElements={textElements}
-                onImageUpload={handleImageUpload}
-                onLogoUpload={handleLogoUpload}
-                onAddText={handleAddText}
-                onTextUpdate={handleTextUpdate}
-                onTextDelete={handleTextDelete}
-                onComplete={handleComplete}
-                uploadedImage={uploadedImage}
-                uploadedLogo={uploadedLogo}
-                editingBanner={editingBanner}
-                isLoading={loading}
-              />
-            </motion.div>
-          )}
-
-
-        </AnimatePresence>
-      </div>
-
-      {/* 배너 프로젝트 선택 모달 */}
-      {showBannerProjectModal && (
-        <BannerProjectModal
-          teams={teams}
-          projects={projects}
-          onProjectSelect={handleBannerProjectSelect}
-          onCreateTeam={createTeam}
-          onCreateProject={createProject}
-          onClose={() => setShowBannerProjectModal(false)}
-        />
-      )}
+        {/* 에디터 화면 */}
+        {step === 'editor' && bannerSelection && (
+          <motion.div
+            key="editor"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <BannerEditor
+              selection={bannerSelection}
+              uploadedImage={uploadedImage}
+              uploadedLogo={uploadedLogo}
+              textElements={textElements}
+              onImageUpload={handleImageUpload}
+              onLogoUpload={handleLogoUpload}
+              onAddText={handleAddText}
+              onTextUpdate={handleTextUpdate}
+              onTextDelete={handleTextDelete}
+              onComplete={handleComplete}
+              onReset={handleReset}
+              onBack={handleGoBack}
+              previewCanvasRef={previewCanvasRef}
+              editingBanner={editingBanner}
+              loading={loading}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
-
-// 배너 프로젝트 선택 모달 컴포넌트
-interface BannerProjectModalProps {
-  teams: Team[];
-  projects: Project[];
-  onProjectSelect: (projectId: string) => void;
-  onCreateTeam: (data: TeamFormData) => Promise<Team>;
-  onCreateProject: (data: ProjectFormData) => Promise<Project>;
-  onClose: () => void;
-}
-
-const BannerProjectModal: React.FC<BannerProjectModalProps> = ({
-  teams,
-  projects,
-  onProjectSelect,
-  onCreateTeam,
-  onCreateProject,
-  onClose
-}) => {
-  const [bannerTitle, setBannerTitle] = useState('');
-
-  // 배너 생성 처리
-  const handleCreateBanner = async () => {
-    if (!bannerTitle.trim()) return;
-    
-    try {
-      // 임시 프로젝트 생성 (제목을 프로젝트명으로 사용)
-      const newProject = await onCreateProject({
-        name: bannerTitle,
-        description: '',
-        team_id: undefined,
-        status: 'completed',
-        priority: 'low'
-      });
-      
-      // 프로젝트 생성 후 배너 만들기 시작
-      onProjectSelect(newProject.id);
-      onClose(); // 모달 닫기
-    } catch (error) {
-      console.error('배너 생성 실패:', error);
-      alert('배너 생성에 실패했습니다.');
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-        <h3 className="text-xl font-semibold mb-6">새 배너 만들기</h3>
-        
-        {/* 제목 입력 */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            제목 <span className="text-red-500">*</span>
-          </label>
-          <p className="text-sm text-gray-500 mb-3">
-            담당 사업팀/프로젝트를 입력해주세요. <br/>
-            <span className="text-gray-400">ex. 광고사업팀/00월 프로모션</span>
-          </p>
-          <input
-            type="text"
-            placeholder="광고사업팀/00월 프로모션"
-            value={bannerTitle}
-            onChange={(e) => setBannerTitle(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
-            autoFocus
-          />
-        </div>
-
-        {/* 버튼 */}
-        <div className="flex space-x-3">
-          <button
-            onClick={handleCreateBanner}
-            disabled={!bannerTitle.trim()}
-            className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
-          >
-            배너 만들기 시작
-          </button>
-          <button
-            onClick={onClose}
-            className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition-colors font-medium"
-          >
-            취소
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default App;

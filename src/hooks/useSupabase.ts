@@ -169,7 +169,6 @@ export const useSupabase = () => {
       setLoading(true);
       await getProjectService().deleteProject(id);
       setProjects(prev => prev.filter(project => project.id !== id));
-      setBanners(prev => prev.filter(banner => banner.project_id !== id));
       setError(null);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '프로젝트 삭제 중 오류가 발생했습니다.';
@@ -199,8 +198,6 @@ export const useSupabase = () => {
       setLoading(true);
       const newBanner = await getBannerService().createBanner(bannerData);
       setBanners(prev => [...prev, newBanner]);
-      const updatedProjects = await getProjectService().getProjects();
-      setProjects(updatedProjects);
       setError(null);
       return newBanner;
     } catch (err) {
@@ -233,8 +230,6 @@ export const useSupabase = () => {
       setLoading(true);
       await getBannerService().deleteBanner(id);
       setBanners(prev => prev.filter(banner => banner.id !== id));
-      const updatedProjects = await getProjectService().getProjects();
-      setProjects(updatedProjects);
       setError(null);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '배너 삭제 중 오류가 발생했습니다.';
@@ -245,10 +240,10 @@ export const useSupabase = () => {
     }
   };
 
-  const uploadBannerImage = async (file: File): Promise<string> => {
+  const uploadBannerImage = async (file: File, type?: string): Promise<string> => {
     try {
       setLoading(true);
-      const imageUrl = await getStorageService().uploadBannerImage(file);
+      const imageUrl = await getStorageService().uploadBannerImage(file, type);
       setError(null);
       return imageUrl;
     } catch (err) {
@@ -305,6 +300,18 @@ export const useSupabase = () => {
     }
   };
 
+  // getAllBanners 별칭 함수 추가
+  const getAllBanners = async (): Promise<Banner[]> => {
+    try {
+      const data = await getBannerService().getBanners();
+      return data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '배너 목록을 가져오는데 실패했습니다.';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  };
+
   return {
     teams,
     projects,
@@ -321,6 +328,7 @@ export const useSupabase = () => {
     updateProject,
     deleteProject,
     fetchBanners,
+    getAllBanners,
     createBanner,
     updateBanner,
     deleteBanner,

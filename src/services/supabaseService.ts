@@ -445,8 +445,8 @@ export const bannerService = {
   },
 
   // 배너 이미지 업로드 (기존 호환성 유지)
-  async uploadBannerImage(file: File, path?: string): Promise<string> {
-    return this.uploadBackgroundImage(file, path);
+  async uploadBannerImage(file: File, type?: string): Promise<string> {
+    return this.uploadBackgroundImage(file, type);
   },
 
   // 로고 업로드
@@ -653,16 +653,20 @@ export const bannerCommentService = {
 
 export const storageService = {
   // 배너 이미지 업로드
-  async uploadBannerImage(file: File, path?: string): Promise<string> {
-    const fileName = path || `${Date.now()}-${file.name}`
+  async uploadBannerImage(file: File, type?: string): Promise<string> {
+    const bucket = type === 'background' ? 'banner-images' : 
+                  type === 'final' ? 'final-banners' : 
+                  type === 'thumbnail' ? 'thumbnails' : 'banner-images';
+    const fileName = `${Date.now()}-${file.name}`;
+    
     const { data: _data, error } = await supabase.storage
-      .from('banner-images')
+      .from(bucket)
       .upload(fileName, file)
 
     if (error) throw error
 
     const { data: { publicUrl } } = supabase.storage
-      .from('banner-images')
+      .from(bucket)
       .getPublicUrl(fileName)
 
     return publicUrl

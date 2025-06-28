@@ -228,7 +228,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
             </div>
             <div className="divide-y">
               {filteredProjects.map((project) => {
-                const projectBanners = banners.filter(b => b.project_id === project.id);
+                const projectBanners = banners.filter(b => b.title.toLowerCase().includes(project.name.toLowerCase()));
                 const isExpanded = expandedProjects.has(project.id);
                 
                 return (

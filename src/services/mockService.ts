@@ -68,19 +68,17 @@ export const mockProjectService = {
   async getProjects(): Promise<Project[]> {
     const projects = getFromStorage<Project>(PROJECTS_KEY);
     const teams = getFromStorage<Team>(TEAMS_KEY);
-    const banners = getFromStorage<Banner>(BANNERS_KEY);
     
     return projects.map(project => {
       const team = teams.find(t => t.id === project.team_id);
-      const projectBanners = banners.filter(b => b.project_id === project.id);
       
       return {
         ...project,
         team,
-        total_banners: projectBanners.length,
-        draft_banners: projectBanners.filter(b => b.status === 'draft').length,
-        completed_banners: projectBanners.filter(b => b.status === 'completed').length,
-        in_progress_banners: projectBanners.filter(b => b.status === 'in_progress').length
+        total_banners: 0,
+        draft_banners: 0,
+        completed_banners: 0,
+        in_progress_banners: 0
       };
     });
   },
@@ -156,13 +154,12 @@ export const mockProjectService = {
 
   async getProjectStats(id: string): Promise<any> {
     const banners = getFromStorage<Banner>(BANNERS_KEY);
-    const projectBanners = banners.filter(b => b.project_id === id);
     
     return {
-      total_banners: projectBanners.length,
-      draft_banners: projectBanners.filter(b => b.status === 'draft').length,
-      completed_banners: projectBanners.filter(b => b.status === 'completed').length,
-      in_progress_banners: projectBanners.filter(b => b.status === 'in_progress').length
+      total_banners: banners.length,
+      draft_banners: banners.filter(b => b.status === 'draft').length,
+      completed_banners: banners.filter(b => b.status === 'completed').length,
+      in_progress_banners: banners.filter(b => b.status === 'in_progress').length
     };
   }
 };
@@ -171,19 +168,7 @@ export const mockProjectService = {
 export const mockBannerService = {
   async getBanners(): Promise<Banner[]> {
     const banners = getFromStorage<Banner>(BANNERS_KEY);
-    const projects = getFromStorage<Project>(PROJECTS_KEY);
-    const teams = getFromStorage<Team>(TEAMS_KEY);
-    
-    return banners.map(banner => {
-      const project = projects.find(p => p.id === banner.project_id);
-      if (project && project.team_id) {
-        const team = teams.find(t => t.id === project.team_id);
-        if (team) {
-          project.team = team;
-        }
-      }
-      return { ...banner, project };
-    });
+    return banners;
   },
 
   async getBanner(id: string): Promise<Banner> {
@@ -195,7 +180,6 @@ export const mockBannerService = {
 
   async createBanner(bannerData: any): Promise<Banner> {
     const banners = getFromStorage<Banner>(BANNERS_KEY);
-    const projects = getFromStorage<Project>(PROJECTS_KEY);
     
     const newBanner: Banner = {
       id: generateId(),
@@ -204,11 +188,6 @@ export const mockBannerService = {
       created_at: new Date(),
       updated_at: new Date()
     };
-    
-    const project = projects.find(p => p.id === bannerData.project_id);
-    if (project) {
-      newBanner.project = project;
-    }
     
     banners.push(newBanner);
     saveToStorage(BANNERS_KEY, banners);
@@ -244,9 +223,10 @@ export const mockBannerService = {
 
 // Mock Storage Service
 export const mockStorageService = {
-  async uploadBannerImage(file: File): Promise<string> {
+  async uploadBannerImage(file: File, type?: string): Promise<string> {
     // 실제로는 파일을 업로드하지 않고 Mock URL 반환
-    return `https://mock-storage.com/banners/${file.name}`;
+    const folder = type || 'banners';
+    return `https://mock-storage.com/${folder}/${file.name}`;
   },
 
   async uploadLogo(file: File): Promise<string> {
