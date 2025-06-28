@@ -17,18 +17,15 @@ interface ProjectManagerProps {
   onBannerCreate: (projectId: string) => void;
 }
 
-type ViewMode = 'dashboard' | 'teams' | 'projects';
+type ViewMode = 'dashboard' | 'projects';
 
 export const ProjectManager: React.FC<ProjectManagerProps> = ({
   onBannerEdit,
   onBannerCreate
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard');
-  const [showTeamForm, setShowTeamForm] = useState(false);
   const [showProjectForm, setShowProjectForm] = useState(false);
-  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [quickTeamName, setQuickTeamName] = useState('');
   const [quickProjectName, setQuickProjectName] = useState('');
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -89,40 +86,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
     setExpandedProjects(new Set());
   };
 
-  // 빠른 팀 생성
-  const handleQuickTeamCreate = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && quickTeamName.trim()) {
-      try {
-        await createTeam({
-          name: quickTeamName.trim(),
-          description: '',
-          color: '#3B82F6' // 기본 파란색
-        });
-        setQuickTeamName('');
-        fetchTeams();
-      } catch (error) {
-        console.error('Error creating team:', error);
-        alert('팀 생성에 실패했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
-      }
-    }
-  };
 
-  // 팀 생성/수정
-  const handleTeamSubmit = async (data: TeamFormData) => {
-    try {
-      if (editingTeam) {
-        await updateTeam(editingTeam.id, data);
-      } else {
-        await createTeam(data);
-      }
-      setShowTeamForm(false);
-      setEditingTeam(null);
-      fetchTeams();
-    } catch (error) {
-      console.error('Error saving team:', error);
-      alert('팀 저장에 실패했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
-    }
-  };
 
   // 빠른 프로젝트 생성
   const handleQuickProjectCreate = async (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -173,9 +137,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
         fetchTeams();
         fetchProjects();
         // 모달이 열려있다면 닫기 (최신 데이터 반영을 위해)
-        setShowTeamForm(false);
         setShowProjectForm(false);
-        setEditingTeam(null);
         setEditingProject(null);
       } catch (error) {
         console.error('Error deleting team:', error);
@@ -257,7 +219,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">프로젝트 관리</h1>
             <nav className="flex space-x-4">
-              {(['dashboard', 'teams', 'projects'] as ViewMode[]).map((mode) => (
+              {(['dashboard', 'projects'] as ViewMode[]).map((mode) => (
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
@@ -268,7 +230,6 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                   }`}
                 >
                   {mode === 'dashboard' && '대시보드'}
-                  {mode === 'teams' && '팀 관리'}
                   {mode === 'projects' && '프로젝트'}
                 </button>
               ))}
@@ -364,85 +325,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
             </motion.div>
           )}
 
-          {/* 팀 관리 뷰 */}
-          {viewMode === 'teams' && (
-            <motion.div
-              key="teams"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
-            >
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-gray-900">팀 관리</h2>
-                <button
-                  onClick={() => setShowTeamForm(true)}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm"
-                >
-                  상세 추가
-                </button>
-              </div>
 
-              {/* 빠른 팀 추가 */}
-              <div className="bg-white rounded-lg shadow-sm p-4 border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors">
-                <div className="flex items-center space-x-3">
-                  <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-                  <input
-                    type="text"
-                    placeholder="팀 이름을 입력하고 Enter를 누르세요..."
-                    value={quickTeamName}
-                    onChange={(e) => setQuickTeamName(e.target.value)}
-                    onKeyDown={handleQuickTeamCreate}
-                    className="flex-1 border-0 focus:outline-none text-gray-900 placeholder-gray-500 bg-transparent"
-                  />
-                  <span className="text-xs text-gray-400">Enter</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {teams.map((team) => (
-                  <div key={team.id} className="bg-white rounded-lg shadow-sm p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div 
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: team.color }}
-                        ></div>
-                        <h3 className="font-semibold text-gray-900">{team.name}</h3>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => {
-                            setEditingTeam(team);
-                            setShowTeamForm(true);
-                          }}
-                          className="text-gray-400 hover:text-blue-500"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleTeamDelete(team.id)}
-                          className="text-gray-400 hover:text-red-500"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                    {team.description && (
-                      <p className="text-sm text-gray-600 mb-4">{team.description}</p>
-                    )}
-                    <div className="text-sm text-gray-500">
-                      프로젝트 {projects.filter(p => p.team_id === team.id).length}개
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
 
           {/* 프로젝트 뷰 */}
           {viewMode === 'projects' && (
@@ -740,17 +623,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
         </AnimatePresence>
       </div>
 
-      {/* 팀 생성/수정 모달 */}
-      {showTeamForm && (
-        <TeamFormModal
-          team={editingTeam}
-          onSubmit={handleTeamSubmit}
-          onClose={() => {
-            setShowTeamForm(false);
-            setEditingTeam(null);
-          }}
-        />
-      )}
+
 
       {/* 프로젝트 생성/수정 모달 */}
       {showProjectForm && (
@@ -768,86 +641,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
   );
 };
 
-// 팀 폼 모달 컴포넌트
-interface TeamFormModalProps {
-  team: Team | null;
-  onSubmit: (data: TeamFormData) => void;
-  onClose: () => void;
-}
 
-const TeamFormModal: React.FC<TeamFormModalProps> = ({ team, onSubmit, onClose }) => {
-  const [formData, setFormData] = useState<TeamFormData>({
-    name: team?.name || '',
-    description: team?.description || '',
-    color: team?.color || '#3B82F6'
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold mb-4">
-          {team ? '팀 수정' : '새 팀 추가'}
-        </h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              팀 이름
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              설명
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={3}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              팀 색상
-            </label>
-            <input
-              type="color"
-              value={formData.color}
-              onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-              className="w-full h-10 border border-gray-300 rounded-lg"
-            />
-          </div>
-          <div className="flex space-x-3 pt-4">
-            <button
-              type="submit"
-              className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              {team ? '수정' : '추가'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors"
-            >
-              취소
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
 
 // 프로젝트 폼 모달 컴포넌트
 interface ProjectFormModalProps {

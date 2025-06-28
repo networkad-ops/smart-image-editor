@@ -1,5 +1,5 @@
 // BannerPreview.tsx 수정
-import React, { useEffect, RefObject } from 'react';
+import React, { useEffect, RefObject, useCallback, useRef } from 'react';
 import { BannerConfig, TextElement } from '../types';
 import { drawTextWithLetterSpacing } from '../utils/canvasUtils';
 
@@ -20,22 +20,15 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   existingImageUrl,
   existingLogoUrl
 }, ref) => {
+  const backgroundImageRef = useRef<ImageData | null>(null);
+
   // 텍스트 렌더링 함수
-  const drawTextElements = (ctx: CanvasRenderingContext2D, elements: TextElement[]) => {
+  const drawTextElements = useCallback((ctx: CanvasRenderingContext2D, elements: TextElement[]) => {
     elements.forEach(element => {
       ctx.save();
       
       // 버튼 텍스트인 경우 배경 그리기 (텍스트가 없어도 표시)
       if (element.id === 'button-text') {
-        console.log('버튼 텍스트 렌더링:', {
-          text: element.text,
-          x: element.x,
-          y: element.y,
-          width: element.width,
-          height: element.height,
-          backgroundColor: element.backgroundColor
-        });
-        
         // 버튼 배경 그리기 (끝만 둥근 사각형)
         const buttonX = element.x;
         const buttonY = element.y;
@@ -187,151 +180,113 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       
       ctx.restore();
     });
-  };
+  }, [config.name]);
 
-  useEffect(() => {
-    console.log('BannerPreview useEffect:', {
-      uploadedImage: !!uploadedImage,
-      existingImageUrl,
-      textElements: textElements.length
-    });
-
-    const canvas = (ref as RefObject<HTMLCanvasElement>).current;
-    if (!canvas) {
-      console.log('Canvas가 없음');
-      return;
-    }
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      console.log('Canvas context가 없음');
-      return;
-    }
-
+  // 배경과 로고를 그리는 함수
+  const drawBackground = useCallback(async (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
     // 캔버스 초기화
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    console.log('Canvas 초기화 완료:', canvas.width, 'x', canvas.height);
 
-    // 이미지 그리기 (새 이미지 우선, 없으면 기존 이미지)
     const imageToUse = uploadedImage || existingImageUrl;
-    console.log('사용할 이미지 상세:', {
-      uploadedImage: !!uploadedImage,
-      uploadedImageName: uploadedImage?.name,
-      existingImageUrl,
-      imageToUse: typeof imageToUse,
-      imageToUseValue: imageToUse
-    });
+    
     if (imageToUse) {
       const img = new Image();
-      img.crossOrigin = 'anonymous'; // CORS 문제 해결
-      img.onload = () => {
-        console.log('이미지 로드 성공:', img.width, 'x', img.height);
-        // 이미지 비율 계산
-        const imageRatio = img.width / img.height;
-        const canvasRatio = canvas.width / canvas.height;
-        
-        let drawWidth = canvas.width;
-        let drawHeight = canvas.height;
-        let offsetX = 0;
-        let offsetY = 0;
-
-        if (imageRatio > canvasRatio) {
-          // 이미지가 더 넓은 경우
-          drawHeight = canvas.width / imageRatio;
-          offsetY = (canvas.height - drawHeight) / 2;
-        } else {
-          // 이미지가 더 높은 경우
-          drawWidth = canvas.height * imageRatio;
-          offsetX = (canvas.width - drawWidth) / 2;
-        }
-
-        // 이미지를 캔버스 중앙에 맞춰 그리기
-        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-        
-        // 로고 그리기 (새 로고 우선, 없으면 기존 로고)
-        const logoToUse = uploadedLogo || existingLogoUrl;
-        console.log('로고 정보:', {
-          uploadedLogo: !!uploadedLogo,
-          existingLogoUrl,
-          logoToUse: typeof logoToUse,
-          hasLogoConfig: !!config.logo
-        });
-        
-        if (logoToUse && config.logo) {
-          const logoImg = new Image();
-          logoImg.crossOrigin = 'anonymous'; // CORS 문제 해결
-          logoImg.onload = () => {
-            console.log('로고 로드 성공:', logoImg.width, 'x', logoImg.height);
-            ctx.drawImage(
-              logoImg,
-              config.logo!.x,
-              config.logo!.y,
-              config.logo!.width,
-              config.logo!.height
-            );
-            // 텍스트는 로고 로드 후에 그리기
-            drawTextElements(ctx, textElements);
-          };
-          logoImg.onerror = (error) => {
-            console.error('로고 로드 실패:', error);
-            console.error('실패한 로고 src:', logoImg.src);
-            // 로고 로드 실패 시에도 텍스트는 그리기
-            drawTextElements(ctx, textElements);
-          };
+      img.crossOrigin = 'anonymous';
+      
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => {
+          // 이미지 비율 계산
+          const imageRatio = img.width / img.height;
+          const canvasRatio = canvas.width / canvas.height;
           
-          if (uploadedLogo) {
-            const logoBlobUrl = URL.createObjectURL(uploadedLogo);
-            console.log('업로드된 로고 Blob URL 설정:', logoBlobUrl);
-            logoImg.src = logoBlobUrl;
+          let drawWidth = canvas.width;
+          let drawHeight = canvas.height;
+          let offsetX = 0;
+          let offsetY = 0;
+
+          if (imageRatio > canvasRatio) {
+            drawHeight = canvas.width / imageRatio;
+            offsetY = (canvas.height - drawHeight) / 2;
           } else {
-            const logoUrl = logoToUse as string;
-            console.log('기존 로고 URL 설정:', logoUrl);
-            logoImg.src = logoUrl;
+            drawWidth = canvas.height * imageRatio;
+            offsetX = (canvas.width - drawWidth) / 2;
           }
-          
-          console.log('최종 logoImg.src 설정:', logoImg.src);
+
+          ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+          resolve();
+        };
+        
+        img.onerror = () => resolve(); // 이미지 로드 실패해도 계속 진행
+        
+        if (uploadedImage) {
+          img.src = URL.createObjectURL(uploadedImage);
         } else {
-          // 로고가 없는 경우 바로 텍스트 그리기
-          console.log('로고 없음, 텍스트만 그리기');
-          drawTextElements(ctx, textElements);
+          img.src = imageToUse as string;
         }
-      };
-      
-      img.onerror = (error) => {
-        console.error('이미지 로드 실패:', error);
-        console.error('실패한 이미지 src:', img.src);
-        // 이미지 로드 실패 시에도 텍스트는 그리기
-        drawTextElements(ctx, textElements);
-      };
-      
-      if (uploadedImage) {
-        const blobUrl = URL.createObjectURL(uploadedImage);
-        console.log('업로드된 이미지 Blob URL 설정:', blobUrl);
-        img.src = blobUrl;
-      } else {
-        const imageUrl = imageToUse as string;
-        console.log('기존 이미지 URL 설정:', imageUrl);
-        console.log('URL 유효성 검사:', {
-          isString: typeof imageUrl === 'string',
-          isNotEmpty: imageUrl && imageUrl.length > 0,
-          startsWithHttp: imageUrl && imageUrl.startsWith('http'),
-          fullUrl: imageUrl
-        });
-        img.src = imageUrl;
-      }
-      
-      console.log('최종 img.src 설정:', img.src);
+      });
     }
 
-    // 텍스트 그리기 (이미지가 없는 경우)
-    if (!imageToUse) {
-      console.log('이미지 없음, 텍스트 요소 그리기:', textElements.length);
+    // 로고 그리기
+    const logoToUse = uploadedLogo || existingLogoUrl;
+    if (logoToUse && config.logo) {
+      const logoImg = new Image();
+      logoImg.crossOrigin = 'anonymous';
+      
+      await new Promise<void>((resolve) => {
+        logoImg.onload = () => {
+          ctx.drawImage(
+            logoImg,
+            config.logo!.x,
+            config.logo!.y,
+            config.logo!.width,
+            config.logo!.height
+          );
+          resolve();
+        };
+        logoImg.onerror = () => resolve();
+        
+        if (uploadedLogo) {
+          logoImg.src = URL.createObjectURL(uploadedLogo);
+        } else {
+          logoImg.src = logoToUse as string;
+        }
+      });
+    }
+
+    // 배경 이미지 데이터 저장 (텍스트 렌더링 최적화용)
+    backgroundImageRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  }, [uploadedImage, uploadedLogo, existingImageUrl, existingLogoUrl, config.logo]);
+
+  // 배경 이미지나 로고가 변경될 때만 실행
+  useEffect(() => {
+    const canvas = (ref as RefObject<HTMLCanvasElement>).current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    drawBackground(ctx, canvas).then(() => {
+      drawTextElements(ctx, textElements);
+    });
+  }, [uploadedImage, uploadedLogo, existingImageUrl, existingLogoUrl, config.width, config.height, drawBackground, drawTextElements]);
+
+  // 텍스트만 변경될 때 실행 (배경 다시 그리지 않음)
+  useEffect(() => {
+    const canvas = (ref as RefObject<HTMLCanvasElement>).current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // 저장된 배경 이미지가 있으면 복원 후 텍스트만 다시 그리기
+    if (backgroundImageRef.current) {
+      ctx.putImageData(backgroundImageRef.current, 0, 0);
       drawTextElements(ctx, textElements);
     }
-  }, [uploadedImage, uploadedLogo, textElements, existingImageUrl, existingLogoUrl, config.width, config.height, ref]);
+  }, [textElements, drawTextElements]);
 
   // 미리보기 프레임 크기 계산
-  const maxPreviewSize = 600; // 최대 미리보기 크기 증가
+  const maxPreviewSize = 600;
   const previewScale = Math.min(1, maxPreviewSize / Math.max(config.width, config.height));
   const previewWidth = config.width * previewScale;
   const previewHeight = config.height * previewScale;
@@ -345,19 +300,19 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         </span>
       </h2>
       <div className="flex justify-center">
-      <div className="relative" style={{ width: previewWidth, height: previewHeight }}>
-        <canvas
-          ref={ref}
-          width={config.width}
-          height={config.height}
+        <div className="relative" style={{ width: previewWidth, height: previewHeight }}>
+          <canvas
+            ref={ref}
+            width={config.width}
+            height={config.height}
             className="border-2 border-gray-300 rounded-lg shadow-sm"
-          style={{
-            width: previewWidth,
+            style={{
+              width: previewWidth,
               height: previewHeight,
               maxWidth: '100%',
-              backgroundColor: '#f8f9fa' // 기본 배경색 추가
-          }}
-        />
+              backgroundColor: '#f8f9fa'
+            }}
+          />
         </div>
       </div>
     </div>
