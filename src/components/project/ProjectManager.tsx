@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Team, 
   Project, 
   Banner, 
   ProjectFormData, 
-  TeamFormData,
   ProjectStatus,
   ProjectPriority,
   BannerStatus
@@ -17,18 +15,15 @@ interface ProjectManagerProps {
   onBannerCreate: (projectId: string) => void;
 }
 
-type ViewMode = 'dashboard' | 'projects';
-
 export const ProjectManager: React.FC<ProjectManagerProps> = ({
   onBannerEdit,
   onBannerCreate
 }) => {
-  const [viewMode, setViewMode] = useState<ViewMode>('dashboard');
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [quickProjectName, setQuickProjectName] = useState('');
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Supabase hooks
   const { 
@@ -36,9 +31,6 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
     projects, 
     banners,
     loading,
-    createTeam,
-    updateTeam,
-    deleteTeam,
     createProject,
     updateProject,
     deleteProject,
@@ -54,13 +46,6 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
     fetchBanners();
   }, []);
 
-  // 선택된 프로젝트가 있을 때 자동으로 확장
-  useEffect(() => {
-    if (selectedProjectId) {
-      setExpandedProjects(new Set([selectedProjectId]));
-    }
-  }, [selectedProjectId]);
-
   // 프로젝트 확장/축소
   const toggleProjectExpansion = (projectId: string) => {
     const newExpanded = new Set(expandedProjects);
@@ -72,21 +57,13 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
     setExpandedProjects(newExpanded);
   };
 
-  // 프로젝트 선택 (대시보드에서 프로젝트 클릭 시)
-  const handleProjectSelect = (projectId: string) => {
-    setSelectedProjectId(projectId);
-    setViewMode('projects');
-    setExpandedProjects(new Set([projectId]));
-  };
-
-  // 프로젝트 뷰에서 뒤로 가기
-  const handleBackToDashboard = () => {
-    setSelectedProjectId(null);
-    setViewMode('dashboard');
-    setExpandedProjects(new Set());
-  };
-
-
+  // 검색 필터링된 프로젝트 목록
+  const filteredProjects = projects.filter(project => 
+    project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.manager_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.team?.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // 빠른 프로젝트 생성
   const handleQuickProjectCreate = async (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -129,23 +106,6 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
     }
   };
 
-  // 팀 삭제
-  const handleTeamDelete = async (teamId: string) => {
-    if (window.confirm('이 팀을 삭제하시겠습니까? 팀에 속한 모든 프로젝트도 함께 삭제됩니다.')) {
-      try {
-        await deleteTeam(teamId);
-        fetchTeams();
-        fetchProjects();
-        // 모달이 열려있다면 닫기 (최신 데이터 반영을 위해)
-        setShowProjectForm(false);
-        setEditingProject(null);
-      } catch (error) {
-        console.error('Error deleting team:', error);
-        alert('팀 삭제에 실패했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
-      }
-    }
-  };
-
   // 프로젝트 삭제
   const handleProjectDelete = async (projectId: string) => {
     if (window.confirm('이 프로젝트를 삭제하시겠습니까? 프로젝트에 속한 모든 배너도 함께 삭제됩니다.')) {
@@ -153,7 +113,6 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
         await deleteProject(projectId);
         fetchProjects();
         fetchBanners();
-        // 모달이 열려있다면 닫기 (최신 데이터 반영을 위해)
         setShowProjectForm(false);
         setEditingProject(null);
       } catch (error) {
@@ -192,21 +151,13 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  // 우선순위별 색상 반환
-  const getPriorityColor = (priority: ProjectPriority) => {
-    const colors = {
-      low: 'bg-gray-100 text-gray-800',
-      medium: 'bg-yellow-100 text-yellow-800',
-      high: 'bg-orange-100 text-orange-800',
-      urgent: 'bg-red-100 text-red-800'
-    };
-    return colors[priority];
-  };
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
+        </div>
       </div>
     );
   }
@@ -218,412 +169,229 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-gray-900">프로젝트 관리</h1>
-            <nav className="flex space-x-4">
-              {(['dashboard', 'projects'] as ViewMode[]).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    viewMode === mode
-                      ? 'bg-blue-500 text-white'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
-                >
-                  {mode === 'dashboard' && '대시보드'}
-                  {mode === 'projects' && '프로젝트'}
-                </button>
-              ))}
-            </nav>
+            <div className="flex items-center space-x-4">
+              {/* 검색 입력 */}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="프로젝트 검색..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="block w-80 pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <button
+                onClick={() => setShowProjectForm(true)}
+                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm"
+              >
+                상세 추가
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <AnimatePresence mode="wait">
-          {/* 대시보드 뷰 */}
-          {viewMode === 'dashboard' && (
-            <motion.div
-              key="dashboard"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-8"
-            >
-              {/* 최근 프로젝트 */}
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="p-6 border-b">
-                  <h2 className="text-lg font-semibold text-gray-900">최근 프로젝트</h2>
-                </div>
-                <div className="divide-y">
-                  {projects.slice(0, 10).map((project) => (
-                    <div 
-                      key={project.id} 
-                      className="p-6 hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => handleProjectSelect(project.id)}
-                    >
+        <div className="space-y-6">
+          {/* 빠른 프로젝트 추가 */}
+          <div className="bg-white rounded-lg shadow-sm p-4 border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors">
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+              <input
+                type="text"
+                placeholder="프로젝트 이름을 입력하고 Enter를 누르세요..."
+                value={quickProjectName}
+                onChange={(e) => setQuickProjectName(e.target.value)}
+                onKeyDown={handleQuickProjectCreate}
+                className="flex-1 border-0 focus:outline-none text-gray-900 placeholder-gray-500 bg-transparent"
+              />
+              <span className="text-xs text-gray-400">Enter</span>
+            </div>
+          </div>
+
+          {/* 프로젝트 목록 */}
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  프로젝트 목록 {searchTerm && `(검색: "${searchTerm}")`}
+                </h2>
+                <span className="text-sm text-gray-500">
+                  {filteredProjects.length}개 프로젝트
+                </span>
+              </div>
+            </div>
+            <div className="divide-y">
+              {filteredProjects.map((project) => {
+                const projectBanners = banners.filter(b => b.project_id === project.id);
+                const isExpanded = expandedProjects.has(project.id);
+                
+                return (
+                  <div key={project.id}>
+                    <div className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
+                          <div className="flex items-center space-x-3 mb-2">
                             {project.team && (
                               <div 
                                 className="w-3 h-3 rounded-full"
                                 style={{ backgroundColor: project.team.color }}
                               ></div>
                             )}
-                            <h3 className="font-medium text-gray-900 hover:text-blue-600 transition-colors">{project.name}</h3>
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </div>
-                          <p className="text-sm text-gray-500">{project.description}</p>
-                          <div className="flex items-center space-x-3 mt-2">
+                            <h3 className="font-semibold text-gray-900">{project.name}</h3>
                             <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(project.status)}`}>
                               {project.status === 'completed' && '완료'}
                               {project.status === 'on_hold' && '보류'}
                               {project.status === 'cancelled' && '취소'}
                             </span>
-                            {project.manager_name && (
-                              <span className="text-xs text-gray-500">담당자: {project.manager_name}</span>
+                          </div>
+                          {project.description && (
+                            <p className="text-sm text-gray-600 mb-2">{project.description}</p>
+                          )}
+                          <div className="flex items-center space-x-4 text-sm text-gray-500">
+                            {project.manager_name && <span>담당자: {project.manager_name}</span>}
+                            {project.team && <span>팀: {project.team.name}</span>}
+                            {project.deadline && (
+                              <span>마감일: {new Date(project.deadline).toLocaleDateString()}</span>
                             )}
+                            <span>생성일: {new Date(project.created_at).toLocaleDateString()}</span>
                           </div>
                         </div>
                         <div className="flex items-center space-x-4">
                           <div className="text-right">
-                            <p className="text-sm text-gray-500">
-                              배너 {banners.filter(b => b.project_id === project.id).length}개
+                            <p className="text-sm font-medium text-gray-900">
+                              배너 {projectBanners.length}개
                             </p>
-                            <p className="text-xs text-gray-400">
-                              {new Date(project.created_at).toLocaleDateString()}
+                            <p className="text-xs text-gray-500">
+                              완료 {projectBanners.filter(b => b.status === 'completed').length}개
                             </p>
                           </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onBannerCreate(project.id);
-                            }}
-                            className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
-                          >
-                            배너 추가
-                          </button>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => toggleProjectExpansion(project.id)}
+                              className="text-gray-400 hover:text-blue-500"
+                              title="배너 목록 보기"
+                            >
+                              <svg 
+                                className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => onBannerCreate(project.id)}
+                              className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
+                            >
+                              배너 추가
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingProject(project);
+                                setShowProjectForm(true);
+                              }}
+                              className="text-gray-400 hover:text-blue-500"
+                              title="프로젝트 수정"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleProjectDelete(project.id)}
+                              className="text-gray-400 hover:text-red-500"
+                              title="프로젝트 삭제"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  ))}
-                  {projects.length === 0 && (
-                    <div className="p-6 text-center text-gray-500">
-                      <p>아직 프로젝트가 없습니다.</p>
-                      <button
-                        onClick={() => setViewMode('projects')}
-                        className="text-blue-500 hover:text-blue-700 text-sm mt-2"
-                      >
-                        첫 프로젝트 만들기 →
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
 
-
-
-          {/* 프로젝트 뷰 */}
-          {viewMode === 'projects' && (
-            <motion.div
-              key="projects"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
-            >
-              <div className="flex justify-between items-center">
-                <div className="flex items-center space-x-4">
-                  {selectedProjectId && (
-                    <button
-                      onClick={handleBackToDashboard}
-                      className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
-                      <span>대시보드로</span>
-                    </button>
-                  )}
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {selectedProjectId 
-                      ? `${projects.find(p => p.id === selectedProjectId)?.name} - 배너 목록`
-                      : '프로젝트 목록'
-                    }
-                  </h2>
-                </div>
-                <button
-                  onClick={() => setShowProjectForm(true)}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm"
-                >
-                  상세 추가
-                </button>
-              </div>
-
-              {/* 빠른 프로젝트 추가 */}
-              {!selectedProjectId && (
-                <div className="bg-white rounded-lg shadow-sm p-4 border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                                          <input
-                        type="text"
-                        placeholder="프로젝트 이름을 입력하고 Enter를 누르세요..."
-                        value={quickProjectName}
-                        onChange={(e) => setQuickProjectName(e.target.value)}
-                        onKeyDown={handleQuickProjectCreate}
-                        className="flex-1 border-0 focus:outline-none text-gray-900 placeholder-gray-500 bg-transparent"
-                      />
-                    <span className="text-xs text-gray-400">Enter</span>
+                    {/* 배너 목록 확장 */}
+                    {isExpanded && (
+                      <div className="px-6 pb-6">
+                        <div className="border-t pt-4">
+                          <h4 className="text-sm font-medium text-gray-900 mb-3">배너 목록</h4>
+                          {projectBanners.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {projectBanners.map((banner) => (
+                                <div key={banner.id} className="bg-gray-50 rounded-lg p-4">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h5 className="font-medium text-gray-900 truncate">{banner.title}</h5>
+                                    <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(banner.status)}`}>
+                                      {banner.status === 'draft' && '초안'}
+                                      {banner.status === 'in_progress' && '진행중'}
+                                      {banner.status === 'review' && '검토중'}
+                                      {banner.status === 'approved' && '승인'}
+                                      {banner.status === 'completed' && '완료'}
+                                      {banner.status === 'rejected' && '반려'}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-500 mb-3">
+                                    생성일: {new Date(banner.created_at).toLocaleDateString()}
+                                  </p>
+                                  <div className="flex space-x-2">
+                                    <button
+                                      onClick={() => onBannerEdit(banner)}
+                                      className="flex-1 bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors"
+                                    >
+                                      편집
+                                    </button>
+                                    <button
+                                      onClick={() => handleBannerDelete(banner.id)}
+                                      className="text-gray-400 hover:text-red-500"
+                                      title="배너 삭제"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-8 text-gray-500">
+                              <p>아직 배너가 없습니다.</p>
+                              <button
+                                onClick={() => onBannerCreate(project.id)}
+                                className="text-blue-500 hover:text-blue-700 text-sm mt-2"
+                              >
+                                첫 배너 만들기 →
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
+                );
+              })}
+              {filteredProjects.length === 0 && (
+                <div className="p-6 text-center text-gray-500">
+                  <p>
+                    {searchTerm ? `"${searchTerm}"에 대한 검색 결과가 없습니다.` : '아직 프로젝트가 없습니다.'}
+                  </p>
+                  {!searchTerm && (
+                    <p className="text-sm mt-2">위의 입력 필드에서 프로젝트를 빠르게 추가하거나 상세 추가 버튼을 사용하세요.</p>
+                  )}
                 </div>
               )}
-
-              <div className="bg-white rounded-lg shadow-sm">
-                <div className="divide-y">
-                  {(selectedProjectId ? projects.filter(p => p.id === selectedProjectId) : projects).map((project) => {
-                    const projectBanners = banners.filter(b => b.project_id === project.id);
-                    const isExpanded = expandedProjects.has(project.id);
-                    
-                    return (
-                      <div key={project.id} className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
-                              {project.team && (
-                                <div 
-                                  className="w-3 h-3 rounded-full"
-                                  style={{ backgroundColor: project.team.color }}
-                                ></div>
-                              )}
-                              <h3 className="font-semibold text-gray-900">{project.name}</h3>
-                              <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(project.status)}`}>
-                                {project.status}
-                              </span>
-                            </div>
-                            {project.description && (
-                              <p className="text-sm text-gray-600 mb-2">{project.description}</p>
-                            )}
-                            <div className="flex items-center space-x-4 text-sm text-gray-500">
-                              {project.manager_name && <span>담당자: {project.manager_name}</span>}
-                              {project.team && <span>팀: {project.team.name}</span>}
-                              {project.deadline && (
-                                <span>마감일: {new Date(project.deadline).toLocaleDateString()}</span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-4">
-                            <div className="text-right">
-                              <p className="text-sm font-medium text-gray-900">
-                                배너 {projectBanners.length}개
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                완료 {projectBanners.filter(b => b.status === 'completed').length}개
-                              </p>
-                            </div>
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => toggleProjectExpansion(project.id)}
-                                className="text-gray-400 hover:text-blue-500"
-                                title="배너 목록 보기"
-                              >
-                                <svg 
-                                  className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
-                                  fill="none" 
-                                  stroke="currentColor" 
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => onBannerCreate(project.id)}
-                                className="text-blue-500 hover:text-blue-700"
-                                title="새 배너 추가"
-                              >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setEditingProject(project);
-                                  setShowProjectForm(true);
-                                }}
-                                className="text-gray-400 hover:text-blue-500"
-                                title="프로젝트 수정"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => handleProjectDelete(project.id)}
-                                className="text-gray-400 hover:text-red-500"
-                                title="프로젝트 삭제"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* 배너 목록 (확장 시) */}
-                        {isExpanded && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="mt-6 border-t border-gray-200 pt-6"
-                          >
-                            <div className="flex items-center justify-between mb-4">
-                              <h4 className="text-lg font-medium text-gray-900">배너 목록</h4>
-                              <button
-                                onClick={() => onBannerCreate(project.id)}
-                                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                </svg>
-                                배너 생성
-                              </button>
-                            </div>
-
-                            {projectBanners.length > 0 ? (
-                              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                                <div className="divide-y divide-gray-200">
-                                  {projectBanners.map((banner) => (
-                                    <motion.div
-                                      key={banner.id}
-                                      initial={{ opacity: 0, y: 10 }}
-                                      animate={{ opacity: 1, y: 0 }}
-                                      transition={{ duration: 0.2 }}
-                                      className="p-4 hover:bg-gray-50 transition-colors"
-                                    >
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-4 flex-1">
-                                          {/* 배너 썸네일 */}
-                                          <div className="w-20 h-12 bg-gray-100 rounded border flex-shrink-0 overflow-hidden">
-                                            {(() => {
-                                              // 우선순위: final_banner_url > background_image_url > image_url
-                                              const imageUrl = banner.final_banner_url || banner.background_image_url || banner.image_url;
-                                              return imageUrl ? (
-                                                <img 
-                                                  src={imageUrl} 
-                                                  alt={banner.title}
-                                                  className="w-full h-full object-cover"
-                                                />
-                                              ) : (
-                                                <div className="w-full h-full flex items-center justify-center">
-                                                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z" />
-                                                  </svg>
-                                                </div>
-                                              );
-                                            })()}
-                                          </div>
-                                          
-                                          {/* 배너 정보 */}
-                                          <div className="flex-1 min-w-0">
-                                            <div className="flex items-center space-x-2 mb-1">
-                                              <h5 className="font-medium text-gray-900 truncate">
-                                                {banner.title || '제목 없음'}
-                                              </h5>
-                                              <span className={`px-2 py-1 text-xs rounded-full font-medium ${getStatusColor(banner.status)}`}>
-                                                {banner.status === 'draft' && '초안'}
-                                                {banner.status === 'review' && '검토중'}
-                                                {banner.status === 'approved' && '승인됨'}
-                                                {banner.status === 'rejected' && '거부됨'}
-                                                {banner.status === 'completed' && '완료'}
-                                              </span>
-                                            </div>
-                                            
-                                            {banner.description && (
-                                              <p className="text-sm text-gray-600 truncate mb-2">{banner.description}</p>
-                                            )}
-                                            
-                                            <div className="flex items-center space-x-4 text-xs text-gray-500">
-                                              <span>크기: {banner.canvas_width}×{banner.canvas_height}px</span>
-                                              {banner.banner_type && (
-                                                <span>타입: {banner.banner_type}</span>
-                                              )}
-                                              {banner.device_type && (
-                                                <span>기기: {banner.device_type}</span>
-                                              )}
-                                              <span>생성: {new Date(banner.created_at).toLocaleDateString()}</span>
-                                              {banner.updated_at && banner.updated_at !== banner.created_at && (
-                                                <span>수정: {new Date(banner.updated_at).toLocaleDateString()}</span>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                        
-                                        {/* 액션 버튼 */}
-                                        <div className="flex items-center space-x-2 ml-4">
-                                          <button
-                                            onClick={() => {
-                                              console.log('Editing banner:', banner);
-                                              onBannerEdit(banner);
-                                            }}
-                                            className="bg-blue-500 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-600 transition-colors flex items-center gap-1.5"
-                                          >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                            편집
-                                          </button>
-                                          <button
-                                            onClick={() => handleBannerDelete(banner.id)}
-                                            className="bg-red-500 text-white px-3 py-1.5 rounded text-sm hover:bg-red-600 transition-colors flex items-center gap-1.5"
-                                          >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                            삭제
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </motion.div>
-                                  ))}
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="text-center py-12 bg-gray-50 rounded-lg">
-                                <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                <p className="text-lg font-medium text-gray-900 mb-2">아직 생성된 배너가 없습니다</p>
-                                <p className="text-sm text-gray-600 mb-6">이 프로젝트의 첫 번째 배너를 만들어보세요.</p>
-                                <button
-                                  onClick={() => onBannerCreate(project.id)}
-                                  className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center gap-2 font-medium"
-                                >
-                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                  </svg>
-                                  첫 배너 생성하기
-                                </button>
-                              </div>
-                            )}
-                          </motion.div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </div>
+        </div>
       </div>
-
-
 
       {/* 프로젝트 생성/수정 모달 */}
       {showProjectForm && (
@@ -640,8 +408,6 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
     </div>
   );
 };
-
-
 
 // 프로젝트 폼 모달 컴포넌트
 interface ProjectFormModalProps {
@@ -664,9 +430,21 @@ const ProjectFormModal: React.FC<ProjectFormModalProps> = ({ project, teams, onS
     deadline: project?.deadline || undefined
   });
 
+  const [deadlineString, setDeadlineString] = useState<string>(
+    project?.deadline 
+      ? (project.deadline instanceof Date 
+          ? project.deadline.toISOString().split('T')[0] 
+          : new Date(project.deadline).toISOString().split('T')[0])
+      : ''
+  );
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    const submitData = {
+      ...formData,
+      deadline: deadlineString ? new Date(deadlineString) : undefined
+    };
+    onSubmit(submitData);
   };
 
   return (
@@ -778,17 +556,14 @@ const ProjectFormModal: React.FC<ProjectFormModalProps> = ({ project, teams, onS
                 <option value="urgent">긴급</option>
               </select>
             </div>
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 마감일
               </label>
               <input
                 type="date"
-                value={formData.deadline ? new Date(formData.deadline).toISOString().split('T')[0] : ''}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  deadline: e.target.value ? new Date(e.target.value) : undefined 
-                })}
+                value={deadlineString}
+                onChange={(e) => setDeadlineString(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
