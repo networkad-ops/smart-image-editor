@@ -181,79 +181,19 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-lg font-semibold mb-4">텍스트 편집</h2>
             
-            {/* 메인타이틀 */}
-            {selection.config.mainTitle && (
-              <div className="mb-6">
-                <h3 className="font-medium mb-2">메인타이틀</h3>
-                <textarea
-                  value={textElements.find(el => el.id === 'main-title')?.text || ''}
-                  onChange={(e) => onTextUpdate('main-title', { text: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"
-                  rows={3}
-                  placeholder="메인타이틀을 입력하세요"
-                />
-              </div>
-            )}
-
-            {/* 서브타이틀 */}
-            {selection.config.subTitle && (
-              <div className="mb-6">
-                <h3 className="font-medium mb-2">서브타이틀</h3>
-                <input
-                  type="text"
-                  value={textElements.find(el => el.id === 'sub-title')?.text || ''}
-                  onChange={(e) => onTextUpdate('sub-title', { text: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  placeholder="서브타이틀을 입력하세요"
-                />
-              </div>
-            )}
-
-            {/* 추가 텍스트 */}
-            {selection.config.allowCustomText && (
-              <div className="mb-6">
-                <h3 className="font-medium mb-2">추가 텍스트</h3>
-                <button
-                  onClick={() => {
-                    const newElement = {
-                      id: Date.now().toString(),
-                      type: 'free' as const,
-                      text: '새 텍스트',
-                      x: 50,
-                      y: 50,
-                      width: 200,
-                      height: 100,
-                      fontSize: 24,
-                      fontFamily: 'Pretendard',
-                      fontWeight: 400,
-                      color: '#000000',
-                      editable: { position: true, size: true, color: true }
-                    };
-                    onAddText(newElement);
-                  }}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  텍스트 추가하기
-                </button>
-              </div>
-            )}
-
-            {/* 버튼 텍스트 */}
-            {selection.config.buttonText && (
-              <div className="mb-6">
-                <h3 className="font-medium mb-2">버튼 텍스트</h3>
-                <input
-                  type="text"
-                  value={textElements.find(el => el.id === 'button-text')?.text || ''}
-                  onChange={(e) => onTextUpdate('button-text', { text: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  placeholder="버튼 텍스트를 입력하세요"
-                />
-              </div>
-            )}
+            {/* TextEditSidebar 컴포넌트 사용하여 색상 선택 기능 포함 */}
+            <TextEditSidebar
+              config={selection.config}
+              textElements={textElements}
+              onAddText={onAddText}
+              onUpdateText={onTextUpdate}
+              onDeleteText={onTextDelete}
+              showTitle={false}
+              showBackground={false}
+            />
 
             {/* 액션 버튼들 */}
-            <div className="space-y-3">
+            <div className="mt-6 pt-4 border-t border-gray-200 space-y-3">
               <button
                 onClick={handleComplete}
                 disabled={!uploadedImage || isProcessing || loading}

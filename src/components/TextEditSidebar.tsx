@@ -8,6 +8,8 @@ interface TextEditSidebarProps {
   onAddText: (text: TextElement) => void;
   onUpdateText: (id: string, updates: Partial<TextElement>) => void;
   onDeleteText: (id: string) => void;
+  showTitle?: boolean;
+  showBackground?: boolean;
 }
 
 export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
@@ -15,7 +17,9 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   textElements,
   onAddText,
   onUpdateText,
-  onDeleteText
+  onDeleteText,
+  showTitle = true,
+  showBackground = true
 }) => {
   const [newText, setNewText] = useState('');
   const [selectedRange, setSelectedRange] = useState<{elementId: string, start: number, end: number} | null>(null);
@@ -159,8 +163,8 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   const otherTexts = textElements.filter(el => el.id !== 'main-title' && el.id !== 'sub-title' && el.id !== 'button-text');
   
   return (
-    <div className="bg-white rounded-lg shadow-lg p-4">
-      <h2 className="text-lg font-semibold mb-3">텍스트 편집</h2>
+    <div className={showBackground ? "bg-white rounded-lg shadow-lg p-4" : ""}>
+      {showTitle && <h2 className="text-lg font-semibold mb-3">텍스트 편집</h2>}
       
       {/* 배너 타입 안내 - 컴팩트하게 */}
       <div className="mb-3 p-2 bg-gray-50 border rounded text-xs text-gray-700">
