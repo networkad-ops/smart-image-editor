@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import BannerSelector from './components/BannerSelector';
 import { BannerEditor } from './components/BannerEditor';
 import { BannerHistory } from './components/BannerHistory';
@@ -410,115 +409,88 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AnimatePresence mode="wait">
-        {/* 홈 화면 */}
-        {step === 'home' && (
-          <motion.div
-            key="home"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="min-h-screen flex items-center justify-center bg-white"
-          >
-            <div className="max-w-4xl mx-auto px-4 py-8 text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                배너 에디터
-              </h1>
-              <p className="text-xl text-gray-600 mb-12">
-                원하는 작업을 선택해주세요
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-                {/* 새 배너 만들기 */}
-                <motion.button
-                  onClick={handleNewBanner}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-sky-500 hover:bg-sky-600 text-white p-8 rounded-2xl shadow-lg transition-colors group"
-                >
-                  <h2 className="text-2xl font-bold mb-2">새 배너 만들기</h2>
-                  <p className="text-white group-hover:text-white transition-colors">
-                    빠르게 새 배너 제작 시작하기
-                  </p>
-                </motion.button>
+      {/* 홈 화면 */}
+      {step === 'home' && (
+        <div className="min-h-screen flex items-center justify-center bg-white">
+          <div className="max-w-4xl mx-auto px-4 py-8 text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              배너 에디터
+            </h1>
+            <p className="text-xl text-gray-600 mb-12">
+              원하는 작업을 선택해주세요
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+              {/* 새 배너 만들기 */}
+              <button
+                onClick={handleNewBanner}
+                className="bg-sky-500 hover:bg-sky-600 text-white p-8 rounded-2xl shadow-lg transition-colors group"
+              >
+                <h2 className="text-2xl font-bold mb-2">새 배너 만들기</h2>
+                <p className="text-white group-hover:text-white transition-colors">
+                  빠르게 새 배너 제작 시작하기
+                </p>
+              </button>
 
-                {/* 배너 히스토리 */}
-                <motion.button
-                  onClick={handleBannerHistory}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-sky-500 hover:bg-sky-600 text-white p-8 rounded-2xl shadow-lg transition-colors group"
-                >
-                  <h2 className="text-2xl font-bold mb-2">배너 히스토리</h2>
-                  <p className="text-white group-hover:text-white transition-colors">
-                    이전 배너 보기 및 재편집
-                  </p>
-                </motion.button>
-              </div>
+              {/* 배너 히스토리 */}
+              <button
+                onClick={handleBannerHistory}
+                className="bg-sky-500 hover:bg-sky-600 text-white p-8 rounded-2xl shadow-lg transition-colors group"
+              >
+                <h2 className="text-2xl font-bold mb-2">배너 히스토리</h2>
+                <p className="text-white group-hover:text-white transition-colors">
+                  이전 배너 보기 및 재편집
+                </p>
+              </button>
             </div>
-          </motion.div>
-        )}
+          </div>
+        </div>
+      )}
 
-        {/* 배너 선택 화면 */}
-        {step === 'banner-selection' && (
-          <motion.div
-            key="banner-selection"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-          >
-            <BannerSelector
-              onBannerSelect={handleBannerSelect}
-              onBannerTypeChange={handleBannerTypeChange}
-              onBack={handleGoBack}
-              editingBanner={editingBanner}
-            />
-          </motion.div>
-        )}
+      {/* 배너 선택 화면 */}
+      {step === 'banner-selection' && (
+        <div>
+          <BannerSelector
+            onBannerSelect={handleBannerSelect}
+            onBannerTypeChange={handleBannerTypeChange}
+            onBack={handleGoBack}
+            editingBanner={editingBanner}
+          />
+        </div>
+      )}
 
-        {/* 배너 히스토리 화면 */}
-        {step === 'banner-history' && (
-          <motion.div
-            key="banner-history"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-          >
-            <BannerHistory
-              onBannerEdit={handleBannerEdit}
-              onBack={handleGoBack}
-            />
-          </motion.div>
-        )}
+      {/* 배너 히스토리 화면 */}
+      {step === 'banner-history' && (
+        <div>
+          <BannerHistory
+            onBannerEdit={handleBannerEdit}
+            onBack={handleGoBack}
+          />
+        </div>
+      )}
 
-        {/* 에디터 화면 */}
-        {step === 'editor' && bannerSelection && (
-          <motion.div
-            key="editor"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-          >
-            <BannerEditor
-              selection={bannerSelection}
-              uploadedImage={uploadedImage}
-              uploadedLogo={uploadedLogo}
-              textElements={textElements}
-              onImageUpload={handleImageUpload}
-              onLogoUpload={handleLogoUpload}
-              onAddText={handleAddText}
-              onTextUpdate={handleTextUpdate}
-              onTextDelete={handleTextDelete}
-              onComplete={handleComplete}
-              onReset={handleReset}
-              onBack={handleGoBack}
-              previewCanvasRef={previewCanvasRef}
-              editingBanner={editingBanner}
-              loading={loading}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* 에디터 화면 */}
+      {step === 'editor' && bannerSelection && (
+        <div>
+          <BannerEditor
+            selection={bannerSelection}
+            uploadedImage={uploadedImage}
+            uploadedLogo={uploadedLogo}
+            textElements={textElements}
+            onImageUpload={handleImageUpload}
+            onLogoUpload={handleLogoUpload}
+            onAddText={handleAddText}
+            onTextUpdate={handleTextUpdate}
+            onTextDelete={handleTextDelete}
+            onComplete={handleComplete}
+            onReset={handleReset}
+            onBack={handleGoBack}
+            previewCanvasRef={previewCanvasRef}
+            editingBanner={editingBanner}
+            loading={loading}
+          />
+        </div>
+      )}
     </div>
   );
 }

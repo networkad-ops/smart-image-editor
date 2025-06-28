@@ -14,7 +14,6 @@
     "@heroicons/react": "^2.0.18",
     "@supabase/supabase-js": "^2.50.0",
     "@types/node": "^24.0.1",
-    "framer-motion": "^11.0.0",
     "lucide-react": "^0.515.0",
     "react": "^18.2.0",
     "react-cropper": "^2.3.3",

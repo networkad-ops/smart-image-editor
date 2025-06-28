@@ -758,7 +758,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                ].map((color) => (
                  <button
                    key={color}
-                   className="w-6 h-6 rounded border-2 border-gray-300 cursor-pointer hover:scale-110 transition-all"
+                   className="w-6 h-6 rounded border-2 border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
                    style={{ backgroundColor: color }}
                    onClick={() => onUpdateText('button-text', { color })}
                    title={`텍스트 색상: ${color}`}
@@ -777,7 +777,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                ].map((color) => (
                  <button
                    key={color}
-                   className="w-6 h-6 rounded border-2 border-gray-300 cursor-pointer hover:scale-110 transition-all"
+                   className="w-6 h-6 rounded border-2 border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
                    style={{ backgroundColor: color }}
                    onClick={() => onUpdateText('button-text', { backgroundColor: color })}
                    title={`배경 색상: ${color}`}
@@ -991,7 +991,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                       ].map((color) => (
                         <button
                           key={color}
-                          className="w-6 h-6 rounded border-2 border-gray-300 cursor-pointer hover:scale-110 transition-all"
+                          className="w-6 h-6 rounded border-2 border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
                           style={{ backgroundColor: color }}
                           onClick={() => onUpdateText(element.id, { color })}
                           title={color}

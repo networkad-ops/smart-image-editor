@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import React from 'react';
 import { bannerConfigs } from '../config/bannerConfigs';
 import { Banner, BannerSelection } from '../types';
 
@@ -11,30 +10,23 @@ interface BannerSelectorProps {
 }
 
 const BannerSelector: React.FC<BannerSelectorProps> = ({ onBannerSelect, onBannerTypeChange, onBack, editingBanner }) => {
-  const [selectedOption, setSelectedOption] = useState('');
   
-  const handleSelect = () => {
-    if (!selectedOption) return;
-    
-    const config = bannerConfigs[selectedOption];
-    
+  const handleCardClick = (key: string, config: any) => {
     // 올바른 방법으로 bannerType과 deviceType 분리
     let bannerType: 'basic-no-logo' | 'basic-with-logo' | 'interactive' | 'fullscreen';
     let deviceType: 'pc' | 'mobile';
     
-    if (selectedOption.endsWith('-pc')) {
-      bannerType = selectedOption.replace('-pc', '') as any;
+    if (key.endsWith('-pc')) {
+      bannerType = key.replace('-pc', '') as any;
       deviceType = 'pc';
-    } else if (selectedOption.endsWith('-mobile')) {
-      bannerType = selectedOption.replace('-mobile', '') as any;
+    } else if (key.endsWith('-mobile')) {
+      bannerType = key.replace('-mobile', '') as any;
       deviceType = 'mobile';
     } else {
       // fallback
-      console.error('올바르지 않은 selectedOption:', selectedOption);
+      console.error('올바르지 않은 key:', key);
       return;
     }
-
-    console.log('BannerSelector에서 분리된 타입:', { selectedOption, bannerType, deviceType });
 
     onBannerSelect({
       bannerType,
@@ -69,42 +61,62 @@ const BannerSelector: React.FC<BannerSelectorProps> = ({ onBannerSelect, onBanne
 
         {/* 배너 선택 */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4">배너 타입을 선택하세요</h2>
+          <h2 className="text-xl font-semibold mb-6">배너 타입을 선택하세요</h2>
           
-          <div className="space-y-4">
-            <div className="relative">
-              <select
-                value={selectedOption}
-                onChange={(e) => setSelectedOption(e.target.value)}
-                className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Object.entries(bannerConfigs).map(([key, config]) => (
+              <div
+                key={key}
+                onClick={() => handleCardClick(key, config)}
+                className="relative cursor-pointer border-2 rounded-lg transition-colors hover:border-blue-400 hover:shadow-md bg-white p-6 border-gray-200"
               >
-                <option value="">배너 타입을 선택하세요</option>
-                {Object.entries(bannerConfigs).map(([key, config]) => (
-                  <option key={key} value={key}>
-                    {config.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            </div>
-            
-            {selectedOption && (
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h3 className="font-medium mb-2">선택된 배너 규격</h3>
-                <div className="text-sm text-gray-600 space-y-1">
-                  <p>크기: {bannerConfigs[selectedOption].width} × {bannerConfigs[selectedOption].height}</p>
-                  <p>텍스트: {bannerConfigs[selectedOption].fixedText ? '고정 위치' : '자유 편집'}</p>
+                {/* 배너 정보 */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-900 text-lg">{config.name}</h3>
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                      </svg>
+                      <span>{config.width} × {config.height}</span>
+                    </div>
+                    
+                    <div className="flex items-center text-sm text-gray-600">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                      </svg>
+                      <span>{config.fixedText ? '고정 위치' : '자유 편집'}</span>
+                    </div>
+                    
+                    {config.logo && (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>로고 포함</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-center text-blue-600 font-medium">
+                      <span>클릭하여 시작하기</span>
+                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               </div>
-            )}
-            
-            <button
-              onClick={handleSelect}
-              disabled={!selectedOption}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
-              {editingBanner ? '배너 편집 시작' : '배너 만들기 시작'}
-            </button>
+            ))}
           </div>
         </div>
       </div>
