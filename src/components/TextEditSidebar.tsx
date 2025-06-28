@@ -120,10 +120,12 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
         <span className="text-xs text-gray-600">사용자 정의:</span>
         <input
           type="color"
-          onChange={(e) => applyColorInstantly(elementId, e.target.value)}
+          onInput={(e) => applyColorInstantly(elementId, (e.target as HTMLInputElement).value)}
+          onChange={(e) => applyColorInstantly(elementId, (e.target as HTMLInputElement).value)}
           className="w-8 h-6 border rounded cursor-pointer"
-          title="사용자 정의 색상"
+          title="드래그하면서 실시간 색상 변경"
         />
+        <span className="text-xs text-gray-400">← 드래그해보세요!</span>
       </div>
     </div>
   );
@@ -362,8 +364,10 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 <input
                   type="color"
                   value={buttonText?.color || '#FFFFFF'}
-                  onChange={(e) => onUpdateText('button-text', { color: e.target.value })}
+                  onInput={(e) => onUpdateText('button-text', { color: (e.target as HTMLInputElement).value })}
+                  onChange={(e) => onUpdateText('button-text', { color: (e.target as HTMLInputElement).value })}
                   className="w-8 h-8 border rounded cursor-pointer"
+                  title="드래그하면서 실시간 색상 변경"
                 />
                 <span className="text-xs text-gray-500">{buttonText?.color || '#FFFFFF'}</span>
               </div>
@@ -374,8 +378,10 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 <input
                   type="color"
                   value={buttonText?.backgroundColor || '#4F46E5'}
-                  onChange={(e) => onUpdateText('button-text', { backgroundColor: e.target.value })}
+                  onInput={(e) => onUpdateText('button-text', { backgroundColor: (e.target as HTMLInputElement).value })}
+                  onChange={(e) => onUpdateText('button-text', { backgroundColor: (e.target as HTMLInputElement).value })}
                   className="w-8 h-8 border rounded cursor-pointer"
+                  title="드래그하면서 실시간 배경색 변경"
                 />
                 <span className="text-xs text-gray-500">{buttonText?.backgroundColor || '#4F46E5'}</span>
               </div>
@@ -528,8 +534,10 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                         <input
                           type="color"
                           value={element.color}
-                          onChange={(e) => onUpdateText(element.id, { color: e.target.value })}
+                          onInput={(e) => onUpdateText(element.id, { color: (e.target as HTMLInputElement).value })}
+                          onChange={(e) => onUpdateText(element.id, { color: (e.target as HTMLInputElement).value })}
                           className="w-8 h-8 border rounded cursor-pointer"
+                          title="드래그하면서 실시간 색상 변경"
                         />
                         <span className="text-xs text-gray-500">{element.color}</span>
                       </div>
