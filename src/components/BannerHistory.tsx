@@ -5,9 +5,10 @@ import { useSupabase } from '../hooks/useSupabase';
 interface BannerHistoryProps {
   onBannerEdit: (banner: Banner) => void;
   onBack: () => void;
+  onGoHome?: () => void;
 }
 
-export const BannerHistory: React.FC<BannerHistoryProps> = ({ onBannerEdit, onBack }) => {
+export const BannerHistory: React.FC<BannerHistoryProps> = ({ onBannerEdit, onBack, onGoHome }) => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -73,7 +74,13 @@ export const BannerHistory: React.FC<BannerHistoryProps> = ({ onBannerEdit, onBa
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">배너 히스토리</h1>
+              <h1 
+                className="text-3xl font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                onClick={onGoHome}
+                title="홈으로 이동"
+              >
+                Smart Banner Editor
+              </h1>
               <p className="mt-2 text-gray-600">
                 생성된 모든 배너를 확인하고 관리하세요
               </p>

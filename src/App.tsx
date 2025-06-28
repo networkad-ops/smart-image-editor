@@ -407,6 +407,11 @@ function App() {
     }
   };
 
+  const handleGoHome = () => {
+    handleReset();
+    setStep('home');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 홈 화면 */}
@@ -414,7 +419,7 @@ function App() {
         <div className="min-h-screen flex items-center justify-center bg-white">
           <div className="max-w-4xl mx-auto px-4 py-8 text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              배너 에디터
+              Smart Banner Editor
             </h1>
             <p className="text-xl text-gray-600 mb-12">
               원하는 작업을 선택해주세요
@@ -454,6 +459,7 @@ function App() {
             onBannerSelect={handleBannerSelect}
             onBannerTypeChange={handleBannerTypeChange}
             onBack={handleGoBack}
+            onGoHome={handleGoHome}
             editingBanner={editingBanner}
           />
         </div>
@@ -465,6 +471,7 @@ function App() {
           <BannerHistory
             onBannerEdit={handleBannerEdit}
             onBack={handleGoBack}
+            onGoHome={handleGoHome}
           />
         </div>
       )}
@@ -485,6 +492,7 @@ function App() {
             onComplete={handleComplete}
             onReset={handleReset}
             onBack={handleGoBack}
+            onGoHome={handleGoHome}
             previewCanvasRef={previewCanvasRef}
             editingBanner={editingBanner}
             loading={loading}

@@ -103,7 +103,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   const ColorPalette = ({ elementId, isEnabled }: { elementId: string, isEnabled: boolean }) => (
     <div className={`space-y-2 ${!isEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
       <div className="text-xs font-medium text-gray-700">
-        🎨 색상 팔레트 {!isEnabled && '(텍스트를 선택하거나 전체 색상 변경용)'}
+        색상 팔레트 {!isEnabled && '(텍스트를 선택하거나 전체 색상 변경용)'}
       </div>
       <div className="grid grid-cols-8 gap-1 p-2 bg-gray-50 rounded border">
         {colorPalette.map((color) => (
@@ -159,29 +159,23 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   const otherTexts = textElements.filter(el => el.id !== 'main-title' && el.id !== 'sub-title' && el.id !== 'button-text');
   
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-xl font-semibold mb-4">📝 텍스트 편집</h2>
+    <div className="bg-white rounded-lg shadow-lg p-4">
+      <h2 className="text-lg font-semibold mb-3">텍스트 편집</h2>
       
-      {/* 배너 타입 안내 */}
-      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <div className="text-xs text-blue-700">
-          {config.fixedText ? (
-            <>
-              💡 <strong>기본 배너:</strong> 고정된 위치의 텍스트를 편집할 수 있습니다.
-            </>
-          ) : (
-            <>
-              🎨 <strong>인터랙티브 배너:</strong> 서브타이틀과 메인타이틀은 중앙 정렬되며, 🎯위치 조정 버튼으로 자유롭게 이동할 수 있습니다.
-            </>
-          )}
-        </div>
+      {/* 배너 타입 안내 - 컴팩트하게 */}
+      <div className="mb-3 p-2 bg-gray-50 border rounded text-xs text-gray-700">
+        {config.fixedText ? (
+          <>기본 배너: 고정된 위치의 텍스트를 편집할 수 있습니다.</>
+        ) : (
+          <>인터랙티브 배너: 위치 조정 버튼으로 자유롭게 이동할 수 있습니다.</>
+        )}
       </div>
 
-      {/* 전체 텍스트 초기화 */}
-      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+      {/* 전체 텍스트 초기화 - 빨간색 제거 */}
+      <div className="mb-3 p-2 bg-gray-50 border rounded">
         <div className="flex items-center justify-between">
-          <div className="text-xs text-red-700">
-            💥 <strong>전체 초기화:</strong> 모든 텍스트를 한 번에 지웁니다
+          <div className="text-xs text-gray-700">
+            전체 초기화: 모든 텍스트를 한 번에 지웁니다
           </div>
           <button
             onClick={() => {
@@ -205,35 +199,35 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 }, 3000);
               }
             }}
-            className={`text-xs px-3 py-1 rounded transition-all ${
+            className={`text-xs px-2 py-1 rounded transition-all ${
               clearStatus['all'] 
-                ? 'bg-green-500 text-white border border-green-400' 
-                : 'bg-red-500 text-white hover:bg-red-600'
+                ? 'bg-green-100 text-green-700' 
+                : 'bg-gray-500 text-white hover:bg-gray-600'
             }`}
           >
-            {clearStatus['all'] ? '✅ 모두 지워짐' : '🗑️ 전체 지우기'}
+            {clearStatus['all'] ? '모두 지워짐' : '전체 지우기'}
           </button>
         </div>
       </div>
       
-      {/* 서브타이틀 편집 */}
+      {/* 서브타이틀 편집 - 컴팩트하게 */}
       {config.subTitle && (
-        <div className="mb-6">
+        <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">
-              <h3 className="font-medium">🏷️ 서브타이틀</h3>
+              <h3 className="font-medium text-sm">서브타이틀</h3>
               <button
                 onClick={() => setSelectedElementId(selectedElementId === 'sub-title' ? null : 'sub-title')}
                 className={`text-xs px-2 py-1 rounded transition-colors ${
                   selectedElementId === 'sub-title'
-                    ? 'bg-blue-500 text-white font-medium'
-                    : 'bg-green-100 text-green-700 hover:bg-green-200 font-medium'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {selectedElementId === 'sub-title' ? '✅ 선택됨' : '🎯 위치 조정'}
+                {selectedElementId === 'sub-title' ? '선택됨' : '위치 조정'}
               </button>
             </div>
-            <span className="text-sm text-gray-500">
+            <span className="text-xs text-gray-500">
               {subTitle?.text?.length || 0}/{config.subTitle.maxLength}
             </span>
           </div>
@@ -246,18 +240,15 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             onSelect={() => handleTextSelect('sub-title', subTitleInputRef)}
             onMouseUp={() => handleTextSelect('sub-title', subTitleInputRef)}
             onKeyUp={() => handleTextSelect('sub-title', subTitleInputRef)}
-            className="w-full px-3 py-2 border rounded mb-3"
+            className="w-full px-3 py-2 border rounded mb-2 text-sm"
             placeholder="서브타이틀 입력"
             maxLength={config.subTitle.maxLength}
           />
           
-          {/* 선택된 텍스트 표시 */}
+          {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}
           {selectedRange && selectedRange.elementId === 'sub-title' && (
-            <div className="bg-green-50 border border-green-200 rounded p-2 mb-3">
-              <div className="text-xs text-green-700 font-medium">✅ 선택된 텍스트</div>
-              <div className="text-sm text-green-800 font-mono bg-white px-2 py-1 rounded mt-1">
-                "{(subTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"
-              </div>
+            <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
+              <div className="text-xs text-blue-700">선택된 텍스트: "{(subTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"</div>
             </div>
           )}
           
@@ -266,24 +257,24 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
         </div>
       )}
 
-      {/* 메인타이틀 편집 */}
+      {/* 메인타이틀 편집 - 컴팩트하게 */}
       {config.mainTitle && (
-        <div className="mb-6">
+        <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">
-              <h3 className="font-medium">📢 메인타이틀</h3>
+              <h3 className="font-medium text-sm">메인타이틀</h3>
               <button
                 onClick={() => setSelectedElementId(selectedElementId === 'main-title' ? null : 'main-title')}
                 className={`text-xs px-2 py-1 rounded transition-colors ${
                   selectedElementId === 'main-title'
-                    ? 'bg-blue-500 text-white font-medium'
-                    : 'bg-green-100 text-green-700 hover:bg-green-200 font-medium'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {selectedElementId === 'main-title' ? '✅ 선택됨' : '🎯 위치 조정'}
+                {selectedElementId === 'main-title' ? '선택됨' : '위치 조정'}
               </button>
             </div>
-            <span className="text-sm text-gray-500">
+            <span className="text-xs text-gray-500">
               {mainTitle?.text?.length || 0}/{config.mainTitle.maxLength}
             </span>
           </div>
@@ -295,18 +286,15 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             onSelect={() => handleTextSelect('main-title', mainTitleInputRef)}
             onMouseUp={() => handleTextSelect('main-title', mainTitleInputRef)}
             onKeyUp={() => handleTextSelect('main-title', mainTitleInputRef)}
-            className="w-full px-3 py-2 border rounded mb-3 min-h-[80px] resize-y"
+            className="w-full px-3 py-2 border rounded mb-2 min-h-[70px] resize-y text-sm"
             placeholder="메인타이틀 입력 (여러 줄 가능)"
             maxLength={config.mainTitle.maxLength}
           />
           
-          {/* 선택된 텍스트 표시 */}
+          {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}
           {selectedRange && selectedRange.elementId === 'main-title' && (
-            <div className="bg-green-50 border border-green-200 rounded p-2 mb-3">
-              <div className="text-xs text-green-700 font-medium">✅ 선택된 텍스트</div>
-              <div className="text-sm text-green-800 font-mono bg-white px-2 py-1 rounded mt-1">
-                "{(mainTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"
-              </div>
+            <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
+              <div className="text-xs text-blue-700">선택된 텍스트: "{(mainTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"</div>
             </div>
           )}
           
@@ -315,51 +303,45 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
         </div>
       )}
 
-      {/* 버튼 텍스트 편집 */}
+      {/* 버튼 텍스트 편집 - 노란색 박스 제거하고 컴팩트하게 */}
       {config.buttonText && (
-        <div className="mb-6">
+        <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">
-              <h3 className="font-medium">🔘 버튼 텍스트</h3>
+              <h3 className="font-medium text-sm">버튼 텍스트</h3>
               <button
                 onClick={() => setSelectedElementId(selectedElementId === 'button-text' ? null : 'button-text')}
                 className={`text-xs px-2 py-1 rounded transition-colors ${
                   selectedElementId === 'button-text'
                     ? 'bg-blue-100 text-blue-700'
-                    : 'bg-green-100 text-green-700 hover:bg-green-200 font-medium'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {selectedElementId === 'button-text' ? '선택됨' : '🎯 위치 조정'}
+                {selectedElementId === 'button-text' ? '선택됨' : '위치 조정'}
               </button>
             </div>
-            <span className="text-sm text-gray-500">
+            <span className="text-xs text-gray-500">
               {buttonText?.text?.length || 0}/{config.buttonText.maxLength}
             </span>
           </div>
           
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
-            <div className="text-xs text-yellow-700 mb-1">
-              💡 <strong>버튼 텍스트:</strong> 인터랙티브 배너의 행동 유도 버튼에 표시됩니다
-            </div>
-            <div className="text-xs text-yellow-600">
-              • 띄어쓰기 포함 최대 {config.buttonText.maxLength}글자<br/>
-              • 예시: "지금 시작", "자세히 보기", "신청하기" 등
-            </div>
+          <div className="text-xs text-gray-600 mb-2">
+            행동 유도 버튼에 표시됩니다. 예: "지금 시작", "자세히 보기"
           </div>
           
           <input
             type="text"
             value={buttonText?.text || ''}
             onChange={(e) => onUpdateText('button-text', { text: e.target.value })}
-            className="w-full px-3 py-2 border rounded mb-2"
-            placeholder="버튼 텍스트 입력 (예: 지금 시작)"
+            className="w-full px-3 py-2 border rounded mb-3 text-sm"
+            placeholder="버튼 텍스트 입력"
             maxLength={config.buttonText.maxLength}
           />
           
-          {/* 버튼 텍스트 색상 설정 */}
-          <div className="grid grid-cols-2 gap-3 mb-3">
+          {/* 버튼 텍스트 색상 설정 - 더 컴팩트하게 */}
+          <div className="grid grid-cols-2 gap-3 mb-2">
             <div>
-              <label className="text-sm font-medium block mb-1">텍스트 색상:</label>
+              <label className="text-xs font-medium block mb-1">텍스트 색상</label>
               <div className="flex items-center gap-2">
                 <input
                   type="color"
@@ -367,13 +349,12 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                   onInput={(e) => onUpdateText('button-text', { color: (e.target as HTMLInputElement).value })}
                   onChange={(e) => onUpdateText('button-text', { color: (e.target as HTMLInputElement).value })}
                   className="w-8 h-8 border rounded cursor-pointer"
-                  title="드래그하면서 실시간 색상 변경"
                 />
                 <span className="text-xs text-gray-500">{buttonText?.color || '#FFFFFF'}</span>
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium block mb-1">배경 색상:</label>
+              <label className="text-xs font-medium block mb-1">배경 색상</label>
               <div className="flex items-center gap-2">
                 <input
                   type="color"
@@ -381,80 +362,73 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                   onInput={(e) => onUpdateText('button-text', { backgroundColor: (e.target as HTMLInputElement).value })}
                   onChange={(e) => onUpdateText('button-text', { backgroundColor: (e.target as HTMLInputElement).value })}
                   className="w-8 h-8 border rounded cursor-pointer"
-                  title="드래그하면서 실시간 배경색 변경"
                 />
                 <span className="text-xs text-gray-500">{buttonText?.backgroundColor || '#4F46E5'}</span>
               </div>
             </div>
           </div>
           
-          {/* 빠른 텍스트 색상 선택 */}
-          <div className="mb-3">
-            <label className="block text-xs font-medium text-gray-600 mb-1">빠른 텍스트 색상</label>
-            <div className="flex flex-wrap gap-1">
-              {[
-                '#FFFFFF', '#000000', '#FF6B35', '#F7931E', 
-                '#FFD700', '#32CD32', '#4169E1', '#8A2BE2'
-              ].map((color) => (
-                <button
-                  key={color}
-                  className="w-6 h-6 rounded border-2 border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
-                  style={{ backgroundColor: color }}
-                  onClick={() => onUpdateText('button-text', { color })}
-                  title={`텍스트 색상: ${color}`}
-                />
-              ))}
+          {/* 빠른 색상 선택 - 더 컴팩트하게 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">빠른 텍스트 색상</label>
+              <div className="flex flex-wrap gap-1">
+                {[
+                  '#FFFFFF', '#000000', '#FF6B35', '#F7931E', 
+                  '#FFD700', '#32CD32', '#4169E1', '#8A2BE2'
+                ].map((color) => (
+                  <button
+                    key={color}
+                    className="w-5 h-5 rounded border border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
+                    style={{ backgroundColor: color }}
+                    onClick={() => onUpdateText('button-text', { color })}
+                    title={`텍스트 색상: ${color}`}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-          
-          {/* 빠른 배경 색상 선택 */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">빠른 배경 색상</label>
-            <div className="flex flex-wrap gap-1">
-              {[
-                '#4F46E5', '#059669', '#DC2626', '#7C2D12', 
-                '#7C3AED', '#DB2777', '#EA580C', '#000000'
-              ].map((color) => (
-                <button
-                  key={color}
-                  className="w-6 h-6 rounded border-2 border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
-                  style={{ backgroundColor: color }}
-                  onClick={() => onUpdateText('button-text', { backgroundColor: color })}
-                  title={`배경 색상: ${color}`}
-                />
-              ))}
+            
+            <div>
+              <label className="block text-xs text-gray-600 mb-1">빠른 배경 색상</label>
+              <div className="flex flex-wrap gap-1">
+                {[
+                  '#4F46E5', '#059669', '#DC2626', '#7C2D12', 
+                  '#7C3AED', '#DB2777', '#EA580C', '#000000'
+                ].map((color) => (
+                  <button
+                    key={color}
+                    className="w-5 h-5 rounded border border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
+                    style={{ backgroundColor: color }}
+                    onClick={() => onUpdateText('button-text', { backgroundColor: color })}
+                    title={`배경 색상: ${color}`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 추가 텍스트 입력 */}
+      {/* 추가 텍스트 입력 - 초록색 박스 제거하고 컴팩트하게 */}
       {config.allowCustomText && (
-      <div className="mb-6">
-        <h3 className="font-medium mb-2">🆕 자유 텍스트 추가</h3>
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
-            <div className="text-xs text-green-700 mb-2">
-              ✨ <strong>자유 텍스트:</strong> 원하는 위치에 텍스트를 추가할 수 있습니다
-          </div>
-            <div className="text-xs text-green-600">
-              • 색상, 크기, 굵기, 위치와 크기를 자유롭게 조정 가능<br/>
-            • 여러 줄 텍스트 지원<br/>
-              • Position Control Panel로 정밀한 위치 조정
-          </div>
+      <div className="mb-4">
+        <h3 className="font-medium text-sm mb-2">자유 텍스트 추가</h3>
+        <div className="text-xs text-gray-600 mb-2">
+          원하는 위치에 텍스트를 추가하고 색상, 크기, 위치를 자유롭게 조정할 수 있습니다.
         </div>
         <div className="space-y-2">
           <textarea
             value={newText}
             onChange={(e) => setNewText(e.target.value)}
-            className="w-full px-3 py-2 border rounded min-h-[60px] resize-y"
+            className="w-full px-3 py-2 border rounded min-h-[60px] resize-y text-sm"
             placeholder="새 텍스트를 입력하세요&#10;(여러 줄 입력 가능)"
           />
           <button
             onClick={handleAddText}
             disabled={!newText.trim()}
-              className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm"
           >
-            ➕ 텍스트 추가하기
+            텍스트 추가하기
           </button>
         </div>
       </div>
@@ -462,8 +436,8 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
 
       {/* Position Control Panel - 선택된 요소가 있을 때만 표시 */}
       {selectedElementId && (
-        <div className="mb-6">
-          <h3 className="font-medium mb-2">🎯 위치 및 정렬 조정</h3>
+        <div className="mb-4">
+          <h3 className="font-medium text-sm mb-2">위치 및 정렬 조정</h3>
           <PositionControlPanel
             selectedElement={textElements.find(el => el.id === selectedElementId) || null}
             onUpdateElement={onUpdateText}
@@ -476,33 +450,33 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       {/* 추가된 텍스트 목록 */}
       {config.allowCustomText && otherTexts.length > 0 && (
         <div>
-          <h3 className="font-medium mb-2">추가된 자유 텍스트 ({otherTexts.length}개)</h3>
-          <div className="space-y-4">
+          <h3 className="font-medium text-sm mb-2">추가된 자유 텍스트 ({otherTexts.length}개)</h3>
+          <div className="space-y-2">
             {otherTexts.map((element) => (
               <div 
                 key={element.id} 
-                className={`border rounded p-3 cursor-pointer transition-all ${
+                className={`border rounded p-2 cursor-pointer transition-all text-sm ${
                   selectedElementId === element.id 
-                    ? 'bg-blue-50 border-blue-300 shadow-md' 
+                    ? 'bg-blue-50 border-blue-300 shadow-sm' 
                     : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
                 }`}
                 onClick={() => setSelectedElementId(element.id === selectedElementId ? null : element.id)}
               >
-                <div className="flex justify-between items-center mb-2">
+                <div className="flex justify-between items-center mb-1">
                   <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-700">텍스트 #{element.id.slice(-4)}</span>
+                    <span className="text-xs font-medium text-gray-700">텍스트 #{element.id.slice(-4)}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedElementId(element.id === selectedElementId ? null : element.id);
                       }}
-                      className={`text-xs px-2 py-1 rounded transition-all ${
+                      className={`text-xs px-1 py-0.5 rounded transition-all ${
                         selectedElementId === element.id
-                          ? 'bg-blue-500 text-white font-medium'
-                          : 'bg-green-100 text-green-700 hover:bg-green-200 font-medium'
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
-                      {selectedElementId === element.id ? '✅ 선택됨' : '🎯 위치 조정'}
+                      {selectedElementId === element.id ? '선택됨' : '편집'}
                     </button>
                   </div>
                   <button
@@ -510,7 +484,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                       e.stopPropagation();
                       onDeleteText(element.id);
                     }}
-                    className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                    className="px-1 py-0.5 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
                   >
                     ✕ 삭제
                   </button>
@@ -520,7 +494,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 <textarea
                   value={element.text}
                   onChange={(e) => onUpdateText(element.id, { text: e.target.value })}
-                  className="w-full px-3 py-2 border rounded mb-3 min-h-[60px] resize-y"
+                  className="w-full px-3 py-2 border rounded mb-3 min-h-[60px] resize-y text-sm"
                   placeholder="텍스트를 입력하세요"
                 />
                 
@@ -600,24 +574,12 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                   </div>
                   
                   {/* 위치 조정 안내 */}
-                  <div className={`border rounded p-2 ${
-                    selectedElementId === element.id 
-                      ? 'bg-green-50 border-green-200' 
-                      : 'bg-blue-50 border-blue-200'
-                  }`}>
-                    <div className={`text-xs ${
-                      selectedElementId === element.id 
-                        ? 'text-green-700' 
-                        : 'text-blue-700'
-                    }`}>
+                  <div className="border rounded p-2 bg-gray-50 border-gray-200">
+                    <div className="text-xs text-gray-700">
                       {selectedElementId === element.id ? (
-                        <>
-                          ✅ <strong>위치 조정 활성화:</strong> 상단의 "위치 및 정렬 조정" 패널에서 정밀한 위치 조정이 가능합니다!
-                        </>
+                        <>위치 조정 활성화: 상단의 "위치 및 정렬 조정" 패널에서 정밀한 위치 조정이 가능합니다.</>
                       ) : (
-                        <>
-                          💡 <strong>위치 조정:</strong> 🎯위치 조정 버튼을 클릭하면 상단에 Position Control Panel이 나타납니다!
-                        </>
+                        <>위치 조정: 편집 버튼을 클릭하면 상단에 위치 조정 패널이 나타납니다.</>
                       )}
                     </div>
                   </div>
@@ -633,7 +595,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                       ].map((color) => (
                         <button
                           key={color}
-                          className="w-6 h-6 rounded border-2 border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
+                          className="w-5 h-5 rounded border border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
                           style={{ backgroundColor: color }}
                           onClick={() => onUpdateText(element.id, { color })}
                           title={color}

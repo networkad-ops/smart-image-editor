@@ -6,10 +6,11 @@ interface BannerSelectorProps {
   onBannerSelect: (selection: BannerSelection) => void;
   onBannerTypeChange: (bannerType: string, deviceType: string) => void;
   onBack: () => void;
+  onGoHome?: () => void;
   editingBanner?: Banner | null;
 }
 
-const BannerSelector: React.FC<BannerSelectorProps> = ({ onBannerSelect, onBannerTypeChange, onBack, editingBanner }) => {
+const BannerSelector: React.FC<BannerSelectorProps> = ({ onBannerSelect, onBannerTypeChange, onBack, onGoHome, editingBanner }) => {
   
   const handleCardClick = (key: string, config: any) => {
     // 올바른 방법으로 bannerType과 deviceType 분리
@@ -42,7 +43,13 @@ const BannerSelector: React.FC<BannerSelectorProps> = ({ onBannerSelect, onBanne
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">배너 타입 선택</h1>
+              <h1 
+                className="text-3xl font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                onClick={onGoHome}
+                title="홈으로 이동"
+              >
+                Smart Banner Editor
+              </h1>
               <p className="mt-2 text-gray-600">
                 {editingBanner ? `"${editingBanner.title}" 배너를 편집합니다` : '새 배너를 만들어보세요'}
               </p>

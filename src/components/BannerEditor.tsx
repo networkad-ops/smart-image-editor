@@ -18,6 +18,7 @@ interface BannerEditorProps {
   onComplete: (image: Blob) => void;
   onReset: () => void;
   onBack: () => void;
+  onGoHome?: () => void;
   previewCanvasRef: React.RefObject<HTMLCanvasElement>;
   editingBanner: Banner | null;
   loading: boolean;
@@ -36,6 +37,7 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
   onComplete,
   onReset,
   onBack,
+  onGoHome,
   previewCanvasRef,
   editingBanner,
   loading
@@ -117,7 +119,13 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">배너 편집기</h1>
+              <h1 
+                className="text-3xl font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                onClick={onGoHome}
+                title="홈으로 이동"
+              >
+                Smart Banner Editor
+              </h1>
               <p className="mt-2 text-gray-600">
                 {editingBanner ? `"${editingBanner.title}" 편집 중` : '새 배너 만들기'}
               </p>
