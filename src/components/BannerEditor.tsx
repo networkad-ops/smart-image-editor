@@ -184,18 +184,20 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
               </div>
             </div>
 
-            {/* 미리보기 - 제목 제거하고 화면 최대한 확대 */}
+            {/* 미리보기 - 전체 너비 활용 */}
             <div className="bg-white rounded-lg shadow-sm p-3">
-              <div className="bg-gray-50 rounded-lg p-4 flex justify-center items-center min-h-[600px]">
-                <BannerPreview
-                  ref={previewCanvasRef}
-                  config={selection.config}
-                  uploadedImage={uploadedImage}
-                  uploadedLogo={uploadedLogo}
-                  textElements={textElements}
-                  existingImageUrl={editingBanner?.background_image_url || editingBanner?.image_url}
-                  existingLogoUrl={editingBanner?.logo_url}
-                />
+              <div className="bg-gray-50 rounded-lg p-2 flex justify-center items-center min-h-[600px] w-full">
+                <div className="w-full flex justify-center items-center">
+                  <BannerPreview
+                    ref={previewCanvasRef}
+                    config={selection.config}
+                    uploadedImage={uploadedImage}
+                    uploadedLogo={uploadedLogo}
+                    textElements={textElements}
+                    existingImageUrl={editingBanner?.background_image_url || editingBanner?.image_url}
+                    existingLogoUrl={editingBanner?.logo_url}
+                  />
+                </div>
               </div>
             </div>
           </div>
