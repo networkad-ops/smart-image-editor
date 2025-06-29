@@ -215,6 +215,102 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       maxLength: 30,
       maxLines: 2
     }
+  },
+
+  'aviation-no-logo-mobile': {
+    name: '항공팀 배너 (Mobile, 로고 없음)',
+    width: 1560,
+    height: 468,
+    maxFileSize: 500 * 1024,
+    fixedText: true,
+    allowCustomText: false,
+    subTitle: {
+      x: 81,
+      y: 86,
+      width: 1460,
+      height: 60,
+      fontSize: 60,
+      lineHeight: 74.4, // 124%
+      fontFamily: 'Pretendard',
+      fontWeight: 500, // Medium
+      letterSpacing: -0.6, // -1%
+      maxLength: 20,
+      maxLines: 1
+    },
+    mainTitle: {
+      x: 81,
+      y: 187,
+      width: 1460,
+      height: 90,
+      fontSize: 80,
+      lineHeight: 99.2, // 124%
+      fontFamily: 'Pretendard',
+      fontWeight: 700, // Bold
+      letterSpacing: -1.6, // -2%
+      maxLength: 24,
+      maxLines: 1
+    },
+    bottomSubTitle: {
+      x: 81,
+      y: 310,
+      width: 1460,
+      height: 60,
+      fontSize: 60,
+      lineHeight: 74.4, // 124%
+      fontFamily: 'Pretendard',
+      fontWeight: 700, // Bold
+      letterSpacing: -1.2, // -2%
+      maxLength: 20,
+      maxLines: 1
+    }
+  },
+
+  'aviation-no-logo-pc': {
+    name: '항공팀 배너 (PC, 로고 없음)',
+    width: 2880,
+    height: 480,
+    maxFileSize: 1.5 * 1024 * 1024,
+    fixedText: true,
+    allowCustomText: false,
+    subTitle: {
+      x: 110,
+      y: 90,
+      width: 2680,
+      height: 60,
+      fontSize: 54,
+      lineHeight: 66.96, // 124%
+      fontFamily: 'Pretendard',
+      fontWeight: 500, // Medium
+      letterSpacing: -0.54, // -1%
+      maxLength: 20,
+      maxLines: 1
+    },
+    mainTitle: {
+      x: 110,
+      y: 182,
+      width: 2680,
+      height: 90,
+      fontSize: 80,
+      lineHeight: 99.2, // 124%
+      fontFamily: 'Pretendard',
+      fontWeight: 700, // Bold
+      letterSpacing: -1.6, // -2%
+      maxLength: 36,
+      maxLines: 1
+    },
+    bottomSubTitle: {
+      x: 110,
+      y: 306,
+      width: 2680,
+      height: 70,
+      fontSize: 64,
+      lineHeight: 79.36, // 124%
+      fontFamily: 'Pretendard',
+      fontWeight: 700, // Bold
+      letterSpacing: -1.28, // -2%
+      maxLength: 30,
+      maxLines: 1
+    }
   }
 
 };

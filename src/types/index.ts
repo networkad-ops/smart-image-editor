@@ -17,6 +17,7 @@ export interface BannerConfig {
   allowCustomText?: boolean;
   mainTitle?: TextConfig;
   subTitle?: TextConfig;
+  bottomSubTitle?: TextConfig; // 하단 서브타이틀 추가
   logo?: LogoConfig;
   buttonText?: TextConfig;
 }

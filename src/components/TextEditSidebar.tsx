@@ -26,9 +26,25 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const subTitleInputRef = useRef<HTMLInputElement>(null);
   const mainTitleInputRef = useRef<HTMLTextAreaElement>(null);
+  const bottomSubTitleInputRef = useRef<HTMLInputElement>(null);
   
   // 텍스트 지우기 상태 추가
   const [clearStatus, setClearStatus] = useState<{[key: string]: boolean}>({});
+  
+  // 색상 피커 상태 추가
+  const [colorPickerMode, setColorPickerMode] = useState<{
+    isActive: boolean;
+    elementId: string | null;
+    originalColor: string | null;
+    originalColorSegments: ColorSegment[] | undefined;
+    previewColor: string | null;
+  }>({
+    isActive: false,
+    elementId: null,
+    originalColor: null,
+    originalColorSegments: undefined,
+    previewColor: null
+  });
   
   // 색상 팔레트 정의
   const colorPalette = [
@@ -53,7 +69,98 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     }
   };
 
-  // 색상 즉시 적용 - 엑셀 스타일
+  // 색상 미리보기 시작
+  const startColorPreview = (elementId: string) => {
+    const element = textElements.find(el => el.id === elementId);
+    if (!element) return;
+    
+    setColorPickerMode({
+      isActive: true,
+      elementId,
+      originalColor: element.color || '#000000',
+      originalColorSegments: element.colorSegments || undefined,
+      previewColor: null
+    });
+  };
+
+  // 색상 미리보기 적용
+  const applyColorPreview = (elementId: string, color: string) => {
+    setColorPickerMode(prev => ({ ...prev, previewColor: color }));
+    
+    // 선택된 범위가 있으면 부분 색상 미리보기
+    if (selectedRange && selectedRange.elementId === elementId) {
+      const element = textElements.find(el => el.id === elementId);
+      if (!element) return;
+      
+      const { start, end } = selectedRange;
+      const existingSegments = element.colorSegments || [];
+      const newSegment: ColorSegment = { start, end, color };
+      
+      let updatedSegments = existingSegments.filter(segment => 
+        segment.end <= start || segment.start >= end
+      );
+      
+      existingSegments.forEach(segment => {
+        if (segment.start < start && segment.end > start && segment.end <= end) {
+          updatedSegments.push({ ...segment, end: start });
+        } else if (segment.start >= start && segment.start < end && segment.end > end) {
+          updatedSegments.push({ ...segment, start: end });
+        } else if (segment.start < start && segment.end > end) {
+          updatedSegments.push({ ...segment, end: start });
+          updatedSegments.push({ ...segment, start: end });
+        }
+      });
+      
+      updatedSegments.push(newSegment);
+      updatedSegments.sort((a, b) => a.start - b.start);
+      
+      onUpdateText(elementId, { colorSegments: updatedSegments });
+    } else {
+      // 전체 색상 미리보기
+      onUpdateText(elementId, { color });
+    }
+  };
+
+  // 색상 변경 확인
+  const confirmColorChange = () => {
+    setColorPickerMode({
+      isActive: false,
+      elementId: null,
+      originalColor: null,
+      originalColorSegments: undefined,
+      previewColor: null
+    });
+    setSelectedRange(null);
+  };
+
+  // 색상 변경 취소
+  const cancelColorChange = () => {
+    if (!colorPickerMode.isActive || !colorPickerMode.elementId) return;
+    
+    // 원래 색상으로 복구
+    if (colorPickerMode.originalColorSegments) {
+      onUpdateText(colorPickerMode.elementId, { 
+        color: colorPickerMode.originalColor || undefined,
+        colorSegments: colorPickerMode.originalColorSegments 
+      });
+    } else {
+      onUpdateText(colorPickerMode.elementId, { 
+        color: colorPickerMode.originalColor || undefined,
+        colorSegments: []
+      });
+    }
+    
+    setColorPickerMode({
+      isActive: false,
+      elementId: null,
+      originalColor: null,
+      originalColorSegments: undefined,
+      previewColor: null
+    });
+    setSelectedRange(null);
+  };
+
+  // 색상 즉시 적용 - 엑셀 스타일 (기존 방식 유지)
   const applyColorInstantly = (elementId: string, color: string) => {
     // 선택된 범위가 있으면 부분 색상 적용
     if (selectedRange && selectedRange.elementId === elementId) {
@@ -104,35 +211,83 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   };
 
   // 색상 팔레트 컴포넌트
-  const ColorPalette = ({ elementId, isEnabled }: { elementId: string, isEnabled: boolean }) => (
-    <div className={`space-y-2 ${!isEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
-      <div className="text-xs font-medium text-gray-700">
-        색상 팔레트 {!isEnabled && '(텍스트를 선택하거나 전체 색상 변경용)'}
-      </div>
-      <div className="grid grid-cols-8 gap-1 p-2 bg-gray-50 rounded border">
-        {colorPalette.map((color) => (
-          <button
-            key={color}
-            className="w-6 h-6 rounded border border-gray-300 cursor-pointer hover:scale-110 hover:border-gray-500 transition-all"
-            style={{ backgroundColor: color }}
-            onClick={() => applyColorInstantly(elementId, color)}
-            title={`색상: ${color}`}
+  const ColorPalette = ({ elementId, isEnabled }: { elementId: string, isEnabled: boolean }) => {
+    const isActiveColorPicker = colorPickerMode.isActive && colorPickerMode.elementId === elementId;
+    
+    return (
+      <div className={`space-y-2 ${!isEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className="text-xs font-medium text-gray-700">
+          색상 팔레트 {!isEnabled && '(텍스트를 선택하거나 전체 색상 변경용)'}
+        </div>
+        
+        {/* 색상 미리보기 모드 안내 */}
+        {isActiveColorPicker && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-xs text-yellow-800">
+            미리보기 중입니다. 확인 또는 취소를 선택해주세요.
+          </div>
+        )}
+        
+        <div className="grid grid-cols-8 gap-1 p-2 bg-gray-50 rounded border">
+          {colorPalette.map((color) => (
+            <button
+              key={color}
+              className="w-6 h-6 rounded border border-gray-300 cursor-pointer hover:scale-110 hover:border-gray-500 transition-all"
+              style={{ backgroundColor: color }}
+              onClick={() => {
+                if (!isActiveColorPicker) {
+                  startColorPreview(elementId);
+                }
+                applyColorPreview(elementId, color);
+              }}
+              title={`색상: ${color}`}
+            />
+          ))}
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-600">사용자 정의:</span>
+          <input
+            type="color"
+            onInput={(e) => {
+              const color = (e.target as HTMLInputElement).value;
+              if (!isActiveColorPicker) {
+                startColorPreview(elementId);
+              }
+              applyColorPreview(elementId, color);
+            }}
+            onChange={(e) => {
+              const color = (e.target as HTMLInputElement).value;
+              if (!isActiveColorPicker) {
+                startColorPreview(elementId);
+              }
+              applyColorPreview(elementId, color);
+            }}
+            className="w-8 h-6 border rounded cursor-pointer"
+            title="드래그하면서 색상 미리보기"
           />
-        ))}
+          <span className="text-xs text-gray-400">← 드래그해보세요!</span>
+        </div>
+        
+        {/* 확인/취소 버튼 */}
+        {isActiveColorPicker && (
+          <div className="flex gap-2 pt-2 border-t border-gray-200">
+            <button
+              onClick={confirmColorChange}
+              className="flex-1 px-3 py-2 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+            >
+              ✓ 확인
+            </button>
+            <button
+              onClick={cancelColorChange}
+              className="flex-1 px-3 py-2 bg-gray-500 text-white text-xs rounded hover:bg-gray-600 transition-colors"
+            >
+              ✕ 취소
+            </button>
+          </div>
+        )}
       </div>
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-600">사용자 정의:</span>
-        <input
-          type="color"
-          onInput={(e) => applyColorInstantly(elementId, (e.target as HTMLInputElement).value)}
-          onChange={(e) => applyColorInstantly(elementId, (e.target as HTMLInputElement).value)}
-          className="w-8 h-6 border rounded cursor-pointer"
-          title="드래그하면서 실시간 색상 변경"
-        />
-        <span className="text-xs text-gray-400">← 드래그해보세요!</span>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const handleAddText = () => {
     if (!newText.trim()) return;
@@ -156,11 +311,12 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     setNewText('');
   };
 
-  // 메인타이틀과 서브타이틀, 버튼 텍스트 분리
+  // 메인타이틀과 서브타이틀, 버튼 텍스트, 하단 서브타이틀 분리
   const mainTitle = textElements.find(el => el.id === 'main-title');
   const subTitle = textElements.find(el => el.id === 'sub-title');
+  const bottomSubTitle = textElements.find(el => el.id === 'bottom-sub-title');
   const buttonText = textElements.find(el => el.id === 'button-text');
-  const otherTexts = textElements.filter(el => el.id !== 'main-title' && el.id !== 'sub-title' && el.id !== 'button-text');
+  const otherTexts = textElements.filter(el => el.id !== 'main-title' && el.id !== 'sub-title' && el.id !== 'bottom-sub-title' && el.id !== 'button-text');
   
   return (
     <div className={showBackground ? "bg-white rounded-lg shadow-lg p-4" : ""}>
@@ -304,6 +460,53 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           
           {/* 색상 팔레트 */}
           <ColorPalette elementId="main-title" isEnabled={true} />
+        </div>
+      )}
+
+      {/* 하단 서브타이틀 편집 - 컴팩트하게 */}
+      {config.bottomSubTitle && (
+        <div className="mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <div className="flex items-center space-x-2">
+              <h3 className="font-medium text-sm">하단 서브타이틀</h3>
+              <button
+                onClick={() => setSelectedElementId(selectedElementId === 'bottom-sub-title' ? null : 'bottom-sub-title')}
+                className={`text-xs px-2 py-1 rounded transition-colors ${
+                  selectedElementId === 'bottom-sub-title'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {selectedElementId === 'bottom-sub-title' ? '선택됨' : '위치 조정'}
+              </button>
+            </div>
+            <span className="text-xs text-gray-500">
+              {bottomSubTitle?.text?.length || 0}/{config.bottomSubTitle.maxLength}
+            </span>
+          </div>
+          
+          <input
+            ref={bottomSubTitleInputRef}
+            type="text"
+            value={bottomSubTitle?.text || ''}
+            onChange={(e) => onUpdateText('bottom-sub-title', { text: e.target.value })}
+            onSelect={() => handleTextSelect('bottom-sub-title', bottomSubTitleInputRef)}
+            onMouseUp={() => handleTextSelect('bottom-sub-title', bottomSubTitleInputRef)}
+            onKeyUp={() => handleTextSelect('bottom-sub-title', bottomSubTitleInputRef)}
+            className="w-full px-3 py-2 border rounded mb-2 text-sm"
+            placeholder="하단 서브타이틀 입력"
+            maxLength={config.bottomSubTitle.maxLength}
+          />
+          
+          {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}
+          {selectedRange && selectedRange.elementId === 'bottom-sub-title' && (
+            <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
+              <div className="text-xs text-blue-700">선택된 텍스트: "{(bottomSubTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"</div>
+            </div>
+          )}
+          
+          {/* 색상 팔레트 */}
+          <ColorPalette elementId="bottom-sub-title" isEnabled={true} />
         </div>
       )}
 

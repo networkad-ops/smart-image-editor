@@ -248,6 +248,29 @@ function App() {
       });
     }
     
+    // 하단 서브 타이틀
+    if (selection.config.bottomSubTitle) {
+      elements.push({
+        id: 'bottom-sub-title',
+        type: 'fixed',
+        text: '',
+        x: selection.config.bottomSubTitle.x,
+        y: selection.config.bottomSubTitle.y,
+        width: selection.config.bottomSubTitle.width,
+        height: selection.config.bottomSubTitle.height,
+        fontSize: selection.config.bottomSubTitle.fontSize,
+        fontFamily: selection.config.bottomSubTitle.fontFamily,
+        fontWeight: selection.config.bottomSubTitle.fontWeight ?? 700,
+        letterSpacing: selection.config.bottomSubTitle.letterSpacing,
+        color: '#000000',
+        editable: {
+          position: !selection.config.fixedText,
+          size: false,
+          color: true
+        }
+      });
+    }
+    
     // 버튼 텍스트
     if (selection.config.buttonText) {
       elements.push({
