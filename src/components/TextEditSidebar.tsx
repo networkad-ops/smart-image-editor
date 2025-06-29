@@ -205,7 +205,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   };
 
   // 통합 색상 선택기 컴포넌트
-  const UnifiedColorPicker = () => {
+  const renderUnifiedColorPicker = () => {
     const isActiveColorPicker = colorPickerMode.isActive;
     const currentElement = textElements.find(el => el.id === colorPickerMode.elementId);
     const currentColor = currentElement?.color || '#000000';
@@ -244,14 +244,17 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
         )}
         
         <FigmaColorPicker
+          key={`${colorPickerMode.elementId}-${currentColor}`}
           color={currentColor}
           onChange={(color) => {
-            if (isActiveColorPicker && colorPickerMode.elementId) {
+            // 색상이 변경될 때마다 즉시 미리보기에 반영
+            if (colorPickerMode.elementId) {
               applyColorPreview(colorPickerMode.elementId, color);
             }
           }}
           onPreview={(color) => {
-            if (isActiveColorPicker && colorPickerMode.elementId) {
+            // 드래그 중일 때도 실시간 반영
+            if (colorPickerMode.elementId) {
               applyColorPreview(colorPickerMode.elementId, color);
             }
           }}
@@ -295,11 +298,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   return (
     <div className={showBackground ? "bg-white rounded-lg shadow-lg p-4" : ""}>
       {showTitle && <h2 className="text-lg font-semibold mb-3">텍스트 편집</h2>}
-      
-      {/* 통합 색상 선택기 - 상단에 배치 */}
-      <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
-        <UnifiedColorPicker />
-      </div>
 
       {/* 서브타이틀 편집 - 컴팩트하게 */}
       {config.subTitle && (
@@ -773,7 +771,12 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             ))}
           </div>
         </div>
-      )}
+              )}
+
+      {/* 통합 색상 선택기 - 하단에 배치 */}
+      <div className="mt-6 pt-4 border-t border-gray-200">
+        {renderUnifiedColorPicker()}
+      </div>
 
     </div>
   );
