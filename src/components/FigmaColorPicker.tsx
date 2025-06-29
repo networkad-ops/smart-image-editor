@@ -31,7 +31,7 @@ export default function FigmaColorPicker({
 }: FigmaColorPickerProps) {
   const [hsv, setHsv] = useState<HSV>({ h: 0, s: 100, v: 100 });
   const [alpha, setAlpha] = useState(100);
-  const [hexInput, setHexInput] = useState('');
+  const [hexInput, setHexInput] = useState('000000');
   const [isDragging, setIsDragging] = useState(false);
   const [dragType, setDragType] = useState<'saturation' | 'hue' | 'alpha' | null>(null);
   
@@ -101,15 +101,22 @@ export default function FigmaColorPicker({
     };
   };
 
-  // 초기 색상 설정
+  // 초기 색상 설정 - 한 번만 실행
   useEffect(() => {
     const rgb = hexToRgb(color);
     if (rgb) {
       const newHsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
       setHsv(newHsv);
       setHexInput(color.replace('#', '').toUpperCase());
+      // 투명도는 rgba에서 추출하거나 기본값 100
+      if (color.includes('rgba')) {
+        const alphaMatch = color.match(/rgba\([^,]+,[^,]+,[^,]+,([^)]+)\)/);
+        if (alphaMatch) {
+          setAlpha(Math.round(parseFloat(alphaMatch[1]) * 100));
+        }
+      }
     }
-  }, [color]);
+  }, []); // 빈 의존성 배열로 초기화만 수행
 
   // 현재 색상 계산
   const currentRgb = hsvToRgb(hsv.h, hsv.s, hsv.v);
@@ -117,12 +124,8 @@ export default function FigmaColorPicker({
   const currentColor = `rgba(${currentRgb.r}, ${currentRgb.g}, ${currentRgb.b}, ${alpha / 100})`;
 
   // 색상 업데이트 함수
-  const updateColor = useCallback((newHsv: HSV, newAlpha: number) => {
-    const rgb = hsvToRgb(newHsv.h, newHsv.s, newHsv.v);
-    const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
-    setHexInput(hex.replace('#', '').toUpperCase());
-    
-    const color = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${newAlpha / 100})`;
+  const updateColor = useCallback((newRgb: RGB, newAlpha: number) => {
+    const color = `rgba(${newRgb.r}, ${newRgb.g}, ${newRgb.b}, ${newAlpha / 100})`;
     if (onPreview) {
       onPreview(color);
     } else {
@@ -130,8 +133,8 @@ export default function FigmaColorPicker({
     }
   }, [onPreview, onChange]);
 
-  // 드래그 핸들러들 - 단순화
-  const handleSaturationMove = useCallback((clientX: number, clientY: number) => {
+  // 채도/명도 드래그
+  const handleSaturationDrag = useCallback((clientX: number, clientY: number) => {
     if (!saturationRef.current) return;
     
     const rect = saturationRef.current.getBoundingClientRect();
@@ -143,10 +146,15 @@ export default function FigmaColorPicker({
     
     const newHsv = { ...hsv, s: newS, v: newV };
     setHsv(newHsv);
-    updateColor(newHsv, alpha);
+    
+    const rgb = hsvToRgb(newHsv.h, newHsv.s, newHsv.v);
+    const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+    setHexInput(hex.replace('#', '').toUpperCase());
+    updateColor(rgb, alpha);
   }, [hsv, alpha, updateColor]);
 
-  const handleHueMove = useCallback((clientX: number) => {
+  // 색조 드래그
+  const handleHueDrag = useCallback((clientX: number) => {
     if (!hueRef.current) return;
     
     const rect = hueRef.current.getBoundingClientRect();
@@ -155,10 +163,15 @@ export default function FigmaColorPicker({
     
     const newHsv = { ...hsv, h: newH };
     setHsv(newHsv);
-    updateColor(newHsv, alpha);
+    
+    const rgb = hsvToRgb(newHsv.h, newHsv.s, newHsv.v);
+    const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+    setHexInput(hex.replace('#', '').toUpperCase());
+    updateColor(rgb, alpha);
   }, [hsv, alpha, updateColor]);
 
-  const handleAlphaMove = useCallback((clientX: number) => {
+  // 투명도 드래그
+  const handleAlphaDrag = useCallback((clientX: number) => {
     if (!alphaRef.current) return;
     
     const rect = alphaRef.current.getBoundingClientRect();
@@ -166,66 +179,59 @@ export default function FigmaColorPicker({
     const newAlpha = Math.round((x / rect.width) * 100);
     
     setAlpha(newAlpha);
-    updateColor(hsv, newAlpha);
-  }, [hsv, updateColor]);
+    updateColor(currentRgb, newAlpha);
+  }, [currentRgb, updateColor]);
 
-  // 마우스 이벤트 핸들러들
-  const handleMouseDown = (e: React.MouseEvent | React.TouchEvent, type: 'saturation' | 'hue' | 'alpha') => {
+  // 마우스 다운
+  const handleMouseDown = (e: React.MouseEvent, type: 'saturation' | 'hue' | 'alpha') => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     setIsDragging(true);
     setDragType(type);
     
-    // 마우스 또는 터치 이벤트에서 좌표 추출
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const clientX = e.clientX;
+    const clientY = e.clientY;
     
-    // 초기 위치 설정
     if (type === 'saturation') {
-      handleSaturationMove(clientX, clientY);
+      handleSaturationDrag(clientX, clientY);
     } else if (type === 'hue') {
-      handleHueMove(clientX);
+      handleHueDrag(clientX);
     } else if (type === 'alpha') {
-      handleAlphaMove(clientX);
+      handleAlphaDrag(clientX);
     }
-    
-    e.preventDefault();
-    e.stopPropagation();
   };
 
-  const handleMouseMove = useCallback((e: MouseEvent | TouchEvent) => {
+  // 마우스 무브
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || !dragType) return;
     
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    e.preventDefault();
     
-    requestAnimationFrame(() => {
-      if (dragType === 'saturation') {
-        handleSaturationMove(clientX, clientY);
-      } else if (dragType === 'hue') {
-        handleHueMove(clientX);
-      } else if (dragType === 'alpha') {
-        handleAlphaMove(clientX);
-      }
-    });
-  }, [isDragging, dragType, handleSaturationMove, handleHueMove, handleAlphaMove]);
+    if (dragType === 'saturation') {
+      handleSaturationDrag(e.clientX, e.clientY);
+    } else if (dragType === 'hue') {
+      handleHueDrag(e.clientX);
+    } else if (dragType === 'alpha') {
+      handleAlphaDrag(e.clientX);
+    }
+  }, [isDragging, dragType, handleSaturationDrag, handleHueDrag, handleAlphaDrag]);
 
+  // 마우스 업
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
     setDragType(null);
   }, []);
 
+  // 글로벌 이벤트 리스너
   useEffect(() => {
     if (isDragging) {
-      // 마우스 및 터치 이벤트 리스너 추가
-      document.addEventListener('mousemove', handleMouseMove, { passive: false });
+      document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      document.addEventListener('touchmove', handleMouseMove, { passive: false });
-      document.addEventListener('touchend', handleMouseUp);
       
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
-        document.removeEventListener('touchmove', handleMouseMove);
-        document.removeEventListener('touchend', handleMouseUp);
       };
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
@@ -240,29 +246,16 @@ export default function FigmaColorPicker({
       if (rgb) {
         const newHsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
         setHsv(newHsv);
-        updateColor(newHsv, alpha);
+        updateColor(rgb, alpha);
       }
     }
   };
 
-  // 스포이드 도구 (EyeDropper API)
-  const handleEyeDropper = async () => {
-    if ('EyeDropper' in window) {
-      try {
-        // @ts-ignore
-        const eyeDropper = new EyeDropper();
-        const result = await eyeDropper.open();
-        const rgb = hexToRgb(result.sRGBHex);
-        if (rgb) {
-          const newHsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
-          setHsv(newHsv);
-          setHexInput(result.sRGBHex.replace('#', '').toUpperCase());
-          updateColor(newHsv, alpha);
-        }
-      } catch (error) {
-        console.log('EyeDropper cancelled or not supported');
-      }
-    }
+  // 투명도 입력 핸들러
+  const handleAlphaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Math.max(0, Math.min(100, parseInt(e.target.value) || 0));
+    setAlpha(value);
+    updateColor(currentRgb, value);
   };
 
   return (
@@ -270,30 +263,19 @@ export default function FigmaColorPicker({
       {/* 메인 색상 선택 영역 */}
       <div
         ref={saturationRef}
-        className={`relative w-full h-32 mb-3 rounded select-none transition-all 
-          ${isDragging && dragType === 'saturation' 
-            ? 'cursor-grabbing' 
-            : 'cursor-crosshair hover:shadow-lg'
-          }`}
+        className={`relative w-full h-32 mb-3 rounded cursor-crosshair select-none ${
+          isDragging && dragType === 'saturation' ? 'cursor-grabbing' : ''
+        }`}
         style={{
           background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${hsv.h}, 100%, 50%))`
         }}
         onMouseDown={(e) => handleMouseDown(e, 'saturation')}
-        onTouchStart={(e) => handleMouseDown(e, 'saturation')}
       >
-        {/* 선택된 위치 표시 - 드래그 중일 때 더 크게 */}
         <div
-          className={`absolute border-2 border-white rounded-full shadow-lg transform -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-150 ease-out
-            ${isDragging && dragType === 'saturation' 
-              ? 'w-5 h-5 shadow-xl scale-110' 
-              : 'w-3 h-3 hover:w-4 hover:h-4 hover:shadow-xl'
-            }`}
+          className="absolute w-3 h-3 border-2 border-white rounded-full shadow-lg transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
           style={{
             left: `${hsv.s}%`,
-            top: `${100 - hsv.v}%`,
-            boxShadow: isDragging && dragType === 'saturation' 
-              ? '0 0 0 2px rgba(59, 130, 246, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3)' 
-              : '0 2px 8px rgba(0, 0, 0, 0.2)'
+            top: `${100 - hsv.v}%`
           }}
         />
       </div>
@@ -302,30 +284,19 @@ export default function FigmaColorPicker({
       <div className="mb-3">
         <div
           ref={hueRef}
-          className={`relative w-full h-4 rounded select-none transition-all duration-150
-            ${isDragging && dragType === 'hue' 
-              ? 'cursor-grabbing shadow-lg' 
-              : 'cursor-pointer hover:shadow-md'
-            }`}
+          className={`relative w-full h-4 rounded cursor-pointer select-none ${
+            isDragging && dragType === 'hue' ? 'cursor-grabbing' : ''
+          }`}
           style={{
             background: 'linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)'
           }}
           onMouseDown={(e) => handleMouseDown(e, 'hue')}
-          onTouchStart={(e) => handleMouseDown(e, 'hue')}
         >
-          {/* 색조 선택 표시 - 드래그 중일 때 더 크게 */}
           <div
-            className={`absolute border-2 border-white rounded-full shadow-lg transform -translate-x-1/2 -translate-y-0 pointer-events-none transition-all duration-150 ease-out
-              ${isDragging && dragType === 'hue' 
-                ? 'w-6 h-6 shadow-xl scale-110' 
-                : 'w-4 h-4 hover:w-5 hover:h-5 hover:shadow-xl'
-              }`}
+            className="absolute w-4 h-4 border-2 border-white rounded-full shadow-lg transform -translate-x-1/2 pointer-events-none"
             style={{
               left: `${(hsv.h / 360) * 100}%`,
-              backgroundColor: `hsl(${hsv.h}, 100%, 50%)`,
-              boxShadow: isDragging && dragType === 'hue' 
-                ? '0 0 0 2px rgba(59, 130, 246, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3)' 
-                : '0 2px 8px rgba(0, 0, 0, 0.2)'
+              backgroundColor: `hsl(${hsv.h}, 100%, 50%)`
             }}
           />
         </div>
@@ -335,18 +306,14 @@ export default function FigmaColorPicker({
       <div className="mb-3">
         <div
           ref={alphaRef}
-          className={`relative w-full h-4 rounded overflow-hidden select-none transition-all duration-150
-            ${isDragging && dragType === 'alpha' 
-              ? 'cursor-grabbing shadow-lg' 
-              : 'cursor-pointer hover:shadow-md'
-            }`}
+          className={`relative w-full h-4 rounded overflow-hidden cursor-pointer select-none ${
+            isDragging && dragType === 'alpha' ? 'cursor-grabbing' : ''
+          }`}
           style={{
             background: `linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)`,
-            backgroundSize: '8px 8px',
-            backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px'
+            backgroundSize: '8px 8px'
           }}
           onMouseDown={(e) => handleMouseDown(e, 'alpha')}
-          onTouchStart={(e) => handleMouseDown(e, 'alpha')}
         >
           <div
             className="absolute inset-0 rounded"
@@ -354,68 +321,41 @@ export default function FigmaColorPicker({
               background: `linear-gradient(to right, transparent, ${currentHex})`
             }}
           />
-          {/* 투명도 선택 표시 - 드래그 중일 때 더 크게 */}
           <div
-            className={`absolute border-2 border-white rounded-full shadow-lg transform -translate-x-1/2 -translate-y-0 pointer-events-none transition-all duration-150 ease-out
-              ${isDragging && dragType === 'alpha' 
-                ? 'w-6 h-6 shadow-xl scale-110' 
-                : 'w-4 h-4 hover:w-5 hover:h-5 hover:shadow-xl'
-              }`}
+            className="absolute w-4 h-4 border-2 border-white rounded-full shadow-lg transform -translate-x-1/2 pointer-events-none"
             style={{
               left: `${alpha}%`,
-              backgroundColor: currentColor,
-              boxShadow: isDragging && dragType === 'alpha' 
-                ? '0 0 0 2px rgba(59, 130, 246, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3)' 
-                : '0 2px 8px rgba(0, 0, 0, 0.2)'
+              backgroundColor: currentColor
             }}
           />
         </div>
       </div>
 
-      {/* 컨트롤 패널 */}
+      {/* 컨트롤들 */}
       <div className="space-y-2">
-        {/* Hex 입력과 스포이드 */}
+        {/* Hex 입력 */}
         <div className="flex items-center space-x-2">
-          <div className="flex items-center space-x-1 flex-1">
-            <span className="text-sm text-gray-600 w-8">Hex</span>
-            <div className="flex items-center border border-gray-300 rounded px-2 py-1 flex-1">
-              <span className="text-gray-400">#</span>
-              <input
-                type="text"
-                value={hexInput}
-                onChange={handleHexChange}
-                className="flex-1 outline-none text-sm"
-                maxLength={6}
-              />
-            </div>
+          <span className="text-sm text-gray-600 w-8">Hex</span>
+          <div className="flex items-center border border-gray-300 rounded px-2 py-1 flex-1">
+            <span className="text-gray-400">#</span>
+            <input
+              type="text"
+              value={hexInput}
+              onChange={handleHexChange}
+              className="flex-1 outline-none text-sm"
+              maxLength={6}
+            />
           </div>
-          
-          {/* 스포이드 도구 */}
-          {'EyeDropper' in window && (
-            <button
-              onClick={handleEyeDropper}
-              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-all duration-150 ease-out hover:scale-105 active:scale-95 active:bg-gray-200 transform"
-              title="스포이드 도구"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-              </svg>
-            </button>
-          )}
         </div>
 
-        {/* 투명도 수치 */}
+        {/* 투명도 입력 */}
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-600 w-8">A</span>
           <div className="flex items-center border border-gray-300 rounded px-2 py-1 flex-1">
             <input
               type="number"
               value={Math.round(alpha)}
-              onChange={(e) => {
-                const value = Math.max(0, Math.min(100, parseInt(e.target.value) || 0));
-                setAlpha(value);
-                updateColor(hsv, value);
-              }}
+              onChange={handleAlphaChange}
               className="flex-1 outline-none text-sm"
               min={0}
               max={100}
@@ -446,13 +386,13 @@ export default function FigmaColorPicker({
           <div className="flex space-x-2 pt-2 border-t border-gray-200">
             <button
               onClick={onConfirm}
-              className="flex-1 px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs font-medium transition-all duration-150 ease-out hover:scale-105 active:scale-95 active:bg-blue-800 transform hover:shadow-lg"
+              className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
             >
               ✓ 확인
             </button>
             <button
               onClick={onCancel}
-              className="flex-1 px-2 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 text-xs font-medium transition-all duration-150 ease-out hover:scale-105 active:scale-95 active:bg-gray-700 transform hover:shadow-lg"
+              className="flex-1 px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm font-medium"
             >
               ✕ 취소
             </button>
