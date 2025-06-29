@@ -5,6 +5,7 @@ import { BannerHistory } from './components/BannerHistory';
 import { TextElement, Banner, BannerSelection } from './types';
 import { bannerConfigs } from './config/bannerConfigs';
 import { useSupabase } from './hooks/useSupabase';
+import { testSupabaseConnection } from './services/supabaseService';
 
 type AppStep = 'home' | 'banner-selection' | 'banner-history' | 'editor';
 
@@ -329,51 +330,101 @@ function App() {
     
     setLoading(true);
     try {
+      console.log('🚀 배너 저장 프로세스 시작');
+      
+      // 1. Supabase 연결 상태 확인
+      console.log('🔍 Supabase 연결 상태 확인 중...');
+      const connectionTest = await testSupabaseConnection();
+      
+      if (!connectionTest.success) {
+        console.error('❌ Supabase 연결 실패:', connectionTest);
+        throw new Error(`데이터베이스 연결 오류: ${connectionTest.message}`);
+      }
+      
+      console.log('✅ Supabase 연결 정상:', connectionTest.message);
+      
       setFinalImage(image);
       
       let backgroundImageUrl = '';
       let logoUrl = '';
       let finalBannerUrl = '';
       
-      // 배경 이미지 업로드
+      // 2. 배경 이미지 업로드
       if (uploadedImage) {
-        backgroundImageUrl = await uploadBannerImage(uploadedImage, 'background');
+        console.log('📸 배경 이미지 업로드 중...');
+        try {
+          backgroundImageUrl = await uploadBannerImage(uploadedImage, 'background');
+          console.log('✅ 배경 이미지 업로드 성공:', backgroundImageUrl);
+        } catch (error) {
+          console.error('❌ 배경 이미지 업로드 실패:', error);
+          throw new Error(`배경 이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        }
       }
       
-      // 로고 이미지 업로드
+      // 3. 로고 이미지 업로드
       if (uploadedLogo) {
-        logoUrl = await uploadLogo(uploadedLogo);
+        console.log('🏷️ 로고 이미지 업로드 중...');
+        try {
+          logoUrl = await uploadLogo(uploadedLogo);
+          console.log('✅ 로고 이미지 업로드 성공:', logoUrl);
+        } catch (error) {
+          console.error('❌ 로고 이미지 업로드 실패:', error);
+          throw new Error(`로고 이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        }
       }
       
-      // 최종 배너 이미지 업로드
-      const finalImageFile = new File([image], 'final-banner.png', { type: 'image/png' });
-      finalBannerUrl = await uploadBannerImage(finalImageFile, 'final');
+      // 4. 최종 배너 이미지 업로드
+      console.log('🎨 최종 배너 이미지 업로드 중...');
+      try {
+        const finalImageFile = new File([image], 'final-banner.png', { type: 'image/png' });
+        finalBannerUrl = await uploadBannerImage(finalImageFile, 'final');
+        console.log('✅ 최종 배너 이미지 업로드 성공:', finalBannerUrl);
+      } catch (error) {
+        console.error('❌ 최종 배너 이미지 업로드 실패:', error);
+        throw new Error(`최종 배너 이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+      }
       
-      // 썸네일 생성 및 업로드
+      // 5. 썸네일 생성 및 업로드
+      console.log('🖼️ 썸네일 생성 및 업로드 중...');
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
       
-      const thumbnailUrl = await new Promise<string>((resolve) => {
+      const thumbnailUrl = await new Promise<string>((resolve, reject) => {
         img.onload = async () => {
-          const maxSize = 300;
-          const ratio = Math.min(maxSize / img.width, maxSize / img.height);
-          canvas.width = img.width * ratio;
-          canvas.height = img.height * ratio;
-          
-          ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-          
-          canvas.toBlob(async (thumbnailBlob) => {
-            if (thumbnailBlob) {
-              const thumbnailFile = new File([thumbnailBlob], 'thumbnail.png', { type: 'image/png' });
-              const url = await uploadBannerImage(thumbnailFile, 'thumbnail');
-              resolve(url);
-            }
-          }, 'image/png', 0.8);
+          try {
+            const maxSize = 300;
+            const ratio = Math.min(maxSize / img.width, maxSize / img.height);
+            canvas.width = img.width * ratio;
+            canvas.height = img.height * ratio;
+            
+            ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            canvas.toBlob(async (thumbnailBlob) => {
+              if (thumbnailBlob) {
+                try {
+                  const thumbnailFile = new File([thumbnailBlob], 'thumbnail.png', { type: 'image/png' });
+                  const url = await uploadBannerImage(thumbnailFile, 'thumbnail');
+                  console.log('✅ 썸네일 업로드 성공:', url);
+                  resolve(url);
+                } catch (error) {
+                  console.error('❌ 썸네일 업로드 실패:', error);
+                  reject(new Error(`썸네일 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`));
+                }
+              } else {
+                reject(new Error('썸네일 생성 실패'));
+              }
+            }, 'image/png', 0.8);
+          } catch (error) {
+            reject(error);
+          }
         };
+        img.onerror = () => reject(new Error('썸네일 이미지 로드 실패'));
         img.src = URL.createObjectURL(image);
       });
       
+      // 6. 배너 데이터 저장
+      console.log('💾 배너 데이터 저장 중...');
       const bannerData = {
         // 프로젝트 연결 제거 - title에 통합
         title: editingBanner?.title || '새 배너',
@@ -393,21 +444,32 @@ function App() {
         notes: editingBanner?.notes || ''
       };
       
-      if (editingBanner) {
-        await updateBanner(editingBanner.id, bannerData);
-        console.log('배너 업데이트 완료');
-      } else {
-        await createBanner(bannerData);
-        console.log('새 배너 생성 완료');
+      try {
+        if (editingBanner) {
+          await updateBanner(editingBanner.id, bannerData);
+          console.log('✅ 배너 업데이트 완료');
+        } else {
+          await createBanner(bannerData);
+          console.log('✅ 새 배너 생성 완료');
+        }
+      } catch (error) {
+        console.error('❌ 배너 데이터 저장 실패:', error);
+        throw new Error(`배너 데이터 저장 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
       }
       
       // 완료 후 홈으로 이동
+      console.log('🎉 배너 저장 프로세스 완료');
       handleReset();
       setStep('home');
       
     } catch (error) {
-      console.error('배너 저장 실패:', error);
-      alert('배너 저장에 실패했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
+      console.error('💥 배너 저장 프로세스 전체 실패:', error);
+      
+      // 사용자에게 더 자세한 오류 메시지 표시
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+      const detailedMessage = `배너 저장에 실패했습니다.\n\n오류 내용: ${errorMessage}\n\n이 문제가 계속 발생하면 관리자에게 문의해주세요.`;
+      
+      alert(detailedMessage);
     } finally {
       setLoading(false);
     }

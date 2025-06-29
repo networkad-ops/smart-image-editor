@@ -14,6 +14,82 @@ import {
   ProjectStats
 } from '../types'
 
+// ===== Supabase 연결 테스트 =====
+
+export const testSupabaseConnection = async (): Promise<{ success: boolean; message: string; details?: any }> => {
+  try {
+    console.log('🔍 Supabase 연결 상태 확인 중...');
+    
+    // 1. 기본 연결 테스트
+    const { data: healthCheck, error: healthError } = await supabase
+      .from('teams')
+      .select('count(*)')
+      .limit(1);
+    
+    if (healthError) {
+      console.error('❌ DB 연결 실패:', healthError);
+      return {
+        success: false,
+        message: `데이터베이스 연결 실패: ${healthError.message}`,
+        details: healthError
+      };
+    }
+    
+    // 2. Storage 버킷 확인
+    const buckets = ['banner-images', 'final-banners', 'logos', 'thumbnails'];
+    const bucketStatus = [];
+    
+    for (const bucket of buckets) {
+      try {
+        const { data: bucketData, error: bucketError } = await supabase.storage
+          .from(bucket)
+          .list('', { limit: 1 });
+          
+        bucketStatus.push({
+          bucket,
+          exists: !bucketError,
+          error: bucketError?.message
+        });
+      } catch (err) {
+        bucketStatus.push({
+          bucket,
+          exists: false,
+          error: err instanceof Error ? err.message : '알 수 없는 오류'
+        });
+      }
+    }
+    
+    const missingBuckets = bucketStatus.filter(b => !b.exists);
+    
+    console.log('✅ Supabase 연결 상태:', {
+      database: '정상',
+      buckets: bucketStatus
+    });
+    
+    if (missingBuckets.length > 0) {
+      return {
+        success: false,
+        message: `Storage 버킷이 누락되었습니다: ${missingBuckets.map(b => b.bucket).join(', ')}`,
+        details: { bucketStatus }
+      };
+    }
+    
+    return {
+      success: true,
+      message: 'Supabase 연결 정상',
+      details: { bucketStatus }
+    };
+    
+  } catch (err) {
+    console.error('💥 연결 테스트 실패:', err);
+    return {
+      success: false,
+      message: `연결 테스트 실패: ${err instanceof Error ? err.message : '알 수 없는 오류'}`,
+      details: err
+    };
+  }
+};
+
 // ===== 팀 관리 =====
 
 export const teamService = {
@@ -364,15 +440,34 @@ export const bannerService = {
 
   // 배경 이미지 업로드
   async uploadBackgroundImage(file: File, path?: string): Promise<string> {
-    console.log('🚀 배경 이미지 업로드 시작:', { file, path });
+    console.log('🚀 배경 이미지 업로드 시작:', { 
+      fileName: file.name, 
+      fileSize: file.size, 
+      fileType: file.type,
+      path 
+    });
+    
     try {
+      // 파일 크기 검증 (10MB 제한)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        throw new Error(`파일 크기가 너무 큽니다. 최대 10MB까지 업로드 가능합니다. (현재: ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      }
+
+      // 파일 형식 검증
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error(`지원하지 않는 파일 형식입니다. JPG, PNG, WebP 파일만 업로드 가능합니다. (현재: ${file.type})`);
+      }
+
       const bucket = 'banner-images';
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split('.').pop() || 'jpg';
       const randomName = Math.random().toString(36).substring(2);
       const fileName = path || `background-${Date.now()}-${randomName}.${fileExt}`;
       
-      console.log('📝 업로드 정보:', { bucket, fileName });
+      console.log('📝 업로드 정보:', { bucket, fileName, fileSize: file.size });
 
+      // Supabase Storage 업로드
       const { data, error } = await supabase.storage
         .from(bucket)
         .upload(fileName, file, {
@@ -385,10 +480,29 @@ export const bannerService = {
       if (error) {
         console.error('❌ Supabase Storage 오류 상세:', {
           message: error.message,
+          statusCode: (error as any).statusCode,
+          details: (error as any).details,
+          hint: (error as any).hint,
           stack: (error as any).stack,
-          originalError: (error as any).error,
         });
-        throw new Error(`배경 이미지 업로드 중 오류가 발생했습니다: ${error.message}`);
+        
+        // 구체적인 오류 메시지 제공
+        let userMessage = '배경 이미지 업로드 중 오류가 발생했습니다.';
+        if (error.message.includes('not found')) {
+          userMessage = 'Storage 버킷을 찾을 수 없습니다. 관리자에게 문의하세요.';
+        } else if (error.message.includes('permission')) {
+          userMessage = '파일 업로드 권한이 없습니다. 관리자에게 문의하세요.';
+        } else if (error.message.includes('size')) {
+          userMessage = '파일 크기가 제한을 초과했습니다.';
+        } else {
+          userMessage = `업로드 오류: ${error.message}`;
+        }
+        
+        throw new Error(userMessage);
+      }
+
+      if (!data?.path) {
+        throw new Error('업로드된 파일 경로를 가져올 수 없습니다.');
       }
 
       const { data: publicUrlData } = supabase.storage
@@ -396,9 +510,18 @@ export const bannerService = {
         .getPublicUrl(data.path);
 
       console.log('🔗 생성된 공개 URL:', publicUrlData.publicUrl);
+      
+      if (!publicUrlData.publicUrl) {
+        throw new Error('공개 URL을 생성할 수 없습니다.');
+      }
+      
       return publicUrlData.publicUrl;
     } catch (err) {
-      console.error('💥 배경 이미지 업로드 실패:', err);
+      console.error('💥 배경 이미지 업로드 실패:', {
+        error: err,
+        message: err instanceof Error ? err.message : '알 수 없는 오류',
+        stack: err instanceof Error ? err.stack : undefined
+      });
       throw err;
     }
   },
@@ -654,38 +777,178 @@ export const bannerCommentService = {
 export const storageService = {
   // 배너 이미지 업로드
   async uploadBannerImage(file: File, type?: string): Promise<string> {
-    const bucket = type === 'background' ? 'banner-images' : 
-                  type === 'final' ? 'final-banners' : 
-                  type === 'thumbnail' ? 'thumbnails' : 'banner-images';
-    const fileName = `${Date.now()}-${file.name}`;
-    
-    const { data: _data, error } = await supabase.storage
-      .from(bucket)
-      .upload(fileName, file)
+    console.log('🚀 StorageService 이미지 업로드 시작:', { 
+      fileName: file.name, 
+      fileSize: file.size, 
+      fileType: file.type,
+      uploadType: type 
+    });
 
-    if (error) throw error
+    try {
+      // 파일 크기 검증 (10MB 제한)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        throw new Error(`파일 크기가 너무 큽니다. 최대 10MB까지 업로드 가능합니다. (현재: ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(fileName)
+      // 파일 형식 검증
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error(`지원하지 않는 파일 형식입니다. JPG, PNG, WebP 파일만 업로드 가능합니다. (현재: ${file.type})`);
+      }
 
-    return publicUrl
+      const bucket = type === 'background' ? 'banner-images' : 
+                    type === 'final' ? 'final-banners' : 
+                    type === 'thumbnail' ? 'thumbnails' : 'banner-images';
+      
+      const fileExt = file.name.split('.').pop() || 'jpg';
+      const randomName = Math.random().toString(36).substring(2);
+      const fileName = `${type || 'banner'}-${Date.now()}-${randomName}.${fileExt}`;
+      
+      console.log('📝 Storage 업로드 정보:', { bucket, fileName, fileSize: file.size });
+
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      console.log('✅ Storage 응답:', { data, error });
+
+      if (error) {
+        console.error('❌ Storage 오류 상세:', {
+          message: error.message,
+          statusCode: (error as any).statusCode,
+          details: (error as any).details,
+          hint: (error as any).hint,
+        });
+        
+        // 구체적인 오류 메시지 제공
+        let userMessage = '이미지 업로드 중 오류가 발생했습니다.';
+        if (error.message.includes('not found')) {
+          userMessage = `Storage 버킷 '${bucket}'을 찾을 수 없습니다. 관리자에게 문의하세요.`;
+        } else if (error.message.includes('permission')) {
+          userMessage = '파일 업로드 권한이 없습니다. 관리자에게 문의하세요.';
+        } else if (error.message.includes('size')) {
+          userMessage = '파일 크기가 제한을 초과했습니다.';
+        } else {
+          userMessage = `업로드 오류: ${error.message}`;
+        }
+        
+        throw new Error(userMessage);
+      }
+
+      if (!data?.path) {
+        throw new Error('업로드된 파일 경로를 가져올 수 없습니다.');
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(data.path);
+
+      console.log('🔗 생성된 공개 URL:', publicUrlData.publicUrl);
+      
+      if (!publicUrlData.publicUrl) {
+        throw new Error('공개 URL을 생성할 수 없습니다.');
+      }
+
+      return publicUrlData.publicUrl;
+    } catch (err) {
+      console.error('💥 StorageService 업로드 실패:', {
+        error: err,
+        message: err instanceof Error ? err.message : '알 수 없는 오류',
+        uploadType: type,
+        fileName: file.name
+      });
+      throw err;
+    }
   },
 
   // 로고 업로드
   async uploadLogo(file: File, path?: string): Promise<string> {
-    const fileName = path || `${Date.now()}-${file.name}`
-    const { data: _data, error } = await supabase.storage
-      .from('logos')
-      .upload(fileName, file)
+    console.log('🚀 StorageService 로고 업로드 시작:', { 
+      fileName: file.name, 
+      fileSize: file.size, 
+      fileType: file.type,
+      path 
+    });
 
-    if (error) throw error
+    try {
+      // 파일 크기 검증 (5MB 제한)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        throw new Error(`로고 파일 크기가 너무 큽니다. 최대 5MB까지 업로드 가능합니다. (현재: ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('logos')
-      .getPublicUrl(fileName)
+      // 파일 형식 검증
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error(`지원하지 않는 로고 파일 형식입니다. JPG, PNG, WebP, SVG 파일만 업로드 가능합니다. (현재: ${file.type})`);
+      }
 
-    return publicUrl
+      const bucket = 'logos';
+      const fileExt = file.name.split('.').pop() || 'png';
+      const randomName = Math.random().toString(36).substring(2);
+      const fileName = path || `logo-${Date.now()}-${randomName}.${fileExt}`;
+
+      console.log('📝 로고 업로드 정보:', { bucket, fileName, fileSize: file.size });
+
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      console.log('✅ 로고 Storage 응답:', { data, error });
+
+      if (error) {
+        console.error('❌ 로고 Storage 오류 상세:', {
+          message: error.message,
+          statusCode: (error as any).statusCode,
+          details: (error as any).details,
+          hint: (error as any).hint,
+        });
+        
+        // 구체적인 오류 메시지 제공
+        let userMessage = '로고 업로드 중 오류가 발생했습니다.';
+        if (error.message.includes('not found')) {
+          userMessage = `Storage 버킷 '${bucket}'을 찾을 수 없습니다. 관리자에게 문의하세요.`;
+        } else if (error.message.includes('permission')) {
+          userMessage = '로고 업로드 권한이 없습니다. 관리자에게 문의하세요.';
+        } else if (error.message.includes('size')) {
+          userMessage = '로고 파일 크기가 제한을 초과했습니다.';
+        } else {
+          userMessage = `로고 업로드 오류: ${error.message}`;
+        }
+        
+        throw new Error(userMessage);
+      }
+
+      if (!data?.path) {
+        throw new Error('업로드된 로고 파일 경로를 가져올 수 없습니다.');
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(data.path);
+
+      console.log('🔗 생성된 로고 공개 URL:', publicUrlData.publicUrl);
+      
+      if (!publicUrlData.publicUrl) {
+        throw new Error('로고 공개 URL을 생성할 수 없습니다.');
+      }
+
+      return publicUrlData.publicUrl;
+    } catch (err) {
+      console.error('💥 로고 업로드 실패:', {
+        error: err,
+        message: err instanceof Error ? err.message : '알 수 없는 오류',
+        fileName: file.name
+      });
+      throw err;
+    }
   },
 
   // 썸네일 업로드
