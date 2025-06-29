@@ -48,7 +48,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   
 
   
-  // 텍스트 선택 감지
+  // 텍스트 선택 감지 및 자동 색상 피커 활성화
   const handleTextSelect = (elementId: string, inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = inputRef.current;
     if (!input) return;
@@ -60,6 +60,13 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       setSelectedRange({ elementId, start, end });
     } else {
       setSelectedRange(null);
+    }
+  };
+
+  // 텍스트 필드 포커스 시 자동 색상 피커 활성화
+  const handleTextFocus = (elementId: string) => {
+    if (!colorPickerMode.isActive || colorPickerMode.elementId !== elementId) {
+      startColorPreview(elementId);
     }
   };
 
@@ -239,7 +246,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           </div>
         ) : (
           <div className="text-xs text-gray-500 mb-2">
-            텍스트 요소의 색상 버튼을 클릭하여 편집하세요
+            텍스트 입력 필드를 클릭하면 색상 편집이 활성화됩니다
           </div>
         )}
         
@@ -321,15 +328,16 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             </span>
           </div>
           
-          <input
+                    <input
             ref={subTitleInputRef}
             type="text"
             value={subTitle?.text || ''}
             onChange={(e) => onUpdateText('sub-title', { text: e.target.value })}
+            onFocus={() => handleTextFocus('sub-title')}
             onSelect={() => handleTextSelect('sub-title', subTitleInputRef)}
             onMouseUp={() => handleTextSelect('sub-title', subTitleInputRef)}
             onKeyUp={() => handleTextSelect('sub-title', subTitleInputRef)}
-            className="w-full px-3 py-2 border rounded mb-2 text-sm"
+            className="w-full px-3 py-2 border rounded mb-2 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             placeholder="서브타이틀 입력"
             maxLength={config.subTitle.maxLength}
           />
@@ -340,18 +348,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               <div className="text-xs text-blue-700">선택된 텍스트: "{(subTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"</div>
               </div>
             )}
-            
-          {/* 색상 버튼 */}
-          <button
-            onClick={() => startColorPreview('sub-title')}
-            className="flex items-center space-x-2 w-full px-3 py-2 border rounded text-sm hover:bg-gray-50"
-          >
-            <div 
-              className="w-4 h-4 rounded border border-gray-300"
-              style={{ backgroundColor: subTitle?.color || '#000000' }}
-            />
-            <span>색상 변경</span>
-          </button>
         </div>
       )}
 
@@ -377,14 +373,15 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             </span>
           </div>
           
-          <textarea
+                    <textarea
             ref={mainTitleInputRef}
             value={mainTitle?.text || ''}
             onChange={(e) => onUpdateText('main-title', { text: e.target.value })}
+            onFocus={() => handleTextFocus('main-title')}
             onSelect={() => handleTextSelect('main-title', mainTitleInputRef)}
             onMouseUp={() => handleTextSelect('main-title', mainTitleInputRef)}
             onKeyUp={() => handleTextSelect('main-title', mainTitleInputRef)}
-            className="w-full px-3 py-2 border rounded mb-2 min-h-[70px] resize-y text-sm"
+            className="w-full px-3 py-2 border rounded mb-2 min-h-[70px] resize-y text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             placeholder="메인타이틀 입력 (여러 줄 가능)"
             maxLength={config.mainTitle.maxLength}
           />
@@ -395,18 +392,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               <div className="text-xs text-blue-700">선택된 텍스트: "{(mainTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"</div>
               </div>
             )}
-            
-          {/* 색상 버튼 */}
-          <button
-            onClick={() => startColorPreview('main-title')}
-            className="flex items-center space-x-2 w-full px-3 py-2 border rounded text-sm hover:bg-gray-50"
-          >
-            <div 
-              className="w-4 h-4 rounded border border-gray-300"
-              style={{ backgroundColor: mainTitle?.color || '#000000' }}
-            />
-            <span>색상 변경</span>
-          </button>
               </div>
             )}
             
@@ -432,15 +417,16 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             </span>
                   </div>
                   
-                    <input
+                                        <input
             ref={bottomSubTitleInputRef}
             type="text"
             value={bottomSubTitle?.text || ''}
             onChange={(e) => onUpdateText('bottom-sub-title', { text: e.target.value })}
+            onFocus={() => handleTextFocus('bottom-sub-title')}
             onSelect={() => handleTextSelect('bottom-sub-title', bottomSubTitleInputRef)}
             onMouseUp={() => handleTextSelect('bottom-sub-title', bottomSubTitleInputRef)}
             onKeyUp={() => handleTextSelect('bottom-sub-title', bottomSubTitleInputRef)}
-            className="w-full px-3 py-2 border rounded mb-2 text-sm"
+            className="w-full px-3 py-2 border rounded mb-2 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             placeholder="하단 서브타이틀 입력"
             maxLength={config.bottomSubTitle.maxLength}
           />
@@ -451,18 +437,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               <div className="text-xs text-blue-700">선택된 텍스트: "{(bottomSubTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"</div>
               </div>
             )}
-            
-          {/* 색상 버튼 */}
-          <button
-            onClick={() => startColorPreview('bottom-sub-title')}
-            className="flex items-center space-x-2 w-full px-3 py-2 border rounded text-sm hover:bg-gray-50"
-          >
-            <div 
-              className="w-4 h-4 rounded border border-gray-300"
-              style={{ backgroundColor: bottomSubTitle?.color || '#000000' }}
-            />
-            <span>색상 변경</span>
-          </button>
         </div>
       )}
 
@@ -496,7 +470,8 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             type="text"
             value={buttonText?.text || ''}
             onChange={(e) => onUpdateText('button-text', { text: e.target.value })}
-            className="w-full px-3 py-2 border rounded mb-3 text-sm"
+            onFocus={() => handleTextFocus('button-text')}
+            className="w-full px-3 py-2 border rounded mb-3 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             placeholder="버튼 텍스트 입력"
             maxLength={config.buttonText.maxLength}
           />
@@ -657,7 +632,8 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 <textarea
                   value={element.text}
                   onChange={(e) => onUpdateText(element.id, { text: e.target.value })}
-                  className="w-full px-3 py-2 border rounded mb-3 min-h-[60px] resize-y text-sm"
+                  onFocus={() => handleTextFocus(element.id)}
+                  className="w-full px-3 py-2 border rounded mb-3 min-h-[60px] resize-y text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
                   placeholder="텍스트를 입력하세요"
                 />
                 
@@ -771,7 +747,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             ))}
           </div>
         </div>
-              )}
+      )}
 
       {/* 통합 색상 선택기 - 하단에 배치 */}
       <div className="mt-6 pt-4 border-t border-gray-200">
