@@ -426,17 +426,6 @@ function App() {
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-              {/* 새 배너 만들기 */}
-              <button
-                onClick={handleNewBanner}
-                className="bg-sky-500 hover:bg-sky-600 text-white p-8 rounded-2xl shadow-lg transition-colors group"
-              >
-                <h2 className="text-2xl font-bold mb-2">새 배너 만들기</h2>
-                <p className="text-white group-hover:text-white transition-colors">
-                  빠르게 새 배너 제작 시작하기
-                </p>
-              </button>
-
               {/* 배너 히스토리 */}
               <button
                 onClick={handleBannerHistory}
@@ -445,6 +434,17 @@ function App() {
                 <h2 className="text-2xl font-bold mb-2">배너 히스토리</h2>
                 <p className="text-white group-hover:text-white transition-colors">
                   이전 배너 보기 및 재편집
+                </p>
+              </button>
+
+              {/* 새 배너 만들기 */}
+              <button
+                onClick={handleNewBanner}
+                className="bg-sky-500 hover:bg-sky-600 text-white p-8 rounded-2xl shadow-lg transition-colors group"
+              >
+                <h2 className="text-2xl font-bold mb-2">새 배너 만들기</h2>
+                <p className="text-white group-hover:text-white transition-colors">
+                  빠르게 새 배너 제작 시작하기
                 </p>
               </button>
             </div>

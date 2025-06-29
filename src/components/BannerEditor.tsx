@@ -142,97 +142,102 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
           </div>
         </div>
 
-        {/* 상단: 좌우 배치 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* 왼쪽: 이미지 업로드 */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold mb-4">이미지 업로드</h2>
-            
-            {/* 배경 이미지 업로드 */}
-            <div className="mb-6">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <p className="text-gray-600 mb-2">이미지를 드래그하거나 클릭하여 업로드하세요</p>
-                <p className="text-sm text-gray-500">PNG, JPG, JPEG 파일 지원</p>
-                <ImageUpload
-                  onUpload={onImageUpload}
-                  requiredWidth={selection.config.width}
-                  requiredHeight={selection.config.height}
-                />
+        {/* 메인 컨텐츠: 좌우 7:3 비중 */}
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
+          {/* 좌측 70%: 이미지 업로드 + 미리보기 */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* 이미지 업로드 */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold mb-4">이미지 업로드</h2>
+              
+              {/* 배경 이미지 업로드 */}
+              <div className="mb-6">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <p className="text-gray-600 mb-2">이미지를 드래그하거나 클릭하여 업로드하세요</p>
+                  <p className="text-sm text-gray-500">PNG, JPG, JPEG 파일 지원</p>
+                  <ImageUpload
+                    onUpload={onImageUpload}
+                    requiredWidth={selection.config.width}
+                    requiredHeight={selection.config.height}
+                  />
+                </div>
               </div>
+
+              {/* 로고 업로드 */}
+              {selection.config.logo && (
+                <div>
+                  <h3 className="text-md font-semibold mb-3">로고 업로드</h3>
+                  <LogoUpload
+                    onUpload={onLogoUpload}
+                    logoConfig={selection.config.logo}
+                    uploadedLogo={uploadedLogo}
+                  />
+                </div>
+              )}
             </div>
 
-            {/* 로고 업로드 */}
-            {selection.config.logo && (
-              <div>
-                <h3 className="text-md font-semibold mb-3">로고 업로드</h3>
-                <LogoUpload
-                  onUpload={onLogoUpload}
-                  logoConfig={selection.config.logo}
+            {/* 미리보기 */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold mb-4">미리보기</h2>
+              <div className="bg-gray-50 rounded-lg p-8 flex justify-center">
+                <BannerPreview
+                  ref={previewCanvasRef}
+                  config={selection.config}
+                  uploadedImage={uploadedImage}
                   uploadedLogo={uploadedLogo}
+                  textElements={textElements}
+                  existingImageUrl={editingBanner?.background_image_url || editingBanner?.image_url}
+                  existingLogoUrl={editingBanner?.logo_url}
                 />
               </div>
-            )}
-          </div>
-
-          {/* 오른쪽: 텍스트 편집 */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold mb-4">텍스트 편집</h2>
-            
-            {/* TextEditSidebar 컴포넌트 사용하여 색상 선택 기능 포함 */}
-            <TextEditSidebar
-              config={selection.config}
-              textElements={textElements}
-              onAddText={onAddText}
-              onUpdateText={onTextUpdate}
-              onDeleteText={onTextDelete}
-              showTitle={false}
-              showBackground={false}
-            />
-
-            {/* 액션 버튼들 */}
-            <div className="mt-6 pt-4 border-t border-gray-200 space-y-3">
-              <button
-                onClick={handleComplete}
-                disabled={!uploadedImage || isProcessing || loading}
-                className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
-              >
-                {isProcessing || loading ? '처리 중...' : editingBanner ? '배너 업데이트' : '배너 저장'}
-              </button>
-              
-              <button
-                onClick={handleDownloadJPG}
-                disabled={!uploadedImage}
-                className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
-              >
-                JPG 다운로드
-              </button>
-              
-              <button
-                onClick={onReset}
-                className="w-full px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium"
-              >
-                초기화
-              </button>
             </div>
           </div>
-        </div>
 
-        {/* 하단: 미리보기 */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold mb-4">미리보기</h2>
-          <div className="bg-gray-50 rounded-lg p-8 flex justify-center">
-            <BannerPreview
-              ref={previewCanvasRef}
-              config={selection.config}
-              uploadedImage={uploadedImage}
-              uploadedLogo={uploadedLogo}
-              textElements={textElements}
-              existingImageUrl={editingBanner?.background_image_url || editingBanner?.image_url}
-              existingLogoUrl={editingBanner?.logo_url}
-            />
+          {/* 우측 30%: 텍스트 편집 + 액션 버튼 */}
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold mb-4">텍스트 편집</h2>
+              
+              {/* TextEditSidebar 컴포넌트 사용하여 색상 선택 기능 포함 */}
+              <TextEditSidebar
+                config={selection.config}
+                textElements={textElements}
+                onAddText={onAddText}
+                onUpdateText={onTextUpdate}
+                onDeleteText={onTextDelete}
+                showTitle={false}
+                showBackground={false}
+              />
+
+              {/* 액션 버튼들 */}
+              <div className="mt-6 pt-4 border-t border-gray-200 space-y-3">
+                <button
+                  onClick={handleComplete}
+                  disabled={!uploadedImage || isProcessing || loading}
+                  className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                >
+                  {isProcessing || loading ? '처리 중...' : editingBanner ? '배너 업데이트' : '배너 저장'}
+                </button>
+                
+                <button
+                  onClick={handleDownloadJPG}
+                  disabled={!uploadedImage}
+                  className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                >
+                  JPG 다운로드
+                </button>
+                
+                <button
+                  onClick={onReset}
+                  className="w-full px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium"
+                >
+                  초기화
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
