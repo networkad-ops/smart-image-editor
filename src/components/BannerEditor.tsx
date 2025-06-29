@@ -146,16 +146,16 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
           {/* 좌측 70%: 이미지 업로드 + 미리보기 (flex 레이아웃으로 미리보기 영역 확대) */}
           <div className="lg:col-span-7 flex flex-col gap-3 h-[calc(100vh-200px)]">
-            {/* 이미지 업로드 - 슬림한 디자인 */}
+            {/* 이미지 업로드 - 슬림한 상하 배치 */}
             <div className="bg-white rounded-lg shadow-sm p-3 flex-shrink-0">
               <h2 className="text-md font-medium mb-2">이미지 편집</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-3">
                 {/* 배경 이미지 업로드 */}
                 <div>
                   <h3 className="text-sm font-medium mb-2 text-gray-700">배경 이미지</h3>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 text-center min-h-[80px] flex flex-col justify-center">
-                    <svg className="mx-auto h-6 w-6 text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 text-center min-h-[70px] flex flex-col justify-center">
+                    <svg className="mx-auto h-5 w-5 text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <p className="text-xs text-gray-600 mb-1">이미지를 <span className="text-blue-600 font-medium">클릭하여 업로드</span>하세요</p>
@@ -172,7 +172,7 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
                 {selection.config.logo && (
                   <div>
                     <h3 className="text-sm font-medium mb-2 text-gray-700">로고 업로드</h3>
-                    <div className="min-h-[80px]">
+                    <div className="min-h-[70px]">
                       <LogoUpload
                         onUpload={onLogoUpload}
                         logoConfig={selection.config.logo}
@@ -184,19 +184,21 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
               </div>
             </div>
 
-            {/* 미리보기 - 확장된 영역 */}
-            <div className="bg-white rounded-lg shadow-sm p-4 flex-1 flex flex-col min-h-0">
-              <h2 className="text-lg font-semibold mb-3">미리보기</h2>
-              <div className="bg-gray-50 rounded-lg p-4 flex justify-center items-center flex-1 min-h-[500px]">
-                <BannerPreview
-                  ref={previewCanvasRef}
-                  config={selection.config}
-                  uploadedImage={uploadedImage}
-                  uploadedLogo={uploadedLogo}
-                  textElements={textElements}
-                  existingImageUrl={editingBanner?.background_image_url || editingBanner?.image_url}
-                  existingLogoUrl={editingBanner?.logo_url}
-                />
+            {/* 미리보기 - 프레임에 딱 맞는 확대된 영역 */}
+            <div className="bg-white rounded-lg shadow-sm p-3 flex-1 flex flex-col min-h-0">
+              <h2 className="text-lg font-semibold mb-2">미리보기</h2>
+              <div className="bg-gray-50 rounded-lg p-2 flex justify-center items-center flex-1 overflow-hidden">
+                <div className="w-full h-full flex justify-center items-center">
+                  <BannerPreview
+                    ref={previewCanvasRef}
+                    config={selection.config}
+                    uploadedImage={uploadedImage}
+                    uploadedLogo={uploadedLogo}
+                    textElements={textElements}
+                    existingImageUrl={editingBanner?.background_image_url || editingBanner?.image_url}
+                    existingLogoUrl={editingBanner?.logo_url}
+                  />
+                </div>
               </div>
             </div>
           </div>
