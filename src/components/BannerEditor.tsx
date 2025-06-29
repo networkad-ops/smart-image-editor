@@ -154,18 +154,11 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
                 {/* 배경 이미지 업로드 */}
                 <div>
                   <h3 className="text-sm font-medium mb-2 text-gray-700">배경 이미지</h3>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 text-center min-h-[80px] flex flex-col justify-center">
-                    <svg className="mx-auto h-6 w-6 text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <p className="text-xs text-gray-600 mb-1">이미지를 <span className="text-blue-600 font-medium">클릭하여 업로드</span>하세요</p>
-                    <p className="text-xs text-gray-500">PNG, JPG, GIF (최대 10MB)</p>
-                    <ImageUpload
-                      onUpload={onImageUpload}
-                      requiredWidth={selection.config.width}
-                      requiredHeight={selection.config.height}
-                    />
-                  </div>
+                  <ImageUpload
+                    onUpload={onImageUpload}
+                    requiredWidth={selection.config.width}
+                    requiredHeight={selection.config.height}
+                  />
                 </div>
 
                 {/* 로고 업로드 */}
@@ -186,7 +179,7 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
 
             {/* 미리보기 - 전체 너비 활용 */}
             <div className="bg-white rounded-lg shadow-sm p-3">
-              <div className="bg-gray-50 rounded-lg p-2 flex justify-center items-center min-h-[600px] w-full">
+              <div className="bg-gray-50 rounded-lg p-2 flex justify-center items-center min-h-[700px] w-full">
                 <div className="w-full flex justify-center items-center">
                   <BannerPreview
                     ref={previewCanvasRef}
