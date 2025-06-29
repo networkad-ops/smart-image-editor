@@ -122,21 +122,26 @@ export default function FigmaColorPicker({
     setDragType(type);
     handleMouseMove(e, type);
     e.preventDefault();
+    e.stopPropagation();
   };
 
-  const handleMouseMove = (e: React.MouseEvent | MouseEvent, type?: 'saturation' | 'hue' | 'alpha') => {
+  const handleMouseMove = useCallback((e: React.MouseEvent | MouseEvent, type?: 'saturation' | 'hue' | 'alpha') => {
     if (!isDragging && !type) return;
     
     const activeType = type || dragType;
     if (!activeType) return;
+
+    // 드래그 중일 때만 실시간 업데이트
+    const shouldUpdateLive = isDragging || type;
+    if (!shouldUpdateLive) return;
 
     if (activeType === 'saturation' && saturationRef.current) {
       const rect = saturationRef.current.getBoundingClientRect();
       const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
       const y = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
       
-      const newS = (x / rect.width) * 100;
-      const newV = ((rect.height - y) / rect.height) * 100;
+      const newS = Math.round((x / rect.width) * 100);
+      const newV = Math.round(((rect.height - y) / rect.height) * 100);
       
       const newHsv = { ...hsv, s: newS, v: newV };
       setHsv(newHsv);
@@ -145,15 +150,16 @@ export default function FigmaColorPicker({
       const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
       setHexInput(hex.replace('#', '').toUpperCase());
       
+      const color = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha / 100})`;
       if (onPreview) {
-        onPreview(`rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha / 100})`);
+        onPreview(color);
       } else {
-        onChange(`rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha / 100})`);
+        onChange(color);
       }
     } else if (activeType === 'hue' && hueRef.current) {
       const rect = hueRef.current.getBoundingClientRect();
       const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
-      const newH = (x / rect.width) * 360;
+      const newH = Math.round((x / rect.width) * 360);
       
       const newHsv = { ...hsv, h: newH };
       setHsv(newHsv);
@@ -162,25 +168,27 @@ export default function FigmaColorPicker({
       const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
       setHexInput(hex.replace('#', '').toUpperCase());
       
+      const color = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha / 100})`;
       if (onPreview) {
-        onPreview(`rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha / 100})`);
+        onPreview(color);
       } else {
-        onChange(`rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha / 100})`);
+        onChange(color);
       }
     } else if (activeType === 'alpha' && alphaRef.current) {
       const rect = alphaRef.current.getBoundingClientRect();
       const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
-      const newAlpha = (x / rect.width) * 100;
+      const newAlpha = Math.round((x / rect.width) * 100);
       
       setAlpha(newAlpha);
       
+      const color = `rgba(${currentRgb.r}, ${currentRgb.g}, ${currentRgb.b}, ${newAlpha / 100})`;
       if (onPreview) {
-        onPreview(`rgba(${currentRgb.r}, ${currentRgb.g}, ${currentRgb.b}, ${newAlpha / 100})`);
+        onPreview(color);
       } else {
-        onChange(`rgba(${currentRgb.r}, ${currentRgb.g}, ${currentRgb.b}, ${newAlpha / 100})`);
+        onChange(color);
       }
     }
-  };
+  }, [isDragging, dragType, hsv, alpha, currentRgb, onPreview, onChange]);
 
   const handleMouseUp = () => {
     setIsDragging(false);
@@ -189,10 +197,13 @@ export default function FigmaColorPicker({
 
   useEffect(() => {
     if (isDragging) {
-      const handleGlobalMouseMove = (e: MouseEvent) => handleMouseMove(e);
+      const handleGlobalMouseMove = (e: MouseEvent) => {
+        // requestAnimationFrame으로 부드러운 드래그 구현
+        requestAnimationFrame(() => handleMouseMove(e));
+      };
       const handleGlobalMouseUp = () => handleMouseUp();
       
-      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mousemove', handleGlobalMouseMove, { passive: false });
       document.addEventListener('mouseup', handleGlobalMouseUp);
       
       return () => {
@@ -200,7 +211,7 @@ export default function FigmaColorPicker({
         document.removeEventListener('mouseup', handleGlobalMouseUp);
       };
     }
-  }, [isDragging, dragType, hsv, alpha]);
+  }, [isDragging, handleMouseMove]);
 
   // Hex 입력 핸들러
   const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,15 +259,25 @@ export default function FigmaColorPicker({
   };
 
   return (
-    <div className="w-full max-w-sm mx-auto bg-white rounded-lg border border-gray-200 p-4 shadow-lg">
+    <div className="w-full bg-white rounded-lg border border-gray-200 p-3 shadow-sm">
       {/* 메인 색상 선택 영역 */}
       <div
         ref={saturationRef}
-        className="relative w-full h-48 mb-4 rounded cursor-crosshair"
+        className="relative w-full h-32 mb-3 rounded cursor-crosshair select-none"
         style={{
           background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${hsv.h}, 100%, 50%))`
         }}
         onMouseDown={(e) => handleMouseDown(e, 'saturation')}
+        onTouchStart={(e) => {
+          const touch = e.touches[0];
+          if (touch) {
+            const mouseEvent = new MouseEvent('mousedown', {
+              clientX: touch.clientX,
+              clientY: touch.clientY
+            });
+            handleMouseDown(mouseEvent as any, 'saturation');
+          }
+        }}
       >
         {/* 선택된 위치 표시 */}
         <div
@@ -269,14 +290,24 @@ export default function FigmaColorPicker({
       </div>
 
       {/* 색조 슬라이더 */}
-      <div className="mb-4">
+      <div className="mb-3">
         <div
           ref={hueRef}
-          className="relative w-full h-4 rounded cursor-pointer"
+          className="relative w-full h-4 rounded cursor-pointer select-none"
           style={{
             background: 'linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)'
           }}
           onMouseDown={(e) => handleMouseDown(e, 'hue')}
+          onTouchStart={(e) => {
+            const touch = e.touches[0];
+            if (touch) {
+              const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+              });
+              handleMouseDown(mouseEvent as any, 'hue');
+            }
+          }}
         >
           {/* 색조 선택 표시 */}
           <div
@@ -290,16 +321,26 @@ export default function FigmaColorPicker({
       </div>
 
       {/* 투명도 슬라이더 */}
-      <div className="mb-4">
+      <div className="mb-3">
         <div
           ref={alphaRef}
-          className="relative w-full h-4 rounded cursor-pointer overflow-hidden"
+          className="relative w-full h-4 rounded cursor-pointer overflow-hidden select-none"
           style={{
             background: `linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)`,
             backgroundSize: '8px 8px',
             backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px'
           }}
           onMouseDown={(e) => handleMouseDown(e, 'alpha')}
+          onTouchStart={(e) => {
+            const touch = e.touches[0];
+            if (touch) {
+              const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+              });
+              handleMouseDown(mouseEvent as any, 'alpha');
+            }
+          }}
         >
           <div
             className="absolute inset-0 rounded"
@@ -319,7 +360,7 @@ export default function FigmaColorPicker({
       </div>
 
       {/* 컨트롤 패널 */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {/* Hex 입력과 스포이드 */}
         <div className="flex items-center space-x-2">
           <div className="flex items-center space-x-1 flex-1">
@@ -378,7 +419,7 @@ export default function FigmaColorPicker({
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-600 w-8">미리</span>
           <div 
-            className="flex-1 h-10 rounded border border-gray-300"
+            className="flex-1 h-8 rounded border border-gray-300"
             style={{ 
               background: `linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)`,
               backgroundSize: '8px 8px'
@@ -396,13 +437,13 @@ export default function FigmaColorPicker({
           <div className="flex space-x-2 pt-2 border-t border-gray-200">
             <button
               onClick={onConfirm}
-              className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
+              className="flex-1 px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs font-medium"
             >
               ✓ 확인
             </button>
             <button
               onClick={onCancel}
-              className="flex-1 px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm font-medium"
+              className="flex-1 px-2 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 text-xs font-medium"
             >
               ✕ 취소
             </button>
