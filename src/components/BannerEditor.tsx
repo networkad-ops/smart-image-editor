@@ -184,10 +184,9 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
               </div>
             </div>
 
-            {/* 미리보기 - 프레임에 딱 맞는 확대된 영역 */}
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <h2 className="text-lg font-semibold mb-4">미리보기</h2>
-              <div className="bg-gray-50 rounded-lg p-6 flex justify-center items-center min-h-[500px]">
+            {/* 미리보기 - 제목 제거하고 화면 최대한 확대 */}
+            <div className="bg-white rounded-lg shadow-sm p-3">
+              <div className="bg-gray-50 rounded-lg p-4 flex justify-center items-center min-h-[600px]">
                 <BannerPreview
                   ref={previewCanvasRef}
                   config={selection.config}
