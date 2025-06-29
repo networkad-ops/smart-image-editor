@@ -144,45 +144,50 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
 
         {/* 메인 컨텐츠: 좌우 7:3 비중 */}
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
-          {/* 좌측 70%: 이미지 업로드 + 미리보기 */}
-          <div className="lg:col-span-7 space-y-4">
-            {/* 이미지 업로드 - 컴팩트하게 */}
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <h2 className="text-md font-semibold mb-3">이미지 업로드</h2>
+          {/* 좌측 70%: 이미지 업로드 + 미리보기 (균형잡힌 상하 배치) */}
+          <div className="lg:col-span-7 flex flex-col gap-4 h-[calc(100vh-200px)]">
+            {/* 이미지 업로드 - 30% 높이 */}
+            <div className="bg-white rounded-lg shadow-sm p-4 flex-shrink-0" style={{ height: '30%' }}>
+              <h2 className="text-md font-semibold mb-3">이미지 편집</h2>
               
-              {/* 배경 이미지 업로드 */}
-              <div className={selection.config.logo ? "mb-4" : "mb-2"}>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                  <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <p className="text-sm text-gray-600 mb-1">이미지를 드래그하거나 클릭하여 업로드하세요</p>
-                  <p className="text-xs text-gray-500">PNG, JPG, JPEG 파일 지원</p>
-                  <ImageUpload
-                    onUpload={onImageUpload}
-                    requiredWidth={selection.config.width}
-                    requiredHeight={selection.config.height}
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+                {/* 배경 이미지 업로드 */}
+                <div className="flex flex-col">
+                  <h3 className="text-sm font-semibold mb-2">배경 이미지</h3>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 text-center flex-1 flex flex-col justify-center min-h-[120px]">
+                    <svg className="mx-auto h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-sm text-gray-600 mb-1">이미지를 드래그하거나 <span className="text-blue-600 font-medium">클릭하여 업로드</span>하세요</p>
+                    <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    <ImageUpload
+                      onUpload={onImageUpload}
+                      requiredWidth={selection.config.width}
+                      requiredHeight={selection.config.height}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* 로고 업로드 */}
-              {selection.config.logo && (
-                <div>
-                  <h3 className="text-sm font-semibold mb-2">로고 업로드</h3>
-                  <LogoUpload
-                    onUpload={onLogoUpload}
-                    logoConfig={selection.config.logo}
-                    uploadedLogo={uploadedLogo}
-                  />
-                </div>
-              )}
+                {/* 로고 업로드 */}
+                {selection.config.logo && (
+                  <div className="flex flex-col">
+                    <h3 className="text-sm font-semibold mb-2">로고 업로드</h3>
+                    <div className="flex-1">
+                      <LogoUpload
+                        onUpload={onLogoUpload}
+                        logoConfig={selection.config.logo}
+                        uploadedLogo={uploadedLogo}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* 미리보기 - 더 큰 영역 */}
-            <div className="bg-white rounded-lg shadow-sm p-6 flex-1">
-              <h2 className="text-lg font-semibold mb-4">미리보기</h2>
-              <div className="bg-gray-50 rounded-lg p-6 flex justify-center">
+            {/* 미리보기 - 70% 높이 */}
+            <div className="bg-white rounded-lg shadow-sm p-4 flex-1 flex flex-col" style={{ height: '70%' }}>
+              <h2 className="text-lg font-semibold mb-3">미리보기</h2>
+              <div className="bg-gray-50 rounded-lg p-4 flex justify-center items-center flex-1">
                 <BannerPreview
                   ref={previewCanvasRef}
                   config={selection.config}
@@ -198,7 +203,7 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
 
           {/* 우측 30%: 텍스트 편집 + 액션 버튼 */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
               <h2 className="text-lg font-semibold mb-4">텍스트 편집</h2>
               
               {/* TextEditSidebar 컴포넌트 사용하여 색상 선택 기능 포함 */}
