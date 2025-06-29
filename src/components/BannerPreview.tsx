@@ -285,31 +285,38 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     }
   }, [textElements, drawTextElements]);
 
-  // 미리보기 프레임 크기 계산
-  const maxPreviewSize = 900;
-  const previewScale = Math.min(1, maxPreviewSize / Math.max(config.width, config.height));
+  // 미리보기 프레임 크기 계산 - 컨테이너에 맞게 조정
+  const maxPreviewWidth = 600; // 좌측 70% 컨테이너에 맞는 크기
+  const maxPreviewHeight = 400;
+  
+  const scaleByWidth = maxPreviewWidth / config.width;
+  const scaleByHeight = maxPreviewHeight / config.height;
+  const previewScale = Math.min(scaleByWidth, scaleByHeight, 1); // 1을 넘지 않도록
+  
   const previewWidth = config.width * previewScale;
   const previewHeight = config.height * previewScale;
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-lg font-semibold mb-4">
+    <div className="bg-white rounded-lg shadow-lg p-4">
+      <h2 className="text-lg font-semibold mb-3">
         미리보기
         <span className="text-sm text-gray-500 ml-2">
           ({config.width} × {config.height})
         </span>
       </h2>
-      <div className="flex justify-center">
+      <div className="flex justify-center items-center bg-gray-50 rounded-lg p-4">
         <div className="relative" style={{ width: previewWidth, height: previewHeight }}>
           <canvas
             ref={ref}
             width={config.width}
             height={config.height}
-            className="border-2 border-gray-300 rounded-lg shadow-sm"
+            className="border-2 border-gray-300 rounded-lg shadow-sm w-full h-full"
             style={{
-              width: previewWidth,
-              height: previewHeight,
+              width: '100%',
+              height: '100%',
               maxWidth: '100%',
+              maxHeight: '100%',
+              objectFit: 'contain',
               backgroundColor: '#f8f9fa'
             }}
           />

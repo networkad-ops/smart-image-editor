@@ -146,11 +146,12 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
           {/* 좌측 70%: 이미지 업로드 + 미리보기 (flex 레이아웃으로 미리보기 영역 확대) */}
           <div className="lg:col-span-7 space-y-4">
-            {/* 이미지 업로드 - 슬림한 상하 배치 */}
-                          <div className="bg-white rounded-lg shadow-sm p-3">
-              <h2 className="text-md font-medium mb-2">이미지 편집</h2>
+            {/* 이미지 업로드 - 깔끔한 레이아웃 */}
+            <div className="bg-white rounded-lg shadow-sm p-4">
+              <h2 className="text-lg font-medium mb-3">이미지 편집</h2>
               
-              <div className="space-y-3">
+              {/* 배경 이미지와 로고를 좌우 배치 */}
+              <div className={`grid gap-4 ${selection.config.logo ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {/* 배경 이미지 업로드 */}
                 <div>
                   <h3 className="text-sm font-medium mb-2 text-gray-700">배경 이미지</h3>
@@ -165,33 +166,27 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
                 {selection.config.logo && (
                   <div>
                     <h3 className="text-sm font-medium mb-2 text-gray-700">로고 업로드</h3>
-                    <div className="min-h-[80px]">
-                      <LogoUpload
-                        onUpload={onLogoUpload}
-                        logoConfig={selection.config.logo}
-                        uploadedLogo={uploadedLogo}
-                      />
-                    </div>
+                    <LogoUpload
+                      onUpload={onLogoUpload}
+                      logoConfig={selection.config.logo}
+                      uploadedLogo={uploadedLogo}
+                    />
                   </div>
                 )}
               </div>
             </div>
 
-            {/* 미리보기 - 전체 너비 활용 */}
-            <div className="bg-white rounded-lg shadow-sm p-3">
-              <div className="bg-gray-50 rounded-lg p-2 flex justify-center items-center min-h-[700px] w-full">
-                <div className="w-full flex justify-center items-center">
-                  <BannerPreview
-                    ref={previewCanvasRef}
-                    config={selection.config}
-                    uploadedImage={uploadedImage}
-                    uploadedLogo={uploadedLogo}
-                    textElements={textElements}
-                    existingImageUrl={editingBanner?.background_image_url || editingBanner?.image_url}
-                    existingLogoUrl={editingBanner?.logo_url}
-                  />
-                </div>
-              </div>
+            {/* 미리보기 - 적절한 크기로 조정 */}
+            <div className="w-full">
+              <BannerPreview
+                ref={previewCanvasRef}
+                config={selection.config}
+                uploadedImage={uploadedImage}
+                uploadedLogo={uploadedLogo}
+                textElements={textElements}
+                existingImageUrl={editingBanner?.background_image_url || editingBanner?.image_url}
+                existingLogoUrl={editingBanner?.logo_url}
+              />
             </div>
           </div>
 
