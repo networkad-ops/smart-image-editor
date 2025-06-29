@@ -93,20 +93,43 @@ export const testSupabaseConnection = async (): Promise<{ success: boolean; mess
   try {
     console.log('🔍 Supabase 연결 상태 확인 중...');
     
-    // 1. 기본 연결 테스트
-    const { data: healthCheck, error: healthError } = await supabase
-      .from('teams')
-      .select('count(*)')
-      .limit(1);
+    // 1. 기본 연결 테스트 (여러 테이블 시도)
+    const testTables = ['teams', 'projects', 'banners'];
+    let connectionSuccess = false;
+    let lastError = null;
     
-    if (healthError) {
-      console.error('❌ DB 연결 실패:', healthError);
+    for (const table of testTables) {
+      try {
+        console.log(`🔍 '${table}' 테이블 연결 시도...`);
+        const { data, error } = await supabase
+          .from(table)
+          .select('*')
+          .limit(1);
+        
+        if (!error) {
+          console.log(`✅ '${table}' 테이블 연결 성공`);
+          connectionSuccess = true;
+          break;
+        } else {
+          console.warn(`⚠️ '${table}' 테이블 연결 실패:`, error.message);
+          lastError = error;
+        }
+      } catch (err) {
+        console.warn(`⚠️ '${table}' 테이블 연결 예외:`, err);
+        lastError = err;
+      }
+    }
+    
+    if (!connectionSuccess) {
+      console.error('❌ 모든 테이블 연결 실패:', lastError);
       return {
         success: false,
-        message: `데이터베이스 연결 실패: ${healthError.message}`,
-        details: healthError
+        message: `데이터베이스 연결 실패: ${lastError instanceof Error ? lastError.message : '모든 테이블에 접근할 수 없습니다'}`,
+        details: lastError
       };
     }
+    
+    console.log('✅ 데이터베이스 연결 성공');
     
     // 2. Storage 버킷 확인 및 생성
     console.log('🗂️ Storage 버킷 상태 확인 중...');
