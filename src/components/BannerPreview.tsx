@@ -293,12 +293,6 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-xl font-semibold mb-4">
-        미리보기 
-        <span className="text-sm text-gray-500 ml-2">
-          ({config.width} × {config.height})
-        </span>
-      </h2>
       <div className="flex justify-center">
         <div className="relative" style={{ width: previewWidth, height: previewHeight }}>
           <canvas
