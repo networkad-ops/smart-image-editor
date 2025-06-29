@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { BannerConfig, TextElement, ColorSegment } from '../types';
 import { PositionControlPanel } from './PositionControlPanel';
+import FigmaColorPicker from './FigmaColorPicker';
 
 interface TextEditSidebarProps {
   config: BannerConfig;
@@ -46,13 +47,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     previewColor: null
   });
   
-  // 색상 팔레트 정의
-  const colorPalette = [
-    '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF',
-    '#800000', '#808080', '#FF8080', '#80FF80', '#8080FF', '#FFFF80', '#FF80FF', '#80FFFF',
-    '#404040', '#C0C0C0', '#FF4040', '#40FF40', '#4040FF', '#FFFF40', '#FF40FF', '#40FFFF',
-    '#800080', '#008080', '#808000', '#000080', '#008000', '#804000', '#400080', '#408000'
-  ];
+
   
   // 텍스트 선택 감지
   const handleTextSelect = (elementId: string, inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -210,14 +205,16 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     setSelectedRange(null);
   };
 
-  // 색상 팔레트 컴포넌트
-  const ColorPalette = ({ elementId, isEnabled }: { elementId: string, isEnabled: boolean }) => {
+  // 피그마 스타일 색상 선택기 컴포넌트
+  const ColorPicker = ({ elementId, isEnabled }: { elementId: string, isEnabled: boolean }) => {
     const isActiveColorPicker = colorPickerMode.isActive && colorPickerMode.elementId === elementId;
+    const element = textElements.find(el => el.id === elementId);
+    const currentColor = element?.color || '#000000';
     
     return (
       <div className={`space-y-2 ${!isEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
         <div className="text-xs font-medium text-gray-700">
-          색상 팔레트 {!isEnabled && '(텍스트를 선택하거나 전체 색상 변경용)'}
+          색상 선택 {!isEnabled && '(텍스트를 선택하거나 전체 색상 변경용)'}
         </div>
         
         {/* 색상 미리보기 모드 안내 */}
@@ -227,64 +224,24 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           </div>
         )}
         
-        <div className="grid grid-cols-8 gap-1 p-2 bg-gray-50 rounded border">
-          {colorPalette.map((color) => (
-            <button
-              key={color}
-              className="w-6 h-6 rounded border border-gray-300 cursor-pointer hover:scale-110 hover:border-gray-500 transition-all"
-              style={{ backgroundColor: color }}
-              onClick={() => {
-                if (!isActiveColorPicker) {
-                  startColorPreview(elementId);
-                }
-                applyColorPreview(elementId, color);
-              }}
-              title={`색상: ${color}`}
-            />
-          ))}
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-600">사용자 정의:</span>
-          <input
-            type="color"
-            onInput={(e) => {
-              const color = (e.target as HTMLInputElement).value;
-              if (!isActiveColorPicker) {
-                startColorPreview(elementId);
-              }
-              applyColorPreview(elementId, color);
-            }}
-            onChange={(e) => {
-              const color = (e.target as HTMLInputElement).value;
-              if (!isActiveColorPicker) {
-                startColorPreview(elementId);
-              }
-              applyColorPreview(elementId, color);
-            }}
-            className="w-8 h-6 border rounded cursor-pointer"
-            title="드래그하면서 색상 미리보기"
-          />
-          <span className="text-xs text-gray-400">← 드래그해보세요!</span>
-        </div>
-        
-        {/* 확인/취소 버튼 */}
-        {isActiveColorPicker && (
-          <div className="flex gap-2 pt-2 border-t border-gray-200">
-            <button
-              onClick={confirmColorChange}
-              className="flex-1 px-3 py-2 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
-            >
-              ✓ 확인
-            </button>
-            <button
-              onClick={cancelColorChange}
-              className="flex-1 px-3 py-2 bg-gray-500 text-white text-xs rounded hover:bg-gray-600 transition-colors"
-            >
-              ✕ 취소
-            </button>
-          </div>
-        )}
+        <FigmaColorPicker
+          color={currentColor}
+          onChange={(color) => {
+            if (!isActiveColorPicker) {
+              startColorPreview(elementId);
+            }
+            applyColorPreview(elementId, color);
+          }}
+          onPreview={(color) => {
+            if (!isActiveColorPicker) {
+              startColorPreview(elementId);
+            }
+            applyColorPreview(elementId, color);
+          }}
+          onConfirm={confirmColorChange}
+          onCancel={cancelColorChange}
+          showPreviewControls={isActiveColorPicker}
+        />
       </div>
     );
   };
@@ -413,7 +370,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             )}
             
           {/* 색상 팔레트 */}
-          <ColorPalette elementId="sub-title" isEnabled={true} />
+                      <ColorPicker elementId="sub-title" isEnabled={true} />
         </div>
       )}
 
@@ -459,7 +416,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           )}
           
           {/* 색상 팔레트 */}
-          <ColorPalette elementId="main-title" isEnabled={true} />
+                      <ColorPicker elementId="main-title" isEnabled={true} />
               </div>
             )}
             
@@ -506,7 +463,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           )}
           
           {/* 색상 팔레트 */}
-          <ColorPalette elementId="bottom-sub-title" isEnabled={true} />
+                      <ColorPicker elementId="bottom-sub-title" isEnabled={true} />
         </div>
       )}
 
