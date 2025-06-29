@@ -5,7 +5,7 @@ import { BannerHistory } from './components/BannerHistory';
 import { TextElement, Banner, BannerSelection } from './types';
 import { bannerConfigs } from './config/bannerConfigs';
 import { useSupabase } from './hooks/useSupabase';
-import { testSupabaseConnection } from './services/supabaseService';
+import { testSupabaseConnection, createStorageBuckets, testStorageUpload } from './services/supabaseService';
 
 type AppStep = 'home' | 'banner-selection' | 'banner-history' | 'editor';
 
@@ -497,6 +497,59 @@ function App() {
     setStep('home');
   };
 
+  // Storage 진단 함수들
+  const handleStorageTest = async () => {
+    setLoading(true);
+    try {
+      console.log('🔍 Storage 연결 테스트 시작...');
+      const result = await testSupabaseConnection();
+      
+      const message = `Storage 테스트 결과:\n\n✅ 성공: ${result.success}\n📄 메시지: ${result.message}\n\n자세한 내용은 브라우저 콘솔(F12)을 확인하세요.`;
+      alert(message);
+    } catch (error) {
+      console.error('Storage 테스트 실패:', error);
+      alert(`Storage 테스트 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateBuckets = async () => {
+    if (!confirm('Storage 버킷을 생성하시겠습니까? (이미 존재하는 버킷은 건드리지 않습니다)')) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log('🗂️ Storage 버킷 생성 시작...');
+      const result = await createStorageBuckets();
+      
+      const message = `버킷 생성 결과:\n\n✅ 성공: ${result.success}\n📄 메시지: ${result.message}\n\n자세한 내용은 브라우저 콘솔(F12)을 확인하세요.`;
+      alert(message);
+    } catch (error) {
+      console.error('버킷 생성 실패:', error);
+      alert(`버킷 생성 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUploadTest = async () => {
+    setLoading(true);
+    try {
+      console.log('🧪 Storage 업로드 테스트 시작...');
+      const result = await testStorageUpload();
+      
+      const message = `업로드 테스트 결과:\n\n✅ 성공: ${result.success}\n📄 메시지: ${result.message}\n\n자세한 내용은 브라우저 콘솔(F12)을 확인하세요.`;
+      alert(message);
+    } catch (error) {
+      console.error('업로드 테스트 실패:', error);
+      alert(`업로드 테스트 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 홈 화면 */}
@@ -514,7 +567,8 @@ function App() {
               {/* 배너 히스토리 */}
               <button
                 onClick={handleBannerHistory}
-                className="bg-sky-500 hover:bg-sky-600 text-white p-8 rounded-2xl shadow-lg transition-colors group"
+                disabled={loading}
+                className="bg-sky-500 hover:bg-sky-600 text-white p-8 rounded-2xl shadow-lg transition-colors group disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 <h2 className="text-2xl font-bold mb-2">배너 히스토리</h2>
                 <p className="text-white group-hover:text-white transition-colors">
@@ -525,13 +579,55 @@ function App() {
               {/* 새 배너 만들기 */}
               <button
                 onClick={handleNewBanner}
-                className="bg-sky-500 hover:bg-sky-600 text-white p-8 rounded-2xl shadow-lg transition-colors group"
+                disabled={loading}
+                className="bg-sky-500 hover:bg-sky-600 text-white p-8 rounded-2xl shadow-lg transition-colors group disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 <h2 className="text-2xl font-bold mb-2">새 배너 만들기</h2>
                 <p className="text-white group-hover:text-white transition-colors">
                   빠르게 새 배너 제작 시작하기
                 </p>
               </button>
+            </div>
+
+            {/* Storage 진단 도구 - 하단에 작게 배치 */}
+            <div className="mt-16 pt-8 border-t border-gray-200">
+              <details className="max-w-md mx-auto">
+                <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700 mb-4">
+                  Storage 진단 도구 (문제 발생 시 사용)
+                </summary>
+                
+                <div className="space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <button
+                      onClick={handleStorageTest}
+                      disabled={loading}
+                      className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? '테스트 중...' : '연결 테스트'}
+                    </button>
+                    
+                    <button
+                      onClick={handleCreateBuckets}
+                      disabled={loading}
+                      className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? '생성 중...' : '버킷 생성'}
+                    </button>
+                    
+                    <button
+                      onClick={handleUploadTest}
+                      disabled={loading}
+                      className="px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? '테스트 중...' : '업로드 테스트'}
+                    </button>
+                  </div>
+                  
+                  <p className="text-xs text-gray-400 mt-2">
+                    배너 저장 오류 시 위 버튼들을 순서대로 실행해보세요. 결과는 브라우저 콘솔(F12)에서 확인할 수 있습니다.
+                  </p>
+                </div>
+              </details>
             </div>
           </div>
         </div>

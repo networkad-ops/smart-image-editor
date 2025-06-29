@@ -14,6 +14,79 @@ import {
   ProjectStats
 } from '../types'
 
+// ===== Supabase Storage 버킷 생성 =====
+
+export const createStorageBuckets = async (): Promise<{ success: boolean; message: string; details?: any }> => {
+  try {
+    console.log('🗂️ Storage 버킷 생성 시작...');
+    
+    const buckets = [
+      { name: 'banner-images', public: true },
+      { name: 'final-banners', public: true },
+      { name: 'logos', public: true },
+      { name: 'thumbnails', public: true }
+    ];
+    
+    const results = [];
+    
+    for (const bucket of buckets) {
+      try {
+        console.log(`📁 버킷 '${bucket.name}' 생성 시도 중...`);
+        
+        const { data, error } = await supabase.storage.createBucket(bucket.name, {
+          public: bucket.public,
+          allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'],
+          fileSizeLimit: 10485760 // 10MB
+        });
+        
+        if (error) {
+          if (error.message.includes('already exists')) {
+            console.log(`✅ 버킷 '${bucket.name}' 이미 존재함`);
+            results.push({ bucket: bucket.name, status: 'exists', error: null });
+          } else {
+            console.error(`❌ 버킷 '${bucket.name}' 생성 실패:`, error);
+            results.push({ bucket: bucket.name, status: 'failed', error: error.message });
+          }
+        } else {
+          console.log(`✅ 버킷 '${bucket.name}' 생성 성공`);
+          results.push({ bucket: bucket.name, status: 'created', error: null });
+        }
+      } catch (err) {
+        console.error(`💥 버킷 '${bucket.name}' 생성 예외:`, err);
+        results.push({ 
+          bucket: bucket.name, 
+          status: 'error', 
+          error: err instanceof Error ? err.message : '알 수 없는 오류' 
+        });
+      }
+    }
+    
+    const failedBuckets = results.filter(r => r.status === 'failed' || r.status === 'error');
+    
+    if (failedBuckets.length > 0) {
+      return {
+        success: false,
+        message: `일부 버킷 생성 실패: ${failedBuckets.map(b => b.bucket).join(', ')}`,
+        details: { results }
+      };
+    }
+    
+    return {
+      success: true,
+      message: 'Storage 버킷 설정 완료',
+      details: { results }
+    };
+    
+  } catch (err) {
+    console.error('💥 버킷 생성 프로세스 실패:', err);
+    return {
+      success: false,
+      message: `버킷 생성 실패: ${err instanceof Error ? err.message : '알 수 없는 오류'}`,
+      details: err
+    };
+  }
+};
+
 // ===== Supabase 연결 테스트 =====
 
 export const testSupabaseConnection = async (): Promise<{ success: boolean; message: string; details?: any }> => {
@@ -35,7 +108,8 @@ export const testSupabaseConnection = async (): Promise<{ success: boolean; mess
       };
     }
     
-    // 2. Storage 버킷 확인
+    // 2. Storage 버킷 확인 및 생성
+    console.log('🗂️ Storage 버킷 상태 확인 중...');
     const buckets = ['banner-images', 'final-banners', 'logos', 'thumbnails'];
     const bucketStatus = [];
     
@@ -48,36 +122,49 @@ export const testSupabaseConnection = async (): Promise<{ success: boolean; mess
         bucketStatus.push({
           bucket,
           exists: !bucketError,
-          error: bucketError?.message
+          error: bucketError?.message,
+          details: bucketError
         });
       } catch (err) {
         bucketStatus.push({
           bucket,
           exists: false,
-          error: err instanceof Error ? err.message : '알 수 없는 오류'
+          error: err instanceof Error ? err.message : '알 수 없는 오류',
+          details: err
         });
       }
     }
     
     const missingBuckets = bucketStatus.filter(b => !b.exists);
     
-    console.log('✅ Supabase 연결 상태:', {
-      database: '정상',
-      buckets: bucketStatus
-    });
+    console.log('📊 Storage 버킷 상태:', bucketStatus);
     
+    // 누락된 버킷이 있으면 자동 생성 시도
     if (missingBuckets.length > 0) {
-      return {
-        success: false,
-        message: `Storage 버킷이 누락되었습니다: ${missingBuckets.map(b => b.bucket).join(', ')}`,
-        details: { bucketStatus }
-      };
+      console.log(`⚠️ 누락된 버킷 발견: ${missingBuckets.map(b => b.bucket).join(', ')}`);
+      console.log('🔄 자동으로 버킷 생성을 시도합니다...');
+      
+      const bucketCreation = await createStorageBuckets();
+      
+      if (!bucketCreation.success) {
+        return {
+          success: false,
+          message: `Storage 버킷 생성 실패: ${bucketCreation.message}`,
+          details: { bucketStatus, bucketCreation }
+        };
+      }
+      
+      console.log('✅ Storage 버킷 자동 생성 완료');
     }
+    
+    // 3. 간단한 테스트 업로드 (옵션)
+    console.log('🧪 Storage 업로드 테스트 수행 중...');
+    const uploadTestResult = await testStorageUpload();
     
     return {
       success: true,
-      message: 'Supabase 연결 정상',
-      details: { bucketStatus }
+      message: 'Supabase 연결 및 Storage 설정 정상',
+      details: { bucketStatus, uploadTest: uploadTestResult }
     };
     
   } catch (err) {
@@ -85,6 +172,89 @@ export const testSupabaseConnection = async (): Promise<{ success: boolean; mess
     return {
       success: false,
       message: `연결 테스트 실패: ${err instanceof Error ? err.message : '알 수 없는 오류'}`,
+      details: err
+    };
+  }
+};
+
+// ===== Storage 업로드 테스트 =====
+
+export const testStorageUpload = async (): Promise<{ success: boolean; message: string; details?: any }> => {
+  try {
+    console.log('🧪 Storage 업로드 테스트 시작...');
+    
+    // 1x1 픽셀 투명 PNG 이미지 생성 (Base64)
+    const testImageData = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAG8SJUIjwAAAABJRU5ErkJggg==';
+    
+    // Base64를 Blob으로 변환
+    const byteCharacters = atob(testImageData);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const testBlob = new Blob([byteArray], { type: 'image/png' });
+    const testFile = new File([testBlob], 'test-upload.png', { type: 'image/png' });
+    
+    console.log('📁 테스트 파일 생성:', {
+      name: testFile.name,
+      size: testFile.size,
+      type: testFile.type
+    });
+    
+    // banner-images 버킷에 테스트 업로드
+    const testBucket = 'banner-images';
+    const testFileName = `test-${Date.now()}.png`;
+    
+    console.log(`📤 '${testBucket}' 버킷에 테스트 업로드 시도...`);
+    
+    const { data, error } = await supabase.storage
+      .from(testBucket)
+      .upload(testFileName, testFile, {
+        cacheControl: '3600',
+        upsert: true,
+      });
+    
+    if (error) {
+      console.error('❌ 테스트 업로드 실패:', {
+        message: error.message,
+        statusCode: (error as any).statusCode,
+        details: error
+      });
+      
+      return {
+        success: false,
+        message: `테스트 업로드 실패: ${error.message} (HTTP ${(error as any).statusCode || 'Unknown'})`,
+        details: { error, bucket: testBucket, fileName: testFileName }
+      };
+    }
+    
+    console.log('✅ 테스트 업로드 성공:', data);
+    
+    // 업로드된 파일 즉시 삭제 (정리)
+    try {
+      const { error: deleteError } = await supabase.storage
+        .from(testBucket)
+        .remove([data.path]);
+        
+      if (!deleteError) {
+        console.log('🗑️ 테스트 파일 삭제 완료');
+      }
+    } catch (deleteErr) {
+      console.warn('⚠️ 테스트 파일 삭제 실패 (무시해도 됨):', deleteErr);
+    }
+    
+    return {
+      success: true,
+      message: 'Storage 업로드 테스트 성공',
+      details: { bucket: testBucket, uploadedPath: data.path }
+    };
+    
+  } catch (err) {
+    console.error('💥 Storage 업로드 테스트 예외:', err);
+    return {
+      success: false,
+      message: `Storage 테스트 예외: ${err instanceof Error ? err.message : '알 수 없는 오류'}`,
       details: err
     };
   }
@@ -822,18 +992,38 @@ export const storageService = {
           statusCode: (error as any).statusCode,
           details: (error as any).details,
           hint: (error as any).hint,
+          code: (error as any).code,
+          name: (error as any).name,
+          originalError: error,
+          bucket,
+          fileName,
+          fileSize: file.size,
+          fileType: file.type
         });
         
         // 구체적인 오류 메시지 제공
         let userMessage = '이미지 업로드 중 오류가 발생했습니다.';
-        if (error.message.includes('not found')) {
+        
+        // HTTP 상태 코드별 처리
+        const statusCode = (error as any).statusCode;
+        if (statusCode === 400) {
+          userMessage = `잘못된 요청입니다. 파일이 손상되었거나 지원하지 않는 형식일 수 있습니다. (버킷: ${bucket})`;
+        } else if (statusCode === 401) {
+          userMessage = '인증이 필요합니다. API 키를 확인해주세요.';
+        } else if (statusCode === 403) {
+          userMessage = `Storage 버킷 '${bucket}'에 대한 업로드 권한이 없습니다. 관리자에게 문의하세요.`;
+        } else if (statusCode === 404) {
           userMessage = `Storage 버킷 '${bucket}'을 찾을 수 없습니다. 관리자에게 문의하세요.`;
-        } else if (error.message.includes('permission')) {
-          userMessage = '파일 업로드 권한이 없습니다. 관리자에게 문의하세요.';
-        } else if (error.message.includes('size')) {
+        } else if (statusCode === 413) {
+          userMessage = '파일 크기가 너무 큽니다. 더 작은 파일을 업로드해주세요.';
+        } else if (error.message.includes('not found')) {
+          userMessage = `Storage 버킷 '${bucket}'을 찾을 수 없습니다. 관리자에게 문의하세요.`;
+        } else if (error.message.includes('permission') || error.message.includes('forbidden')) {
+          userMessage = `파일 업로드 권한이 없습니다. 버킷: ${bucket}`;
+        } else if (error.message.includes('size') || error.message.includes('too large')) {
           userMessage = '파일 크기가 제한을 초과했습니다.';
         } else {
-          userMessage = `업로드 오류: ${error.message}`;
+          userMessage = `업로드 오류 (HTTP ${statusCode || 'Unknown'}): ${error.message}`;
         }
         
         throw new Error(userMessage);
