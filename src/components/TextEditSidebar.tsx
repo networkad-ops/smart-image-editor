@@ -205,38 +205,56 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     setSelectedRange(null);
   };
 
-  // 피그마 스타일 색상 선택기 컴포넌트
-  const ColorPicker = ({ elementId, isEnabled }: { elementId: string, isEnabled: boolean }) => {
-    const isActiveColorPicker = colorPickerMode.isActive && colorPickerMode.elementId === elementId;
-    const element = textElements.find(el => el.id === elementId);
-    const currentColor = element?.color || '#000000';
+  // 통합 색상 선택기 컴포넌트
+  const UnifiedColorPicker = () => {
+    const isActiveColorPicker = colorPickerMode.isActive;
+    const currentElement = textElements.find(el => el.id === colorPickerMode.elementId);
+    const currentColor = currentElement?.color || '#000000';
+    
+    // 선택된 요소 이름 표시
+    const getElementDisplayName = (elementId: string) => {
+      switch(elementId) {
+        case 'sub-title': return '서브타이틀';
+        case 'main-title': return '메인타이틀';
+        case 'bottom-sub-title': return '하단 서브타이틀';
+        case 'button-text': return '버튼 텍스트';
+        default: return '자유 텍스트';
+      }
+    };
     
     return (
-      <div className={`space-y-2 ${!isEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
-        <div className="text-xs font-medium text-gray-700">
-          색상 선택 {!isEnabled && '(텍스트를 선택하거나 전체 색상 변경용)'}
+      <div className="mb-4 p-3 bg-gray-50 border rounded">
+        <div className="text-sm font-medium text-gray-700 mb-2">
+          통합 색상 선택기
         </div>
         
-        {/* 색상 미리보기 모드 안내 */}
-        {isActiveColorPicker && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-xs text-yellow-800">
-            미리보기 중입니다. 확인 또는 취소를 선택해주세요.
+        {/* 현재 선택된 요소 표시 */}
+        {isActiveColorPicker ? (
+          <div className="mb-2">
+            <div className="text-xs text-blue-700 mb-1">
+              편집 중: {colorPickerMode.elementId ? getElementDisplayName(colorPickerMode.elementId) : ''}
+            </div>
+            <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-xs text-yellow-800">
+              미리보기 중입니다. 확인 또는 취소를 선택해주세요.
+            </div>
+          </div>
+        ) : (
+          <div className="text-xs text-gray-500 mb-2">
+            텍스트 요소의 색상 버튼을 클릭하여 편집하세요
           </div>
         )}
         
         <FigmaColorPicker
           color={currentColor}
           onChange={(color) => {
-            if (!isActiveColorPicker) {
-              startColorPreview(elementId);
+            if (isActiveColorPicker && colorPickerMode.elementId) {
+              applyColorPreview(colorPickerMode.elementId, color);
             }
-            applyColorPreview(elementId, color);
           }}
           onPreview={(color) => {
-            if (!isActiveColorPicker) {
-              startColorPreview(elementId);
+            if (isActiveColorPicker && colorPickerMode.elementId) {
+              applyColorPreview(colorPickerMode.elementId, color);
             }
-            applyColorPreview(elementId, color);
           }}
           onConfirm={confirmColorChange}
           onCancel={cancelColorChange}
@@ -326,6 +344,9 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           </button>
         </div>
       </div>
+
+      {/* 통합 색상 선택기 */}
+      <UnifiedColorPicker />
       
       {/* 서브타이틀 편집 - 컴팩트하게 */}
       {config.subTitle && (
@@ -369,8 +390,17 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               </div>
             )}
             
-          {/* 색상 팔레트 */}
-                      <ColorPicker elementId="sub-title" isEnabled={true} />
+          {/* 색상 버튼 */}
+          <button
+            onClick={() => startColorPreview('sub-title')}
+            className="flex items-center space-x-2 w-full px-3 py-2 border rounded text-sm hover:bg-gray-50"
+          >
+            <div 
+              className="w-4 h-4 rounded border border-gray-300"
+              style={{ backgroundColor: subTitle?.color || '#000000' }}
+            />
+            <span>색상 변경</span>
+          </button>
         </div>
       )}
 
@@ -408,15 +438,24 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             maxLength={config.mainTitle.maxLength}
           />
           
-          {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}
+                    {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}
           {selectedRange && selectedRange.elementId === 'main-title' && (
             <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
               <div className="text-xs text-blue-700">선택된 텍스트: "{(mainTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"</div>
-          </div>
-          )}
-          
-          {/* 색상 팔레트 */}
-                      <ColorPicker elementId="main-title" isEnabled={true} />
+              </div>
+            )}
+            
+          {/* 색상 버튼 */}
+          <button
+            onClick={() => startColorPreview('main-title')}
+            className="flex items-center space-x-2 w-full px-3 py-2 border rounded text-sm hover:bg-gray-50"
+          >
+            <div 
+              className="w-4 h-4 rounded border border-gray-300"
+              style={{ backgroundColor: mainTitle?.color || '#000000' }}
+            />
+            <span>색상 변경</span>
+          </button>
               </div>
             )}
             
@@ -455,15 +494,24 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             maxLength={config.bottomSubTitle.maxLength}
           />
           
-          {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}
+                    {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}
           {selectedRange && selectedRange.elementId === 'bottom-sub-title' && (
             <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
               <div className="text-xs text-blue-700">선택된 텍스트: "{(bottomSubTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"</div>
-                  </div>
-          )}
-          
-          {/* 색상 팔레트 */}
-                      <ColorPicker elementId="bottom-sub-title" isEnabled={true} />
+              </div>
+            )}
+            
+          {/* 색상 버튼 */}
+          <button
+            onClick={() => startColorPreview('bottom-sub-title')}
+            className="flex items-center space-x-2 w-full px-3 py-2 border rounded text-sm hover:bg-gray-50"
+          >
+            <div 
+              className="w-4 h-4 rounded border border-gray-300"
+              style={{ backgroundColor: bottomSubTitle?.color || '#000000' }}
+            />
+            <span>색상 변경</span>
+          </button>
         </div>
       )}
 

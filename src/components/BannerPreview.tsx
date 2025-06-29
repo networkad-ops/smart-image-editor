@@ -226,7 +226,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       });
     }
 
-    // 로고 그리기
+    // 로고 그리기 - 높이 56고정, 비율에 맞는 너비 자동 계산
     const logoToUse = uploadedLogo || existingLogoUrl;
     if (logoToUse && config.logo) {
       const logoImg = new Image();
@@ -234,12 +234,17 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       
       await new Promise<void>((resolve) => {
         logoImg.onload = () => {
+          // 높이 56고정, 비율에 맞는 너비 계산
+          const fixedHeight = 56;
+          const aspectRatio = logoImg.width / logoImg.height;
+          const calculatedWidth = fixedHeight * aspectRatio;
+          
           ctx.drawImage(
             logoImg,
             config.logo!.x,
             config.logo!.y,
-            config.logo!.width,
-            config.logo!.height
+            calculatedWidth,
+            fixedHeight
           );
           resolve();
         };

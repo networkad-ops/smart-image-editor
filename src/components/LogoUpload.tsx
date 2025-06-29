@@ -31,7 +31,8 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
       reader.onload = (e) => {
         setImageSrc(e.target?.result as string);
         setOriginalFile(file);
-        setCropModalOpen(true);
+        // 높이 고정 로고는 크롭 없이 바로 리사이즈
+        processLogoWithFixedHeight(e.target?.result as string, file);
       };
       reader.readAsDataURL(file);
     }
@@ -45,7 +46,35 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
     maxFiles: 1
   });
 
-  // 크롭 완료 시 Blob 생성
+  // 높이 56고정, 비율에 맞는 너비로 리사이즈
+  const processLogoWithFixedHeight = async (imageSrc: string, originalFile: File) => {
+    const image = await createImage(imageSrc);
+    const canvas = document.createElement('canvas');
+    
+    // 높이 56고정, 비율에 맞는 너비 계산
+    const fixedHeight = 56;
+    const aspectRatio = image.width / image.height;
+    const calculatedWidth = Math.round(fixedHeight * aspectRatio);
+    
+    canvas.width = calculatedWidth;
+    canvas.height = fixedHeight;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    // 이미지를 새 크기로 그리기
+    ctx.drawImage(image, 0, 0, calculatedWidth, fixedHeight);
+    
+    // 파일로 변환
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const resizedFile = new File([blob], originalFile.name || 'logo.jpg', { type: 'image/jpeg' });
+        onUpload(resizedFile);
+      }
+    }, 'image/jpeg', 0.9);
+  };
+
+  // 크롭 완료 시 Blob 생성 (기존 크롭 기능 - 사용하지 않음)
   const getCroppedImg = async () => {
     if (!imageSrc || !croppedAreaPixels) return;
     const image = await createImage(imageSrc);
@@ -134,7 +163,7 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
               )}
             </div>
             <p className="text-xs text-gray-500">
-              권장 크기: {logoConfig.width} × {logoConfig.height}px
+              높이 56px로 자동 조정됩니다
               {logoConfig.maxFileSize && ` | 최대 ${Math.round(logoConfig.maxFileSize / 1024)}KB`}
             </p>
           </div>
@@ -166,7 +195,7 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
               />
             </div>
             <div className="text-xs text-gray-600 mt-2 mb-4">
-              로고의 원하는 영역을 선택해 주세요. (크기: {logoConfig.width} × {logoConfig.height}px)
+              로고의 원하는 영역을 선택해 주세요. (높이 56px로 자동 조정됩니다)
             </div>
             <div className="flex justify-end gap-2 mt-4">
               <button

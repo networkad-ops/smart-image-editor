@@ -93,7 +93,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     logo: {
       x: 110,
       y: 90,
-      width: 266,
+      width: 266, // 참고용 (실제로는 비율에 맞게 자동 계산)
       height: 56,
       maxFileSize: 500 * 1024
     }
@@ -121,7 +121,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     logo: {
       x: 81,
       y: 96,
-      width: 266,
+      width: 266, // 참고용 (실제로는 비율에 맞게 자동 계산)
       height: 56,
       maxFileSize: 300 * 1024
     }
@@ -163,8 +163,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     logo: {
       x: 444,
       y: 776,
-      width: 162,
-      height: 42,
+      width: 162, // 참고용 (실제로는 비율에 맞게 자동 계산)
+      height: 56, // 56으로 통일
       maxFileSize: 300 * 1024
     },
     buttonText: {
@@ -349,7 +349,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     logo: {
       x: 81,
       y: 98,
-      width: 266,
+      width: 266, // 참고용 (실제로는 비율에 맞게 자동 계산)
       height: 56,
       maxFileSize: 300 * 1024
     }
@@ -391,7 +391,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     logo: {
       x: 110,
       y: 90,
-      width: 266,
+      width: 266, // 참고용 (실제로는 비율에 맞게 자동 계산)
       height: 56,
       maxFileSize: 500 * 1024
     }
