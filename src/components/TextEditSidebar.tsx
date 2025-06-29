@@ -29,8 +29,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   const mainTitleInputRef = useRef<HTMLTextAreaElement>(null);
   const bottomSubTitleInputRef = useRef<HTMLInputElement>(null);
   
-  // 텍스트 지우기 상태 추가
-  const [clearStatus, setClearStatus] = useState<{[key: string]: boolean}>({});
+
   
   // 색상 피커 상태 추가
   const [colorPickerMode, setColorPickerMode] = useState<{
@@ -297,57 +296,11 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     <div className={showBackground ? "bg-white rounded-lg shadow-lg p-4" : ""}>
       {showTitle && <h2 className="text-lg font-semibold mb-3">텍스트 편집</h2>}
       
-      {/* 배너 타입 안내 - 컴팩트하게 */}
-      <div className="mb-3 p-2 bg-gray-50 border rounded text-xs text-gray-700">
-          {config.fixedText ? (
-          <>기본 배너: 고정된 위치의 텍스트를 편집할 수 있습니다.</>
-          ) : (
-          <>인터랙티브 배너: 위치 조정 버튼으로 자유롭게 이동할 수 있습니다.</>
-          )}
+      {/* 통합 색상 선택기 - 상단에 배치 */}
+      <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
+        <UnifiedColorPicker />
       </div>
 
-      {/* 전체 텍스트 초기화 - 빨간색 제거 */}
-      <div className="mb-3 p-2 bg-gray-50 border rounded">
-        <div className="flex items-center justify-between">
-          <div className="text-xs text-gray-700">
-            전체 초기화: 모든 텍스트를 한 번에 지웁니다
-          </div>
-          <button
-            onClick={() => {
-              if (window.confirm('모든 텍스트를 지우시겠습니까? (취소할 수 없습니다)')) {
-                // 모든 고정 텍스트 초기화
-                textElements.forEach(element => {
-                  if (element.type === 'fixed') {
-                    onUpdateText(element.id, { text: '', colorSegments: [] });
-                  }
-                });
-                // 자유 텍스트는 삭제
-                textElements.forEach(element => {
-                  if (element.type === 'free') {
-                    onDeleteText(element.id);
-                  }
-                });
-                // 전체 지우기 상태 표시
-                setClearStatus(prev => ({ ...prev, 'all': true }));
-                setTimeout(() => {
-                  setClearStatus(prev => ({ ...prev, 'all': false }));
-                }, 3000);
-              }
-            }}
-            className={`text-xs px-2 py-1 rounded transition-all ${
-              clearStatus['all'] 
-                ? 'bg-green-100 text-green-700' 
-                : 'bg-gray-500 text-white hover:bg-gray-600'
-            }`}
-          >
-            {clearStatus['all'] ? '모두 지워짐' : '전체 지우기'}
-          </button>
-        </div>
-      </div>
-
-      {/* 통합 색상 선택기 */}
-      <UnifiedColorPicker />
-      
       {/* 서브타이틀 편집 - 컴팩트하게 */}
       {config.subTitle && (
         <div className="mb-4">
@@ -821,6 +774,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           </div>
         </div>
       )}
+
     </div>
   );
 }; 
