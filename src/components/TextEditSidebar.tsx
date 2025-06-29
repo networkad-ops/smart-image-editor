@@ -170,7 +170,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       onUpdateText(elementId, { color });
     }
   };
-
+    
   // 부분 색상 변경 함수
   const applyPartialColor = (elementId: string, color: string) => {
     if (!selectedRange || selectedRange.elementId !== elementId) return;
@@ -317,18 +317,18 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   const bottomSubTitle = textElements.find(el => el.id === 'bottom-sub-title');
   const buttonText = textElements.find(el => el.id === 'button-text');
   const otherTexts = textElements.filter(el => el.id !== 'main-title' && el.id !== 'sub-title' && el.id !== 'bottom-sub-title' && el.id !== 'button-text');
-  
+
   return (
     <div className={showBackground ? "bg-white rounded-lg shadow-lg p-4" : ""}>
       {showTitle && <h2 className="text-lg font-semibold mb-3">텍스트 편집</h2>}
       
       {/* 배너 타입 안내 - 컴팩트하게 */}
       <div className="mb-3 p-2 bg-gray-50 border rounded text-xs text-gray-700">
-        {config.fixedText ? (
+          {config.fixedText ? (
           <>기본 배너: 고정된 위치의 텍스트를 편집할 수 있습니다.</>
-        ) : (
+          ) : (
           <>인터랙티브 배너: 위치 조정 버튼으로 자유롭게 이동할 수 있습니다.</>
-        )}
+          )}
       </div>
 
       {/* 전체 텍스트 초기화 - 빨간색 제거 */}
@@ -409,9 +409,9 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           {selectedRange && selectedRange.elementId === 'sub-title' && (
             <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
               <div className="text-xs text-blue-700">선택된 텍스트: "{(subTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"</div>
-            </div>
-          )}
-          
+              </div>
+            )}
+            
           {/* 색상 팔레트 */}
           <ColorPalette elementId="sub-title" isEnabled={true} />
         </div>
@@ -455,21 +455,21 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           {selectedRange && selectedRange.elementId === 'main-title' && (
             <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
               <div className="text-xs text-blue-700">선택된 텍스트: "{(mainTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"</div>
-            </div>
+          </div>
           )}
           
           {/* 색상 팔레트 */}
           <ColorPalette elementId="main-title" isEnabled={true} />
-        </div>
-      )}
-
+              </div>
+            )}
+            
       {/* 하단 서브타이틀 편집 - 컴팩트하게 */}
       {config.bottomSubTitle && (
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">
               <h3 className="font-medium text-sm">하단 서브타이틀</h3>
-              <button
+                <button
                 onClick={() => setSelectedElementId(selectedElementId === 'bottom-sub-title' ? null : 'bottom-sub-title')}
                 className={`text-xs px-2 py-1 rounded transition-colors ${
                   selectedElementId === 'bottom-sub-title'
@@ -478,14 +478,14 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 }`}
               >
                 {selectedElementId === 'bottom-sub-title' ? '선택됨' : '위치 조정'}
-              </button>
+                </button>
             </div>
             <span className="text-xs text-gray-500">
               {bottomSubTitle?.text?.length || 0}/{config.bottomSubTitle.maxLength}
             </span>
-          </div>
-          
-          <input
+                  </div>
+                  
+                    <input
             ref={bottomSubTitleInputRef}
             type="text"
             value={bottomSubTitle?.text || ''}
@@ -502,7 +502,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           {selectedRange && selectedRange.elementId === 'bottom-sub-title' && (
             <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
               <div className="text-xs text-blue-700">선택된 텍스트: "{(bottomSubTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"</div>
-            </div>
+                  </div>
           )}
           
           {/* 색상 팔레트 */}
@@ -547,71 +547,71 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           
           {/* 버튼 텍스트 색상 설정 - 더 컴팩트하게 */}
           <div className="grid grid-cols-2 gap-3 mb-2">
-            <div>
+             <div>
               <label className="text-xs font-medium block mb-1">텍스트 색상</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={buttonText?.color || '#FFFFFF'}
+               <div className="flex items-center gap-2">
+                 <input
+                   type="color"
+                   value={buttonText?.color || '#FFFFFF'}
                   onInput={(e) => onUpdateText('button-text', { color: (e.target as HTMLInputElement).value })}
                   onChange={(e) => onUpdateText('button-text', { color: (e.target as HTMLInputElement).value })}
-                  className="w-8 h-8 border rounded cursor-pointer"
-                />
-                <span className="text-xs text-gray-500">{buttonText?.color || '#FFFFFF'}</span>
-              </div>
-            </div>
-            <div>
+                   className="w-8 h-8 border rounded cursor-pointer"
+                 />
+                 <span className="text-xs text-gray-500">{buttonText?.color || '#FFFFFF'}</span>
+               </div>
+             </div>
+             <div>
               <label className="text-xs font-medium block mb-1">배경 색상</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={buttonText?.backgroundColor || '#4F46E5'}
+               <div className="flex items-center gap-2">
+                 <input
+                   type="color"
+                   value={buttonText?.backgroundColor || '#4F46E5'}
                   onInput={(e) => onUpdateText('button-text', { backgroundColor: (e.target as HTMLInputElement).value })}
                   onChange={(e) => onUpdateText('button-text', { backgroundColor: (e.target as HTMLInputElement).value })}
-                  className="w-8 h-8 border rounded cursor-pointer"
-                />
-                <span className="text-xs text-gray-500">{buttonText?.backgroundColor || '#4F46E5'}</span>
-              </div>
-            </div>
-          </div>
-          
+                   className="w-8 h-8 border rounded cursor-pointer"
+                 />
+                 <span className="text-xs text-gray-500">{buttonText?.backgroundColor || '#4F46E5'}</span>
+               </div>
+             </div>
+           </div>
+           
           {/* 빠른 색상 선택 - 더 컴팩트하게 */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-gray-600 mb-1">빠른 텍스트 색상</label>
-              <div className="flex flex-wrap gap-1">
-                {[
-                  '#FFFFFF', '#000000', '#FF6B35', '#F7931E', 
-                  '#FFD700', '#32CD32', '#4169E1', '#8A2BE2'
-                ].map((color) => (
-                  <button
-                    key={color}
+             <div className="flex flex-wrap gap-1">
+               {[
+                 '#FFFFFF', '#000000', '#FF6B35', '#F7931E', 
+                 '#FFD700', '#32CD32', '#4169E1', '#8A2BE2'
+               ].map((color) => (
+                 <button
+                   key={color}
                     className="w-5 h-5 rounded border border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
-                    style={{ backgroundColor: color }}
-                    onClick={() => onUpdateText('button-text', { color })}
-                    title={`텍스트 색상: ${color}`}
-                  />
-                ))}
-              </div>
-            </div>
-            
-            <div>
+                   style={{ backgroundColor: color }}
+                   onClick={() => onUpdateText('button-text', { color })}
+                   title={`텍스트 색상: ${color}`}
+                 />
+               ))}
+             </div>
+           </div>
+           
+           <div>
               <label className="block text-xs text-gray-600 mb-1">빠른 배경 색상</label>
-              <div className="flex flex-wrap gap-1">
-                {[
-                  '#4F46E5', '#059669', '#DC2626', '#7C2D12', 
-                  '#7C3AED', '#DB2777', '#EA580C', '#000000'
-                ].map((color) => (
-                  <button
-                    key={color}
+             <div className="flex flex-wrap gap-1">
+               {[
+                 '#4F46E5', '#059669', '#DC2626', '#7C2D12', 
+                 '#7C3AED', '#DB2777', '#EA580C', '#000000'
+               ].map((color) => (
+                 <button
+                   key={color}
                     className="w-5 h-5 rounded border border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
-                    style={{ backgroundColor: color }}
-                    onClick={() => onUpdateText('button-text', { backgroundColor: color })}
-                    title={`배경 색상: ${color}`}
-                  />
-                ))}
+                   style={{ backgroundColor: color }}
+                   onClick={() => onUpdateText('button-text', { backgroundColor: color })}
+                   title={`배경 색상: ${color}`}
+                 />
+               ))}
               </div>
-            </div>
+             </div>
           </div>
         </div>
       )}
