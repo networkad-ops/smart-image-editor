@@ -122,6 +122,7 @@ export type BannerStatus = 'draft' | 'in_progress' | 'review' | 'approved' | 're
 // 배너 타입 (개선된 버전)
 export interface Banner {
   id: string;
+  project_id?: string; // 프로젝트 ID 추가
   title: string; // 이제 "팀명/프로젝트명" 형태로 저장
   description?: string;
   banner_type: 'basic-no-logo' | 'basic-with-logo' | 'interactive' | 'fullscreen';

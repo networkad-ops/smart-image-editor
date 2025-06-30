@@ -20,7 +20,7 @@ function App() {
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
 
-  const { uploadBannerImage, uploadLogo, createBanner, updateBanner } = useSupabase();
+  const { uploadBannerImage, uploadLogo, createBanner, updateBanner, getOrCreateDefaultProject } = useSupabase();
 
   // 새 배너 만들기 시작
   const handleNewBanner = () => {
@@ -423,10 +423,29 @@ function App() {
         img.src = URL.createObjectURL(image);
       });
       
-      // 6. 배너 데이터 저장
+      // 6. 기본 프로젝트 ID 확인/생성
+      console.log('🏗️ 기본 프로젝트 확인/생성 중...');
+      let projectId = '';
+      
+      if (editingBanner?.project_id) {
+        // 기존 배너 수정 시에는 기존 project_id 사용
+        projectId = editingBanner.project_id;
+        console.log('✅ 기존 배너의 프로젝트 ID 사용:', projectId);
+      } else {
+        // 새 배너 생성 시에는 기본 프로젝트 ID 가져오기
+        try {
+          projectId = await getOrCreateDefaultProject();
+          console.log('✅ 기본 프로젝트 ID 확보:', projectId);
+        } catch (error) {
+          console.error('❌ 기본 프로젝트 확보 실패:', error);
+          throw new Error(`기본 프로젝트 확보 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        }
+      }
+
+      // 7. 배너 데이터 저장
       console.log('💾 배너 데이터 저장 중...');
       const bannerData = {
-        // 프로젝트 연결 제거 - title에 통합
+        project_id: projectId,
         title: editingBanner?.title || '새 배너',
         description: editingBanner?.description || '',
         banner_type: bannerSelection.bannerType,

@@ -13,7 +13,8 @@ import {
   projectService,
   bannerService,
   storageService,
-  dashboardService
+  dashboardService,
+  getOrCreateDefaultProject
 } from '../services/supabaseService';
 
 export const useSupabase = () => {
@@ -335,6 +336,7 @@ export const useSupabase = () => {
     uploadBannerImage,
     uploadLogo,
     getDashboardStats,
-    getRecentActivity
+    getRecentActivity,
+    getOrCreateDefaultProject
   };
 };

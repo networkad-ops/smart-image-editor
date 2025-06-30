@@ -1188,4 +1188,56 @@ export const storageService = {
 
     if (error) throw error
   }
-} 
+}
+
+// ===== 기본 프로젝트 생성 및 관리 =====
+
+export const getOrCreateDefaultProject = async (): Promise<string> => {
+  console.log('🔍 기본 프로젝트 확인 중...');
+  
+  try {
+    // 먼저 기본 프로젝트가 있는지 확인
+    const { data: existingProjects, error: searchError } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('name', 'Default Project')
+      .limit(1);
+
+    if (searchError) {
+      console.error('❌ 기본 프로젝트 검색 실패:', searchError);
+      throw searchError;
+    }
+
+    // 기존 기본 프로젝트가 있으면 그 ID 반환
+    if (existingProjects && existingProjects.length > 0) {
+      console.log('✅ 기존 기본 프로젝트 발견:', existingProjects[0].id);
+      return existingProjects[0].id;
+    }
+
+    // 기본 프로젝트가 없으면 생성
+    console.log('📝 새 기본 프로젝트 생성 중...');
+    const { data: newProject, error: createError } = await supabase
+      .from('projects')
+      .insert([{
+        name: 'Default Project',
+        description: '자동 생성된 기본 프로젝트입니다.',
+        status: 'active',
+        priority: 'medium',
+        user_id: null
+      }])
+      .select('id')
+      .single();
+
+    if (createError) {
+      console.error('❌ 기본 프로젝트 생성 실패:', createError);
+      throw createError;
+    }
+
+    console.log('✅ 새 기본 프로젝트 생성 완료:', newProject.id);
+    return newProject.id;
+    
+  } catch (error) {
+    console.error('💥 기본 프로젝트 처리 실패:', error);
+    throw new Error(`기본 프로젝트 생성/확인 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+  }
+}; 
