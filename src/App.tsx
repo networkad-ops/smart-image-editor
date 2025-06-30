@@ -19,6 +19,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
+  const [uploadedLogos, setUploadedLogos] = useState<File[]>([]); // 다중 로고
 
   const { uploadBannerImage, uploadLogo, createBanner, updateBanner, getOrCreateDefaultProject } = useSupabase();
 
@@ -149,13 +150,32 @@ function App() {
           setUploadedImage(file);
         }
         
-        // 로고 이미지 로드
+        // 단일 로고 이미지 로드
         if (banner.logo_url) {
           console.log('로고 이미지 로드 중:', banner.logo_url);
           const response = await fetch(banner.logo_url);
           const blob = await response.blob();
           const file = new File([blob], 'logo.png', { type: blob.type });
           setUploadedLogo(file);
+        }
+
+        // 다중 로고 이미지 로드 (항공팀용)
+        if (banner.logo_urls && banner.logo_urls.length > 0) {
+          console.log('다중 로고 이미지 로드 중:', banner.logo_urls);
+          try {
+            const logoFiles = await Promise.all(
+              banner.logo_urls.map(async (logoUrl, index) => {
+                const response = await fetch(logoUrl);
+                const blob = await response.blob();
+                return new File([blob], `logo_${index + 1}.png`, { type: blob.type });
+              })
+            );
+            setUploadedLogos(logoFiles);
+            console.log('다중 로고 로드 완료:', logoFiles.length + '개');
+          } catch (error) {
+            console.error('다중 로고 로드 실패:', error);
+            // 다중 로고 로드 실패해도 편집은 계속 진행
+          }
         }
       } catch (error) {
         console.error('이미지 로드 실패:', error);
@@ -307,6 +327,10 @@ function App() {
     setUploadedLogo(file);
   };
 
+  const handleMultiLogoUpload = (files: File[]) => {
+    setUploadedLogos(files);
+  };
+
   const handleAddText = (text: TextElement) => {
     setTextElements(prev => [...prev, text]);
   };
@@ -361,7 +385,7 @@ function App() {
         }
       }
       
-      // 3. 로고 이미지 업로드
+      // 3. 단일 로고 이미지 업로드
       if (uploadedLogo) {
         console.log('🏷️ 로고 이미지 업로드 중...');
         try {
@@ -370,6 +394,25 @@ function App() {
         } catch (error) {
           console.error('❌ 로고 이미지 업로드 실패:', error);
           throw new Error(`로고 이미지 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        }
+      }
+
+      // 3-2. 다중 로고 이미지 업로드 (항공팀용)
+      let logoUrls: string[] = [];
+      if (uploadedLogos.length > 0) {
+        console.log('🏷️ 다중 로고 이미지 업로드 중...', uploadedLogos.length + '개');
+        try {
+          logoUrls = await Promise.all(
+            uploadedLogos.map(async (logo, index) => {
+              const url = await uploadLogo(logo);
+              console.log(`✅ 로고 ${index + 1} 업로드 성공:`, url);
+              return url;
+            })
+          );
+          console.log('✅ 다중 로고 업로드 전체 완료:', logoUrls);
+        } catch (error) {
+          console.error('❌ 다중 로고 업로드 실패:', error);
+          throw new Error(`다중 로고 업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
         }
       }
       
@@ -453,6 +496,7 @@ function App() {
         status: editingBanner?.status || 'draft' as const,
         background_image_url: backgroundImageUrl,
         logo_url: logoUrl,
+        logo_urls: logoUrls.length > 0 ? logoUrls : undefined, // 다중 로고 URLs
         final_banner_url: finalBannerUrl,
         thumbnail_url: thumbnailUrl,
         text_elements: textElements,
@@ -476,8 +520,15 @@ function App() {
         throw new Error(`배너 데이터 저장 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
       }
       
-      // 완료 후 홈으로 이동
+      // 저장 완료 알림 표시
       console.log('🎉 배너 저장 프로세스 완료');
+      const successMessage = editingBanner 
+        ? '✅ 배너가 성공적으로 업데이트되었습니다!' 
+        : '✅ 새 배너가 성공적으로 생성되었습니다!';
+      
+      alert(successMessage);
+      
+      // 완료 후 홈으로 이동
       handleReset();
       setStep('home');
       
@@ -499,6 +550,7 @@ function App() {
     setEditingBanner(null);
     setUploadedImage(null);
     setUploadedLogo(null);
+    setUploadedLogos([]); // 다중 로고 초기화
     setTextElements([]);
     setFinalImage(null);
   };
@@ -683,9 +735,11 @@ function App() {
             selection={bannerSelection}
             uploadedImage={uploadedImage}
             uploadedLogo={uploadedLogo}
+            uploadedLogos={uploadedLogos}
             textElements={textElements}
             onImageUpload={handleImageUpload}
             onLogoUpload={handleLogoUpload}
+            onMultiLogoUpload={handleMultiLogoUpload}
             onAddText={handleAddText}
             onTextUpdate={handleTextUpdate}
             onTextDelete={handleTextDelete}

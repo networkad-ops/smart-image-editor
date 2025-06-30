@@ -132,88 +132,123 @@ export const BannerHistory: React.FC<BannerHistoryProps> = ({ onBannerEdit, onBa
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBanners.map((banner) => (
-              <div
-                key={banner.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
-              >
-                {/* 썸네일 */}
-                <div className="aspect-video bg-gray-100 relative">
-                  {banner.thumbnail_url || banner.final_banner_url || banner.background_image_url ? (
-                    <img
-                      src={banner.thumbnail_url || banner.final_banner_url || banner.background_image_url}
-                      alt={banner.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                  )}
-                  
-                  {/* 상태 배지 */}
-                  <div className="absolute top-2 right-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(banner.status)}`}>
-                      {getStatusText(banner.status)}
-                    </span>
-                  </div>
-                </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      미리보기
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      배너 정보
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      타입
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      상태
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      생성일
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      작업
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredBanners.map((banner) => (
+                    <tr key={banner.id} className="hover:bg-gray-50">
+                      {/* 미리보기 */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="w-24 h-16 bg-gray-100 rounded-lg overflow-hidden">
+                          {banner.thumbnail_url || banner.final_banner_url || banner.background_image_url ? (
+                            <img
+                              src={banner.thumbnail_url || banner.final_banner_url || banner.background_image_url}
+                              alt={banner.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      </td>
 
-                {/* 내용 */}
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                    {banner.title}
-                  </h3>
-                  
-                  {banner.description && (
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                      {banner.description}
-                    </p>
-                  )}
+                      {/* 배너 정보 */}
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900 mb-1">
+                          {banner.title}
+                        </div>
+                        {banner.description && (
+                          <div className="text-sm text-gray-500 line-clamp-2 max-w-md">
+                            {banner.description}
+                          </div>
+                        )}
+                      </td>
 
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {banner.banner_type}
-                    </span>
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                      {banner.device_type}
-                    </span>
-                  </div>
+                      {/* 타입 */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="space-y-1">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {banner.banner_type}
+                          </span>
+                          <br />
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            {banner.device_type}
+                          </span>
+                        </div>
+                      </td>
 
-                  <div className="text-xs text-gray-500 mb-4">
-                    생성일: {new Date(banner.created_at).toLocaleDateString('ko-KR')}
-                    {banner.updated_at !== banner.created_at && (
-                      <span className="ml-2">
-                        • 수정일: {new Date(banner.updated_at).toLocaleDateString('ko-KR')}
-                      </span>
-                    )}
-                  </div>
+                      {/* 상태 */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(banner.status)}`}>
+                          {getStatusText(banner.status)}
+                        </span>
+                      </td>
 
-                  {/* 액션 버튼 */}
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => onBannerEdit(banner)}
-                      className="flex-1 bg-blue-500 text-white py-2 px-3 rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
-                    >
-                      편집
-                    </button>
-                    <button
-                      onClick={() => handleDelete(banner.id)}
-                      className="bg-red-500 text-white py-2 px-3 rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
-                    >
-                      삭제
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                      {/* 생성일 */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div>
+                          {new Date(banner.created_at).toLocaleDateString('ko-KR')}
+                        </div>
+                        {banner.updated_at !== banner.created_at && (
+                          <div className="text-xs text-gray-400">
+                            수정: {new Date(banner.updated_at).toLocaleDateString('ko-KR')}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* 작업 버튼 */}
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="flex items-center justify-center space-x-2">
+                          <button
+                            onClick={() => onBannerEdit(banner)}
+                            className="bg-blue-500 text-white py-2 px-3 rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
+                          >
+                            편집
+                          </button>
+                          <button
+                            onClick={() => handleDelete(banner.id)}
+                            className="bg-red-500 text-white py-2 px-3 rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

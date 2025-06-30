@@ -19,6 +19,7 @@ export interface BannerConfig {
   subTitle?: TextConfig;
   bottomSubTitle?: TextConfig; // 하단 서브타이틀 추가
   logo?: LogoConfig;
+  multiLogo?: MultiLogoConfig; // 다중 로고 설정 (항공팀용)
   buttonText?: TextConfig;
 }
 
@@ -43,6 +44,19 @@ export interface LogoConfig {
   y: number;
   width: number;
   height: number;
+  maxFileSize?: number;
+}
+
+// 다중 로고 설정 타입 (항공팀용)
+export interface MultiLogoConfig {
+  x: number;
+  y: number;
+  width: number; // 전체 로고 영역 너비
+  height: number;
+  maxHeight: number; // 개별 로고 최대 높이
+  logoGap: number; // 로고 간 간격 (구분자 포함)
+  separatorWidth: number; // 구분자 너비
+  maxLogos: number; // 최대 로고 개수
   maxFileSize?: number;
 }
 
@@ -131,6 +145,7 @@ export interface Banner {
   // 새로운 URL 구조
   background_image_url: string;  // 배경 이미지
   logo_url?: string;             // 로고 이미지  
+  logo_urls?: string[];          // 다중 로고 이미지 (항공팀용)
   final_banner_url?: string;     // 최종 완성된 배너
   thumbnail_url?: string;        // 썸네일
   // 기존 호환성을 위해 유지 (deprecated)
@@ -162,6 +177,7 @@ export interface BannerHistory {
   // 새로운 URL 구조
   background_image_url: string;
   logo_url?: string;
+  logo_urls?: string[]; // 다중 로고 이미지 (항공팀용)
   final_banner_url?: string;
   thumbnail_url?: string;
   // 기존 호환성을 위해 유지 (deprecated)

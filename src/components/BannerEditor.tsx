@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BannerSelection, TextElement, Banner } from '../types';
 import { ImageUpload } from './ImageUpload';
 import { LogoUpload } from './LogoUpload';
+import { MultiLogoUpload } from './MultiLogoUpload';
 import { TextEditSidebar } from './TextEditSidebar';
 import { BannerPreview } from './BannerPreview';
 
@@ -9,9 +10,11 @@ interface BannerEditorProps {
   selection: BannerSelection;
   uploadedImage: File | null;
   uploadedLogo: File | null;
+  uploadedLogos: File[]; // 다중 로고
   textElements: TextElement[];
   onImageUpload: (file: File) => void;
   onLogoUpload: (file: File) => void;
+  onMultiLogoUpload: (files: File[]) => void; // 다중 로고 업로드
   onAddText: (text: TextElement) => void;
   onTextUpdate: (id: string, updates: Partial<TextElement>) => void;
   onTextDelete: (id: string) => void;
@@ -28,9 +31,11 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
   selection,
   uploadedImage,
   uploadedLogo,
+  uploadedLogos,
   textElements,
   onImageUpload,
   onLogoUpload,
+  onMultiLogoUpload,
   onAddText,
   onTextUpdate,
   onTextDelete,
@@ -151,7 +156,7 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
               <h2 className="text-lg font-medium mb-3">이미지 편집</h2>
               
               {/* 배경 이미지와 로고를 좌우 배치 */}
-              <div className={`grid gap-4 ${selection.config.logo ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              <div className={`grid gap-4 ${selection.config.logo || selection.config.multiLogo ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {/* 배경 이미지 업로드 */}
                 <div>
                   <h3 className="text-sm font-medium mb-2 text-gray-700">배경 이미지</h3>
@@ -162,7 +167,7 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
                   />
                 </div>
 
-                {/* 로고 업로드 */}
+                {/* 단일 로고 업로드 */}
                 {selection.config.logo && (
                   <div>
                     <h3 className="text-sm font-medium mb-2 text-gray-700">로고 업로드</h3>
@@ -170,6 +175,18 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
                       onUpload={onLogoUpload}
                       logoConfig={selection.config.logo}
                       uploadedLogo={uploadedLogo}
+                    />
+                  </div>
+                )}
+
+                {/* 다중 로고 업로드 (항공팀용) */}
+                {selection.config.multiLogo && (
+                  <div>
+                    <h3 className="text-sm font-medium mb-2 text-gray-700">다중 로고 업로드</h3>
+                    <MultiLogoUpload
+                      onUpload={onMultiLogoUpload}
+                      multiLogoConfig={selection.config.multiLogo}
+                      uploadedLogos={uploadedLogos}
                     />
                   </div>
                 )}
@@ -183,9 +200,11 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
                 config={selection.config}
                 uploadedImage={uploadedImage}
                 uploadedLogo={uploadedLogo}
+                uploadedLogos={uploadedLogos}
                 textElements={textElements}
                 existingImageUrl={editingBanner?.background_image_url || editingBanner?.image_url}
                 existingLogoUrl={editingBanner?.logo_url}
+                existingLogoUrls={editingBanner?.logo_urls}
               />
             </div>
           </div>

@@ -7,18 +7,22 @@ interface BannerPreviewProps {
   config: BannerConfig;
   uploadedImage: File | null;
   uploadedLogo?: File | null;
+  uploadedLogos?: File[]; // 다중 로고
   textElements: TextElement[];
   existingImageUrl?: string | null;
   existingLogoUrl?: string | null;
+  existingLogoUrls?: string[]; // 다중 로고 URLs
 }
 
 export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewProps>(({
   config,
   uploadedImage,
   uploadedLogo,
+  uploadedLogos = [],
   textElements,
   existingImageUrl,
-  existingLogoUrl
+  existingLogoUrl,
+  existingLogoUrls = []
 }, ref) => {
   const backgroundImageRef = useRef<ImageData | null>(null);
 
@@ -226,7 +230,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       });
     }
 
-    // 로고 그리기 - 높이 56고정, 비율에 맞는 너비 자동 계산
+    // 단일 로고 그리기
     const logoToUse = uploadedLogo || existingLogoUrl;
     if (logoToUse && config.logo) {
       const logoImg = new Image();
@@ -258,9 +262,78 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       });
     }
 
+    // 다중 로고 그리기 (항공팀용)
+    const logosToUse = uploadedLogos.length > 0 ? uploadedLogos : existingLogoUrls;
+    if (logosToUse.length > 0 && config.multiLogo) {
+      const logoImages = await Promise.all(
+        logosToUse.map((logo, index) => {
+          return new Promise<{ img: HTMLImageElement; index: number } | null>((resolve) => {
+            const logoImg = new Image();
+            logoImg.crossOrigin = 'anonymous';
+            
+            logoImg.onload = () => resolve({ img: logoImg, index });
+            logoImg.onerror = () => resolve(null);
+            
+            if (logo instanceof File) {
+              logoImg.src = URL.createObjectURL(logo);
+            } else {
+              logoImg.src = logo as string;
+            }
+          });
+        })
+      );
+
+      // 로고 배치 계산
+      const validLogos = logoImages.filter(item => item !== null) as { img: HTMLImageElement; index: number }[];
+      if (validLogos.length > 0) {
+        // 각 로고의 너비 계산 (높이 고정)
+        const logoWidths = validLogos.map(({ img }) => {
+          const aspectRatio = img.width / img.height;
+          return config.multiLogo!.maxHeight * aspectRatio;
+        });
+
+        // 전체 너비 계산 (로고 너비들 + 구분자들)
+        const totalLogoWidth = logoWidths.reduce((sum, width) => sum + width, 0);
+        const totalSeparatorWidth = (validLogos.length - 1) * config.multiLogo!.logoGap;
+        const totalWidth = totalLogoWidth + totalSeparatorWidth;
+
+        // 시작 X 위치 (중앙 정렬)
+        let currentX = config.multiLogo!.x + (config.multiLogo!.width - totalWidth) / 2;
+
+        // 각 로고 그리기
+        validLogos.forEach(({ img }, index) => {
+          const logoWidth = logoWidths[index];
+          
+          // 로고 그리기
+          ctx.drawImage(
+            img,
+            currentX,
+            config.multiLogo!.y,
+            logoWidth,
+            config.multiLogo!.maxHeight
+          );
+
+          currentX += logoWidth;
+
+          // 마지막 로고가 아니면 구분자 그리기
+          if (index < validLogos.length - 1) {
+            const separatorX = currentX + (config.multiLogo!.logoGap - config.multiLogo!.separatorWidth) / 2;
+            const separatorY = config.multiLogo!.y + config.multiLogo!.maxHeight * 0.2;
+            const separatorHeight = config.multiLogo!.maxHeight * 0.6;
+
+            // 세로선 구분자 그리기
+            ctx.fillStyle = '#6B7280'; // 회색 구분자
+            ctx.fillRect(separatorX, separatorY, config.multiLogo!.separatorWidth, separatorHeight);
+
+            currentX += config.multiLogo!.logoGap;
+          }
+        });
+      }
+    }
+
     // 배경 이미지 데이터 저장 (텍스트 렌더링 최적화용)
     backgroundImageRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  }, [uploadedImage, uploadedLogo, existingImageUrl, existingLogoUrl, config.logo]);
+  }, [uploadedImage, uploadedLogo, uploadedLogos, existingImageUrl, existingLogoUrl, existingLogoUrls, config.logo, config.multiLogo]);
 
   // 배경 이미지나 로고가 변경될 때만 실행
   useEffect(() => {
@@ -273,7 +346,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     drawBackground(ctx, canvas).then(() => {
       drawTextElements(ctx, textElements);
     });
-  }, [uploadedImage, uploadedLogo, existingImageUrl, existingLogoUrl, config.width, config.height, drawBackground, drawTextElements]);
+  }, [uploadedImage, uploadedLogo, uploadedLogos, existingImageUrl, existingLogoUrl, existingLogoUrls, config.width, config.height, drawBackground, drawTextElements]);
 
   // 텍스트만 변경될 때 실행 (배경 다시 그리지 않음)
   useEffect(() => {

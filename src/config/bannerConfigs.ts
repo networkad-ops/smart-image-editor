@@ -346,11 +346,15 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       maxLength: 20,
       maxLines: 1
     },
-    logo: {
+    multiLogo: {
       x: 81,
       y: 98,
-      width: 266, // 참고용 (실제로는 비율에 맞게 자동 계산)
+      width: 800, // 다중 로고 전체 영역 너비
       height: 56,
+      maxHeight: 56, // 개별 로고 최대 높이
+      logoGap: 17, // 로고 간 간격 (구분자 포함)
+      separatorWidth: 1, // 구분자 선 너비
+      maxLogos: 5, // 최대 로고 개수
       maxFileSize: 300 * 1024
     }
   },
@@ -388,11 +392,15 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       maxLength: 30,
       maxLines: 1
     },
-    logo: {
+    multiLogo: {
       x: 110,
       y: 90,
-      width: 266, // 참고용 (실제로는 비율에 맞게 자동 계산)
+      width: 1200, // 다중 로고 전체 영역 너비 (PC는 더 넓게)
       height: 56,
+      maxHeight: 56, // 개별 로고 최대 높이
+      logoGap: 17, // 로고 간 간격 (구분자 포함)
+      separatorWidth: 1, // 구분자 선 너비
+      maxLogos: 6, // 최대 로고 개수 (PC는 더 많이)
       maxFileSize: 500 * 1024
     }
   }
