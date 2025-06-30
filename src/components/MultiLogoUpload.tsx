@@ -105,7 +105,7 @@ export const MultiLogoUpload: React.FC<MultiLogoUploadProps> = ({
           <div className="bg-gray-100 p-4 rounded-lg">
             <div className="flex items-center justify-center space-x-2" style={{ minHeight: multiLogoConfig.maxHeight }}>
               {uploadedLogos.map((logo, index) => (
-                <React.Fragment key={index}>
+                <React.Fragment key={`${logo.name}-${logo.lastModified}-${index}`}>
                   {index > 0 && (
                     <div 
                       className="bg-gray-400"
@@ -140,7 +140,7 @@ export const MultiLogoUpload: React.FC<MultiLogoUploadProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {uploadedLogos.map((logo, index) => (
               <div
-                key={index}
+                key={`logo-${logo.name}-${logo.lastModified}-${index}`}
                 className="relative bg-white border border-gray-200 rounded-lg p-3 group"
                 draggable
                 onDragStart={() => setDragIndex(index)}
