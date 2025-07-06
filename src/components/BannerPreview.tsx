@@ -1,5 +1,5 @@
 // BannerPreview.tsx 수정
-import React, { useEffect, RefObject, useCallback, useRef } from 'react';
+import React, { useEffect, RefObject, useCallback, useRef, useState } from 'react';
 import { BannerConfig, TextElement } from '../types';
 import { drawTextWithLetterSpacing } from '../utils/canvasUtils';
 
@@ -25,6 +25,73 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   existingLogoUrls = []
 }, ref) => {
   const backgroundImageRef = useRef<ImageData | null>(null);
+  // 로고 크기 상태 (height만, width는 비율로 자동)
+  const [logoHeight, setLogoHeight] = useState(config.logo?.height || config.multiLogo?.maxHeight || 56);
+  // 드래그 상태
+  const [dragging, setDragging] = useState(false);
+  const [dragStartY, setDragStartY] = useState<number | null>(null);
+  const [startHeight, setStartHeight] = useState<number>(logoHeight);
+
+  // 핸들 위치 계산 (단일/다중 로고 모두 지원)
+  let handleX = 0, handleY = 0, handleW = 16, handleH = 16;
+  let logoX = config.logo?.x || config.multiLogo?.x || 0;
+  let logoY = config.logo?.y || config.multiLogo?.y || 0;
+  let logoW = 0;
+  let aspect = 1;
+  if (uploadedLogo && config.logo) {
+    // 단일 로고
+    aspect = 1;
+    if (uploadedLogo instanceof File) {
+      const img = new window.Image();
+      img.src = URL.createObjectURL(uploadedLogo);
+      img.onload = () => {
+        aspect = img.width / img.height;
+      };
+    }
+    logoW = logoHeight * aspect;
+    handleX = logoX + logoW - handleW / 2;
+    handleY = logoY + logoHeight - handleH / 2;
+  } else if (uploadedLogos.length > 0 && config.multiLogo) {
+    // 다중 로고: 첫 번째 로고 기준
+    aspect = 1;
+    const firstLogo = uploadedLogos[0];
+    if (firstLogo instanceof File) {
+      const img = new window.Image();
+      img.src = URL.createObjectURL(firstLogo);
+      img.onload = () => {
+        aspect = img.width / img.height;
+      };
+    }
+    logoW = logoHeight * aspect;
+    handleX = logoX + logoW - handleW / 2;
+    handleY = logoY + logoHeight - handleH / 2;
+  }
+
+  // 드래그 이벤트 핸들러
+  const onHandleMouseDown = (e: React.MouseEvent) => {
+    setDragging(true);
+    setDragStartY(e.clientY);
+    setStartHeight(logoHeight);
+    e.stopPropagation();
+    e.preventDefault();
+  };
+  useEffect(() => {
+    if (!dragging) return;
+    const onMouseMove = (e: MouseEvent) => {
+      if (dragStartY !== null) {
+        let delta = e.clientY - dragStartY;
+        let newHeight = Math.max(24, Math.min(200, startHeight + delta));
+        setLogoHeight(newHeight);
+      }
+    };
+    const onMouseUp = () => setDragging(false);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+  }, [dragging, dragStartY, startHeight]);
 
   // 텍스트 렌더링 함수
   const drawTextElements = useCallback((ctx: CanvasRenderingContext2D, elements: TextElement[]) => {
@@ -297,8 +364,8 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         const totalSeparatorWidth = (validLogos.length - 1) * config.multiLogo!.logoGap;
         const totalWidth = totalLogoWidth + totalSeparatorWidth;
 
-        // 시작 X 위치 (중앙 정렬)
-        let currentX = config.multiLogo!.x + (config.multiLogo!.width - totalWidth) / 2;
+        // 시작 X 위치 (왼쪽 정렬)
+        let currentX = config.multiLogo!.x;
 
         // 각 로고 그리기
         validLogos.forEach(({ img }, index) => {
@@ -398,6 +465,30 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
               backgroundColor: '#f8f9fa'
             }}
           />
+          {/* 드래그 리사이즈 핸들 (오른쪽 아래) */}
+          {(uploadedLogo || (uploadedLogos && uploadedLogos.length > 0)) && (
+            <div
+              style={{
+                position: 'absolute',
+                left: handleX * previewScale,
+                top: handleY * previewScale,
+                width: handleW,
+                height: handleH,
+                cursor: 'nwse-resize',
+                zIndex: 10,
+                background: dragging ? '#2563eb' : '#fff',
+                border: '2px solid #2563eb',
+                borderRadius: 4,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
+              }}
+              onMouseDown={onHandleMouseDown}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 10h8M10 10V2" stroke="#2563eb" strokeWidth="2" strokeLinecap="round"/></svg>
+            </div>
+          )}
         </div>
       </div>
     </div>
