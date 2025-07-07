@@ -132,6 +132,14 @@ function App() {
           });
         }
         
+        // [보완] 버튼 텍스트 요소가 있는데 text가 빈 문자열이면 기본값('버튼')을 넣어줌
+        if (config.buttonText) {
+          const btn = existingElements.find(el => el.id === 'button-text');
+          if (btn && (!btn.text || btn.text.trim() === '')) {
+            btn.text = '버튼';
+          }
+        }
+        
         setTextElements(existingElements);
       } else {
         console.warn('텍스트 요소가 배열이 아닙니다. 기본 설정으로 초기화합니다.');
