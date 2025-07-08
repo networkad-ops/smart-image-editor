@@ -38,8 +38,8 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
 
   // 핸들 위치 계산 (단일/다중 로고 모두 지원)
   let handleX = 0, handleY = 0, handleW = 16, handleH = 16;
-  let logoX = config.logo?.x || config.multiLogo?.x || 0;
-  let logoY = config.logo?.y || config.multiLogo?.y || 0;
+  let logoX = config.logo?.x ?? config.multiLogo?.x ?? 0;
+  let logoY = config.logo?.y ?? config.multiLogo?.y ?? 0;
   let logoW = 0;
   let aspect = 1;
   if (uploadedLogo && config.logo) {
@@ -52,9 +52,9 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         aspect = img.width / img.height;
       };
     }
-    logoW = logoHeight || 56 * aspect;
+    logoW = (logoHeight ?? 56) * aspect;
     handleX = logoX + logoW - handleW / 2;
-    handleY = logoY + logoHeight || 56 - handleH / 2;
+    handleY = logoY + (logoHeight ?? 56) - handleH / 2;
   } else if (uploadedLogos.length > 0 && config.multiLogo) {
     // 다중 로고: 첫 번째 로고 기준
     aspect = 1;
@@ -66,9 +66,9 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         aspect = img.width / img.height;
       };
     }
-    logoW = logoHeight || config.multiLogo.maxHeight * aspect;
+    logoW = (logoHeight ?? config.multiLogo.maxHeight) * aspect;
     handleX = logoX + logoW - handleW / 2;
-    handleY = logoY + logoHeight || config.multiLogo.maxHeight - handleH / 2;
+    handleY = logoY + (logoHeight ?? config.multiLogo.maxHeight) - handleH / 2;
   }
 
   // 드래그 이벤트 핸들러
@@ -365,7 +365,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
 
       // 로고 배치 계산
       const validLogos = logoImages.filter(item => item !== null) as { img: HTMLImageElement; index: number }[];
-      if (validLogos.length > 0) {
+      if (validLogos.length > 0 && config.multiLogo) {
         const logoHe = logoHeight || config.multiLogo.maxHeight;
         const logoWidths = validLogos.map(({ img }) => {
           const aspectRatio = img.width / img.height;
@@ -374,11 +374,11 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
 
         // 전체 너비 계산 (로고 너비들 + 구분자들)
         const totalLogoWidth = logoWidths.reduce((sum, width) => sum + width, 0);
-        const totalSeparatorWidth = (validLogos.length - 1) * config.multiLogo.logoGap;
+        const totalSeparatorWidth = (validLogos.length - 1) * (config.multiLogo?.logoGap ?? 0);
         const totalWidth = totalLogoWidth + totalSeparatorWidth;
 
         // 시작 X 위치 (왼쪽 정렬)
-        let currentX = config.multiLogo.x;
+        let currentX = config.multiLogo?.x ?? 0;
 
         // 각 로고 그리기
         validLogos.forEach(({ img }, index) => {
@@ -388,7 +388,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           ctx.drawImage(
             img,
             currentX,
-            config.multiLogo.y,
+            config.multiLogo?.y ?? 0,
             logoWidth,
             logoHe
           );
@@ -396,9 +396,9 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           currentX += logoWidth;
 
           // 마지막 로고가 아니면 구분자 그리기
-          if (index < validLogos.length - 1) {
-            const separatorX = currentX + (config.multiLogo.logoGap - config.multiLogo.separatorWidth) / 2;
-            const separatorY = config.multiLogo.y + logoHe * 0.2;
+          if (index < validLogos.length - 1 && config.multiLogo) {
+            const separatorX = currentX + ((config.multiLogo.logoGap - config.multiLogo.separatorWidth) / 2);
+            const separatorY = (config.multiLogo.y ?? 0) + logoHe * 0.2;
             const separatorHeight = logoHe * 0.6;
 
             // 세로선 구분자 그리기

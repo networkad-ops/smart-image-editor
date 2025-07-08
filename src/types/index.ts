@@ -42,7 +42,7 @@ export interface TextConfig {
 export interface LogoConfig {
   x: number;
   y: number;
-  width: number;
+  width?: number; // width is now optional
   height: number;
   maxFileSize?: number;
 }
