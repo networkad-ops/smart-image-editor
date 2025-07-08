@@ -79,8 +79,8 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
     if (!imageSrc || !croppedAreaPixels) return;
     const image = await createImage(imageSrc);
     const canvas = document.createElement('canvas');
-    canvas.width = logoConfig.width;
-    canvas.height = logoConfig.height;
+    canvas.width = logoConfig.width ?? 56;
+    canvas.height = logoConfig.height ?? 56;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     ctx.drawImage(
@@ -91,8 +91,8 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
       croppedAreaPixels.height,
       0,
       0,
-      logoConfig.width,
-      logoConfig.height
+      logoConfig.width ?? 56,
+      logoConfig.height ?? 56
     );
     return new Promise<File>((resolve) => {
       canvas.toBlob((blob) => {
@@ -186,7 +186,7 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
                 image={imageSrc}
                 crop={crop}
                 zoom={zoom}
-                aspect={logoConfig.width / logoConfig.height}
+                aspect={(logoConfig.width ?? 56) / (logoConfig.height ?? 56)}
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
