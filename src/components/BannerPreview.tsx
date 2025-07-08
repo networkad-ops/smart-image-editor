@@ -12,6 +12,9 @@ interface BannerPreviewProps {
   existingImageUrl?: string | null;
   existingLogoUrl?: string | null;
   existingLogoUrls?: string[]; // 다중 로고 URLs
+  logoHeight?: number;
+  onDrawStart?: () => void;
+  onDrawComplete?: () => void;
 }
 
 export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewProps>(({
@@ -22,15 +25,16 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   textElements,
   existingImageUrl,
   existingLogoUrl,
-  existingLogoUrls = []
+  existingLogoUrls = [],
+  logoHeight,
+  onDrawStart,
+  onDrawComplete
 }, ref) => {
   const backgroundImageRef = useRef<ImageData | null>(null);
-  // 로고 크기 상태 (height만, width는 비율로 자동)
-  const [logoHeight, setLogoHeight] = useState(config.logo?.height || config.multiLogo?.maxHeight || 56);
   // 드래그 상태
   const [dragging, setDragging] = useState(false);
   const [dragStartY, setDragStartY] = useState<number | null>(null);
-  const [startHeight, setStartHeight] = useState<number>(logoHeight);
+  const [startHeight, setStartHeight] = useState<number>(logoHeight || 56);
 
   // 핸들 위치 계산 (단일/다중 로고 모두 지원)
   let handleX = 0, handleY = 0, handleW = 16, handleH = 16;
@@ -48,9 +52,9 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         aspect = img.width / img.height;
       };
     }
-    logoW = logoHeight * aspect;
+    logoW = logoHeight || 56 * aspect;
     handleX = logoX + logoW - handleW / 2;
-    handleY = logoY + logoHeight - handleH / 2;
+    handleY = logoY + logoHeight || 56 - handleH / 2;
   } else if (uploadedLogos.length > 0 && config.multiLogo) {
     // 다중 로고: 첫 번째 로고 기준
     aspect = 1;
@@ -62,16 +66,16 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         aspect = img.width / img.height;
       };
     }
-    logoW = logoHeight * aspect;
+    logoW = logoHeight || config.multiLogo.maxHeight * aspect;
     handleX = logoX + logoW - handleW / 2;
-    handleY = logoY + logoHeight - handleH / 2;
+    handleY = logoY + logoHeight || config.multiLogo.maxHeight - handleH / 2;
   }
 
   // 드래그 이벤트 핸들러
   const onHandleMouseDown = (e: React.MouseEvent) => {
     setDragging(true);
     setDragStartY(e.clientY);
-    setStartHeight(logoHeight);
+    setStartHeight(logoHeight || 56);
     e.stopPropagation();
     e.preventDefault();
   };
@@ -81,7 +85,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       if (dragStartY !== null) {
         let delta = e.clientY - dragStartY;
         let newHeight = Math.max(24, Math.min(200, startHeight + delta));
-        setLogoHeight(newHeight);
+        setStartHeight(newHeight);
       }
     };
     const onMouseUp = () => setDragging(false);
@@ -239,8 +243,16 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
             }
           }
         } else {
-          // 부분 색상이 없는 경우 전체 색상으로 렌더링
-          ctx.fillStyle = element.color;
+          // 부분 색상이 없는 경우 전체 색상 또는 그라데이션으로 렌더링
+          if (element.gradient) {
+            // 좌→우 linearGradient
+            const grad = ctx.createLinearGradient(element.x, element.y, element.x + element.width, element.y);
+            grad.addColorStop(0, element.gradient.from);
+            grad.addColorStop(1, element.gradient.to);
+            ctx.fillStyle = grad;
+          } else {
+            ctx.fillStyle = element.color;
+          }
           if (element.letterSpacing) {
             drawTextWithLetterSpacing(ctx, line, currentX, y, element.letterSpacing);
           } else {
@@ -255,6 +267,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
 
   // 배경과 로고를 그리는 함수
   const drawBackground = useCallback(async (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+    if (onDrawStart) onDrawStart();
     // 캔버스 초기화
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -305,8 +318,8 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       
       await new Promise<void>((resolve) => {
         logoImg.onload = () => {
-          // 높이 56고정, 비율에 맞는 너비 계산
-          const fixedHeight = 56;
+          // 높이 logoHeight 고정, 비율에 맞는 너비 계산
+          const fixedHeight = logoHeight || 56;
           const aspectRatio = logoImg.width / logoImg.height;
           const calculatedWidth = fixedHeight * aspectRatio;
           
@@ -353,19 +366,19 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       // 로고 배치 계산
       const validLogos = logoImages.filter(item => item !== null) as { img: HTMLImageElement; index: number }[];
       if (validLogos.length > 0) {
-        // 각 로고의 너비 계산 (높이 고정)
+        const logoHe = logoHeight || config.multiLogo.maxHeight;
         const logoWidths = validLogos.map(({ img }) => {
           const aspectRatio = img.width / img.height;
-          return config.multiLogo!.maxHeight * aspectRatio;
+          return logoHe * aspectRatio;
         });
 
         // 전체 너비 계산 (로고 너비들 + 구분자들)
         const totalLogoWidth = logoWidths.reduce((sum, width) => sum + width, 0);
-        const totalSeparatorWidth = (validLogos.length - 1) * config.multiLogo!.logoGap;
+        const totalSeparatorWidth = (validLogos.length - 1) * config.multiLogo.logoGap;
         const totalWidth = totalLogoWidth + totalSeparatorWidth;
 
         // 시작 X 위치 (왼쪽 정렬)
-        let currentX = config.multiLogo!.x;
+        let currentX = config.multiLogo.x;
 
         // 각 로고 그리기
         validLogos.forEach(({ img }, index) => {
@@ -375,24 +388,24 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           ctx.drawImage(
             img,
             currentX,
-            config.multiLogo!.y,
+            config.multiLogo.y,
             logoWidth,
-            config.multiLogo!.maxHeight
+            logoHe
           );
 
           currentX += logoWidth;
 
           // 마지막 로고가 아니면 구분자 그리기
           if (index < validLogos.length - 1) {
-            const separatorX = currentX + (config.multiLogo!.logoGap - config.multiLogo!.separatorWidth) / 2;
-            const separatorY = config.multiLogo!.y + config.multiLogo!.maxHeight * 0.2;
-            const separatorHeight = config.multiLogo!.maxHeight * 0.6;
+            const separatorX = currentX + (config.multiLogo.logoGap - config.multiLogo.separatorWidth) / 2;
+            const separatorY = config.multiLogo.y + logoHe * 0.2;
+            const separatorHeight = logoHe * 0.6;
 
             // 세로선 구분자 그리기
             ctx.fillStyle = '#6B7280'; // 회색 구분자
-            ctx.fillRect(separatorX, separatorY, config.multiLogo!.separatorWidth, separatorHeight);
+            ctx.fillRect(separatorX, separatorY, config.multiLogo.separatorWidth, separatorHeight);
 
-            currentX += config.multiLogo!.logoGap;
+            currentX += config.multiLogo.logoGap;
           }
         });
       }
@@ -400,7 +413,8 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
 
     // 배경 이미지 데이터 저장 (텍스트 렌더링 최적화용)
     backgroundImageRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  }, [uploadedImage, uploadedLogo, uploadedLogos, existingImageUrl, existingLogoUrl, existingLogoUrls, config.logo, config.multiLogo]);
+    if (onDrawComplete) onDrawComplete();
+  }, [uploadedImage, uploadedLogo, uploadedLogos, existingImageUrl, existingLogoUrl, existingLogoUrls, config.logo, config.multiLogo, logoHeight, onDrawStart, onDrawComplete]);
 
   // 배경 이미지나 로고가 변경될 때만 실행
   useEffect(() => {

@@ -46,6 +46,11 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     previewColor: null
   });
   
+  // 그라데이션 상태
+  const [gradientMode, setGradientMode] = useState<{elementId: string|null, enabled: boolean}>({elementId: null, enabled: false});
+  const [gradientFrom, setGradientFrom] = useState('#4F46E5');
+  const [gradientTo, setGradientTo] = useState('#9333EA');
+  
 
   
   // 텍스트 선택 감지 및 자동 색상 피커 활성화
@@ -301,6 +306,51 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   const bottomSubTitle = textElements.find(el => el.id === 'bottom-sub-title');
   const buttonText = textElements.find(el => el.id === 'button-text');
   const otherTexts = textElements.filter(el => el.id !== 'main-title' && el.id !== 'sub-title' && el.id !== 'bottom-sub-title' && el.id !== 'button-text');
+
+  // 텍스트 색상/그라데이션 UI 렌더링 보완
+  const renderColorControls = (element: TextElement) => (
+    <div className="flex flex-col gap-2 mt-2">
+      <div className="flex items-center gap-2">
+        <span className="text-xs">색상</span>
+        <input
+          type="color"
+          value={element.color}
+          onChange={e => onUpdateText(element.id, { color: e.target.value })}
+          disabled={gradientMode.enabled && gradientMode.elementId === element.id}
+        />
+        <label className="flex items-center gap-1 text-xs cursor-pointer">
+          <input
+            type="checkbox"
+            checked={gradientMode.enabled && gradientMode.elementId === element.id}
+            onChange={e => {
+              setGradientMode({elementId: element.id, enabled: e.target.checked});
+              if (e.target.checked) {
+                onUpdateText(element.id, { gradient: { from: gradientFrom, to: gradientTo } });
+              } else {
+                onUpdateText(element.id, { gradient: undefined });
+              }
+            }}
+          />
+          그라데이션 적용
+        </label>
+      </div>
+      {gradientMode.enabled && gradientMode.elementId === element.id && (
+        <div className="flex items-center gap-2 ml-4">
+          <span className="text-xs">시작</span>
+          <input type="color" value={gradientFrom} onChange={e => {
+            setGradientFrom(e.target.value);
+            onUpdateText(element.id, { gradient: { from: e.target.value, to: gradientTo } });
+          }} />
+          <span className="text-xs">→</span>
+          <span className="text-xs">끝</span>
+          <input type="color" value={gradientTo} onChange={e => {
+            setGradientTo(e.target.value);
+            onUpdateText(element.id, { gradient: { from: gradientFrom, to: e.target.value } });
+          }} />
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className={showBackground ? "bg-white rounded-lg shadow-lg p-4" : ""}>
@@ -639,34 +689,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 
                 {/* 텍스트 스타일 설정 */}
                 <div className="space-y-3">
-                  {/* 색상 및 크기 */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">색상</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={element.color}
-                          onInput={(e) => onUpdateText(element.id, { color: (e.target as HTMLInputElement).value })}
-                          onChange={(e) => onUpdateText(element.id, { color: (e.target as HTMLInputElement).value })}
-                          className="w-8 h-8 border rounded cursor-pointer"
-                          title="드래그하면서 실시간 색상 변경"
-                        />
-                        <span className="text-xs text-gray-500">{element.color}</span>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">크기</label>
-                      <input
-                        type="number"
-                        value={element.fontSize}
-                        onChange={(e) => onUpdateText(element.id, { fontSize: parseInt(e.target.value) || 24 })}
-                        className="w-full px-2 py-1 text-sm border rounded"
-                        min="8"
-                        max="100"
-                      />
-                    </div>
-                  </div>
+                  {renderColorControls(element)}
                   
                   {/* 폰트 굵기 */}
                   <div>

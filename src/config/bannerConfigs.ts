@@ -10,27 +10,27 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     allowCustomText: false,
     subTitle: {
       x: 110,
-      y: 92,
+      y: 90,
       width: 2680,
       height: 60,
       fontSize: 54,
-      lineHeight: 67,
+      lineHeight: 66.96, // 54 * 1.24
       fontFamily: 'Pretendard',
       fontWeight: 500,
-      letterSpacing: -0.54,
+      letterSpacing: -0.54, // 54 * -0.01
       maxLength: 20,
       maxLines: 1
     },
     mainTitle: {
       x: 110,
-      y: 181,
+      y: 182,
       width: 2680,
       height: 100,
       fontSize: 84,
-      lineHeight: 104,
+      lineHeight: 104.16, // 84 * 1.24
       fontFamily: 'Pretendard',
       fontWeight: 700,
-      letterSpacing: -1.68,
+      letterSpacing: -1.68, // 84 * -0.02
       maxLength: 36,
       maxLines: 1
     }
@@ -49,10 +49,10 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       width: 1460,
       height: 60,
       fontSize: 60,
-      lineHeight: 74,
+      lineHeight: 74.4, // 60 * 1.24
       fontFamily: 'Pretendard',
       fontWeight: 500,
-      letterSpacing: -0.6,
+      letterSpacing: -0.6, // 60 * -0.01
       maxLength: 20,
       maxLines: 1
     },
@@ -62,10 +62,10 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       width: 1460,
       height: 90,
       fontSize: 80,
-      lineHeight: 99,
+      lineHeight: 99.2, // 80 * 1.24
       fontFamily: 'Pretendard',
       fontWeight: 700,
-      letterSpacing: -1.6,
+      letterSpacing: -1.6, // 80 * -0.02
       maxLength: 24,
       maxLines: 1
     }
@@ -84,16 +84,16 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       width: 2680,
       height: 100,
       fontSize: 84,
-      lineHeight: 104,
+      lineHeight: 104.16, // 84 * 1.24
       fontFamily: 'Pretendard',
       fontWeight: 700,
+      letterSpacing: -1.68, // 84 * -0.02
       maxLength: 36,
       maxLines: 2
     },
     logo: {
       x: 110,
       y: 90,
-      width: 266, // 참고용 (실제로는 비율에 맞게 자동 계산)
       height: 56,
       maxFileSize: 500 * 1024
     }
@@ -326,10 +326,10 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       width: 1460,
       height: 90,
       fontSize: 80,
-      lineHeight: 99.2, // 124%
+      lineHeight: 99.2, // 80 * 1.24
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
-      letterSpacing: -1.6, // -2%
+      letterSpacing: -1.6, // 80 * -0.02
       maxLength: 24,
       maxLines: 1
     },
@@ -339,16 +339,16 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       width: 1460,
       height: 60,
       fontSize: 60,
-      lineHeight: 74.4, // 124%
+      lineHeight: 74.4, // 60 * 1.24
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
-      letterSpacing: -1.2, // -2%
+      letterSpacing: -1.2, // 60 * -0.02
       maxLength: 20,
       maxLines: 1
     },
     multiLogo: {
       x: 81,
-      y: 98,
+      y: 96,
       width: 800, // 다중 로고 전체 영역 너비
       height: 56,
       maxHeight: 56, // 개별 로고 최대 높이
@@ -372,10 +372,10 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       width: 2680,
       height: 90,
       fontSize: 80,
-      lineHeight: 99.2, // 124%
+      lineHeight: 99.2, // 80 * 1.24
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
-      letterSpacing: -1.6, // -2%
+      letterSpacing: -1.6, // 80 * -0.02
       maxLength: 36,
       maxLines: 1
     },
@@ -385,10 +385,10 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       width: 2680,
       height: 70,
       fontSize: 64,
-      lineHeight: 79.36, // 124%
+      lineHeight: 79.36, // 64 * 1.24
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
-      letterSpacing: -1.28, // -2%
+      letterSpacing: -1.28, // 64 * -0.02
       maxLength: 30,
       maxLines: 1
     },
@@ -419,3 +419,5 @@ export const getAvailableBannerTypes = (deviceType: string): string[] => {
     .filter(key => key.endsWith(deviceType))
     .map(key => key.replace(`-${deviceType}`, ''));
 };
+
+

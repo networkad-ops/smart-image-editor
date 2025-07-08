@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { BannerSelection, TextElement, Banner } from '../types';
 import { ImageUpload } from './ImageUpload';
 import { LogoUpload } from './LogoUpload';
@@ -48,6 +48,9 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
   loading
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [drawReady, setDrawReady] = useState(false); // draw 완료 상태
+  // 로고 크기 상태 (height만, width는 비율로 자동)
+  const [logoHeight, setLogoHeight] = useState(selection.config.logo?.height || selection.config.multiLogo?.maxHeight || 56);
 
   const handleComplete = async () => {
     if (!previewCanvasRef.current || !uploadedImage) {
@@ -83,27 +86,30 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
     }
   };
 
-  const handleDownloadJPG = async () => {
-    if (!previewCanvasRef.current || !uploadedImage) return;
+  // BannerPreview에서 draw가 끝나면 호출되는 콜백
+  const handleDrawComplete = useCallback(() => {
+    setDrawReady(true);
+  }, []);
+  // draw가 시작될 때(의심되는 시점에) false로 초기화
+  const handleDrawStart = useCallback(() => {
+    setDrawReady(false);
+  }, []);
 
+  const handleDownloadJPG = async () => {
+    if (!previewCanvasRef.current || !uploadedImage || !drawReady) return;
     try {
-      // Canvas를 Blob으로 변환
+      setIsProcessing(true);
       const blob = await new Promise<Blob>((resolve) => {
         previewCanvasRef.current?.toBlob((blob: Blob | null) => {
           if (blob) resolve(blob);
         }, 'image/jpeg', 0.95);
       });
-
-      // 다운로드 링크 생성
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      
-      // 파일명 생성
       const fileName = editingBanner?.title 
-        ? `${editingBanner.title.replace(/[^\w\s-]/g, '').trim()}_${Date.now()}.jpg`
+        ? `${editingBanner.title.replace(/[^-\s-]/g, '').trim()}_${Date.now()}.jpg`
         : `banner_${Date.now()}.jpg`;
-      
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
@@ -112,6 +118,8 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
     } catch (error) {
       console.error('JPG 다운로드 중 오류 발생:', error);
       alert('JPG 다운로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -195,6 +203,20 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
 
             {/* 미리보기 - 적절한 크기로 조정 */}
             <div className="w-full">
+              {/* 로고 크기 조정 슬라이더 */}
+              {(selection.config.logo || selection.config.multiLogo) && (
+                <div className="mb-2 flex items-center gap-2">
+                  <label className="text-sm text-gray-700">로고 크기</label>
+                  <input
+                    type="range"
+                    min={24}
+                    max={120}
+                    value={logoHeight}
+                    onChange={e => setLogoHeight(Number(e.target.value))}
+                  />
+                  <span className="text-xs text-gray-500">{logoHeight}px</span>
+                </div>
+              )}
               <BannerPreview
                 ref={previewCanvasRef}
                 config={selection.config}
@@ -205,7 +227,20 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
                 existingImageUrl={editingBanner?.background_image_url || editingBanner?.image_url}
                 existingLogoUrl={editingBanner?.logo_url}
                 existingLogoUrls={editingBanner?.logo_urls}
+                logoHeight={logoHeight}
+                onDrawStart={handleDrawStart}
+                onDrawComplete={handleDrawComplete}
               />
+            </div>
+            {/* 다운로드 버튼 */}
+            <div className="mt-4">
+              <button
+                onClick={handleDownloadJPG}
+                disabled={!drawReady || isProcessing}
+                className={`px-4 py-2 rounded bg-blue-600 text-white font-semibold transition-colors ${(!drawReady || isProcessing) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+              >
+                {isProcessing ? '이미지 생성 중...' : 'JPG 다운로드'}
+              </button>
             </div>
           </div>
 
@@ -233,14 +268,6 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
                   className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
                 >
                   {isProcessing || loading ? '처리 중...' : editingBanner ? '배너 업데이트' : '배너 저장'}
-                </button>
-                
-                <button
-                  onClick={handleDownloadJPG}
-                  disabled={!uploadedImage}
-                  className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
-                >
-                  JPG 다운로드
                 </button>
                 
                 <button

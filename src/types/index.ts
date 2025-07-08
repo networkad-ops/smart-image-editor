@@ -83,10 +83,14 @@ export interface TextElement {
   color: string;
   backgroundColor?: string; // 버튼 배경색 (button-text일 때만 사용)
   colorSegments?: ColorSegment[];
-  editable: {
-    position: boolean;
-    size: boolean;
-    color: boolean;
+  editable?: {
+    position?: boolean;
+    size?: boolean;
+    color?: boolean;
+  };
+  gradient?: {
+    from: string;
+    to: string;
   };
 }
 
