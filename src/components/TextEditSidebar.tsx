@@ -309,7 +309,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
 
   // 텍스트 색상/그라데이션 UI 렌더링 보완
   const renderColorControls = (element: TextElement) => (
-    <div className="flex flex-col gap-2 mt-2">
+    <div className="flex flex-col gap-1 mt-2">
       <div className="flex items-center gap-2">
         <span className="text-xs">색상</span>
         <input
@@ -318,6 +318,9 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           onChange={e => onUpdateText(element.id, { color: e.target.value })}
           disabled={gradientMode.enabled && gradientMode.elementId === element.id}
         />
+      </div>
+      {/* 그라데이션 토글 항상 표시, 작고 미니멀하게 */}
+      <div className="flex items-center gap-2 ml-1 mt-1">
         <label className="flex items-center gap-1 text-xs cursor-pointer">
           <input
             type="checkbox"
@@ -330,25 +333,27 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 onUpdateText(element.id, { gradient: undefined });
               }
             }}
+            className="w-3 h-3"
           />
-          그라데이션 적용
+          <span className="text-xs">그라데이션</span>
         </label>
+        {/* 토글이 켜진 경우에만 색상 선택 */}
+        {gradientMode.enabled && gradientMode.elementId === element.id && (
+          <div className="flex items-center gap-1 ml-2">
+            <span className="text-xs">시작</span>
+            <input type="color" value={gradientFrom} onChange={e => {
+              setGradientFrom(e.target.value);
+              onUpdateText(element.id, { gradient: { from: e.target.value, to: gradientTo } });
+            }} className="w-5 h-5 p-0 border rounded" />
+            <span className="text-xs">→</span>
+            <span className="text-xs">끝</span>
+            <input type="color" value={gradientTo} onChange={e => {
+              setGradientTo(e.target.value);
+              onUpdateText(element.id, { gradient: { from: gradientFrom, to: e.target.value } });
+            }} className="w-5 h-5 p-0 border rounded" />
+          </div>
+        )}
       </div>
-      {gradientMode.enabled && gradientMode.elementId === element.id && (
-        <div className="flex items-center gap-2 ml-4">
-          <span className="text-xs">시작</span>
-          <input type="color" value={gradientFrom} onChange={e => {
-            setGradientFrom(e.target.value);
-            onUpdateText(element.id, { gradient: { from: e.target.value, to: gradientTo } });
-          }} />
-          <span className="text-xs">→</span>
-          <span className="text-xs">끝</span>
-          <input type="color" value={gradientTo} onChange={e => {
-            setGradientTo(e.target.value);
-            onUpdateText(element.id, { gradient: { from: gradientFrom, to: e.target.value } });
-          }} />
-        </div>
-      )}
     </div>
   );
 
