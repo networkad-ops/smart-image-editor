@@ -35,6 +35,8 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   const [dragging, setDragging] = useState(false);
   const [dragStartY, setDragStartY] = useState<number | null>(null);
   const [startHeight, setStartHeight] = useState<number>(logoHeight || 56);
+  // 이미지 로딩 상태
+  const [isLoading, setIsLoading] = useState(false);
 
   // 핸들 위치 계산 (단일/다중 로고 모두 지원)
   let handleX = 0, handleY = 0, handleW = 16, handleH = 16;
@@ -268,26 +270,22 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   // 배경과 로고를 그리는 함수
   const drawBackground = useCallback(async (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
     if (onDrawStart) onDrawStart();
-    // 캔버스 초기화
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const imageToUse = uploadedImage || existingImageUrl;
-    
+    setIsLoading(true);
     if (imageToUse) {
       const img = new Image();
       img.crossOrigin = 'anonymous';
-      
       await new Promise<void>((resolve, reject) => {
         img.onload = () => {
           // 이미지 비율 계산
           const imageRatio = img.width / img.height;
           const canvasRatio = canvas.width / canvas.height;
-          
           let drawWidth = canvas.width;
           let drawHeight = canvas.height;
           let offsetX = 0;
           let offsetY = 0;
-
           if (imageRatio > canvasRatio) {
             drawHeight = canvas.width / imageRatio;
             offsetY = (canvas.height - drawHeight) / 2;
@@ -295,19 +293,19 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
             drawWidth = canvas.height * imageRatio;
             offsetX = (canvas.width - drawWidth) / 2;
           }
-
           ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+          setIsLoading(false);
           resolve();
         };
-        
-        img.onerror = () => resolve(); // 이미지 로드 실패해도 계속 진행
-        
+        img.onerror = () => { setIsLoading(false); resolve(); };
         if (uploadedImage) {
           img.src = URL.createObjectURL(uploadedImage);
         } else {
           img.src = imageToUse as string;
         }
       });
+    } else {
+      setIsLoading(false);
     }
 
     // 단일 로고 그리기
@@ -414,7 +412,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     // 배경 이미지 데이터 저장 (텍스트 렌더링 최적화용)
     backgroundImageRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
     if (onDrawComplete) onDrawComplete();
-  }, [uploadedImage, uploadedLogo, uploadedLogos, existingImageUrl, existingLogoUrl, existingLogoUrls, config.logo, config.multiLogo, logoHeight, onDrawStart, onDrawComplete]);
+  }, [uploadedImage, existingImageUrl, onDrawStart, logoHeight, uploadedLogo, existingLogoUrl, uploadedLogos, existingLogoUrls, config, setIsLoading]);
 
   // 배경 이미지나 로고가 변경될 때만 실행
   useEffect(() => {
@@ -479,6 +477,15 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
               backgroundColor: '#f8f9fa'
             }}
           />
+          {/* 로딩 스피너 오버레이 */}
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/60 z-20 rounded-lg">
+              <svg className="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+            </div>
+          )}
           {/* 드래그 리사이즈 핸들 (오른쪽 아래) */}
           {(uploadedLogo || (uploadedLogos && uploadedLogos.length > 0)) && (
             <div
