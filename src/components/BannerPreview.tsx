@@ -37,6 +37,8 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   const [startHeight, setStartHeight] = useState<number>(logoHeight || 56);
   // 이미지 로딩 상태
   const [isLoading, setIsLoading] = useState(false);
+  // 1. Add a timeout fallback for image loading
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 핸들 위치 계산 (단일/다중 로고 모두 지원)
   let handleX = 0, handleY = 0, handleW = 16, handleH = 16;
@@ -273,12 +275,17 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const imageToUse = uploadedImage || existingImageUrl;
-    setIsLoading(true);
+    let didSetLoading = false;
     if (imageToUse) {
+      setIsLoading(true);
+      didSetLoading = true;
+      if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
+      loadingTimeoutRef.current = setTimeout(() => setIsLoading(false), 5000);
       const img = new Image();
       img.crossOrigin = 'anonymous';
       await new Promise<void>((resolve, reject) => {
         img.onload = () => {
+          if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
           // 이미지 비율 계산
           const imageRatio = img.width / img.height;
           const canvasRatio = canvas.width / canvas.height;
@@ -297,7 +304,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           setIsLoading(false);
           resolve();
         };
-        img.onerror = () => { setIsLoading(false); resolve(); };
+        img.onerror = () => { if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current); setIsLoading(false); resolve(); };
         if (uploadedImage) {
           img.src = URL.createObjectURL(uploadedImage);
         } else {
@@ -412,30 +419,25 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     // 배경 이미지 데이터 저장 (텍스트 렌더링 최적화용)
     backgroundImageRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
     if (onDrawComplete) onDrawComplete();
-  }, [uploadedImage, existingImageUrl, onDrawStart, logoHeight, uploadedLogo, existingLogoUrl, uploadedLogos, existingLogoUrls, config, setIsLoading]);
+  }, [uploadedImage, existingImageUrl, onDrawStart, logoHeight, uploadedLogo, existingLogoUrl, uploadedLogos, existingLogoUrls, config]);
 
-  // 배경 이미지나 로고가 변경될 때만 실행
+  // 2. Only call drawBackground when image/logo/config changes, not on text change
   useEffect(() => {
     const canvas = (ref as RefObject<HTMLCanvasElement>).current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
     drawBackground(ctx, canvas).then(() => {
       drawTextElements(ctx, textElements);
     });
-  }, [uploadedImage, uploadedLogo, uploadedLogos, existingImageUrl, existingLogoUrl, existingLogoUrls, config.width, config.height, drawBackground, drawTextElements]);
+  }, [uploadedImage, uploadedLogo, uploadedLogos, existingImageUrl, existingLogoUrl, existingLogoUrls, config.width, config.height, drawBackground]);
 
-  // 텍스트만 변경될 때 실행 (배경 다시 그리지 않음)
+  // 3. When text changes, only update text, never set isLoading
   useEffect(() => {
     const canvas = (ref as RefObject<HTMLCanvasElement>).current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
-    // 저장된 배경 이미지가 있으면 복원 후 텍스트만 다시 그리기
     if (backgroundImageRef.current) {
       ctx.putImageData(backgroundImageRef.current, 0, 0);
       drawTextElements(ctx, textElements);
