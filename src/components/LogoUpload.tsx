@@ -68,10 +68,10 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
     // 파일로 변환
     canvas.toBlob((blob) => {
       if (blob) {
-        const resizedFile = new File([blob], originalFile.name || 'logo.jpg', { type: 'image/jpeg' });
+        const resizedFile = new File([blob], originalFile.name || 'logo.png', { type: 'image/png' });
         onUpload(resizedFile);
       }
-    }, 'image/jpeg', 0.9);
+    }, 'image/png');
   };
 
   // 크롭 완료 시 Blob 생성 (기존 크롭 기능 - 사용하지 않음)
@@ -97,10 +97,10 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
     return new Promise<File>((resolve) => {
       canvas.toBlob((blob) => {
         if (blob) {
-          const file = new File([blob], originalFile?.name || 'logo.jpg', { type: 'image/jpeg' });
+          const file = new File([blob], originalFile?.name || 'logo.png', { type: 'image/png' });
           resolve(file);
         }
-      }, 'image/jpeg');
+      }, 'image/png');
     });
   };
 

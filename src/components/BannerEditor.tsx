@@ -74,7 +74,7 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
           } else {
             reject(new Error('Canvas에서 이미지를 생성할 수 없습니다.'));
           }
-        }, 'image/jpeg', 0.95);
+        }, 'image/png');
       });
 
       onComplete(blob);
@@ -102,14 +102,14 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
       const blob = await new Promise<Blob>((resolve) => {
         previewCanvasRef.current?.toBlob((blob: Blob | null) => {
           if (blob) resolve(blob);
-        }, 'image/jpeg', 0.95);
+        }, 'image/png');
       });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       const fileName = editingBanner?.title 
-        ? `${editingBanner.title.replace(/[^-\s-]/g, '').trim()}_${Date.now()}.jpg`
-        : `banner_${Date.now()}.jpg`;
+        ? `${editingBanner.title.replace(/[^-\s-]/g, '').trim()}_${Date.now()}.png`
+        : `banner_${Date.now()}.png`;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();

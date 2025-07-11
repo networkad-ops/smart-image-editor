@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS banners (
     project_id UUID REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    banner_type VARCHAR(50) NOT NULL CHECK (banner_type IN ('basic-no-logo', 'basic-with-logo', 'event', 'interactive', 'fullscreen')),
+    banner_type VARCHAR(50) NOT NULL CHECK (banner_type IN ('basic-no-logo', 'basic-with-logo', 'event', 'interactive', 'fullscreen', 'airline')),
     device_type VARCHAR(20) NOT NULL CHECK (device_type IN ('pc', 'mobile')),
     status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'in_progress', 'review', 'approved', 'rejected', 'completed')),
     background_image_url TEXT,

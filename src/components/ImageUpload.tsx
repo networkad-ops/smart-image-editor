@@ -77,10 +77,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ onUpload, requiredWidt
     return new Promise<File>((resolve) => {
       canvas.toBlob((blob) => {
         if (blob) {
-          const file = new File([blob], originalFile?.name || 'cropped.jpg', { type: 'image/jpeg' });
+          const file = new File([blob], originalFile?.name || 'cropped.png', { type: 'image/png' });
           resolve(file);
         }
-      }, 'image/jpeg');
+      }, 'image/png');
     });
   };
 

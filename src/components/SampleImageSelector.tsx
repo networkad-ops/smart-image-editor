@@ -26,7 +26,7 @@ export const SampleImageSelector: React.FC<SampleImageSelectorProps> = ({
       // 이미지를 Blob으로 변환하여 File 객체 생성
       const response = await fetch(image.url);
       const blob = await response.blob();
-      const file = new File([blob], `sample-${image.id}.jpg`, { type: 'image/jpeg' });
+      const file = new File([blob], `sample-${image.id}.png`, { type: 'image/png' });
       
       // File 객체를 직접 전달
       onImageSelect(file);
