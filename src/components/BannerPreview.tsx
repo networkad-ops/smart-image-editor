@@ -374,45 +374,34 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       const validLogos = cachedMultiLogoImgs.current;
       if (validLogos.length > 0 && config.multiLogo) {
         const logoHe = logoHeight || config.multiLogo.maxHeight;
+        const logoGap = config.multiLogo.logoGap ?? 16;
+        const separatorWidth = config.multiLogo.separatorWidth ?? 4;
         const logoWidths = validLogos.map(({ img }) => {
           const aspectRatio = img.width / img.height;
           return logoHe * aspectRatio;
         });
-
-        // 전체 너비 계산 (로고 너비들 + 구분자들)
-        const totalLogoWidth = logoWidths.reduce((sum, width) => sum + width, 0);
-        const totalSeparatorWidth = (validLogos.length - 1) * (config.multiLogo?.logoGap ?? 0);
-        const totalWidth = totalLogoWidth + totalSeparatorWidth;
-
-        // 시작 X 위치 (왼쪽 정렬)
+        // 첫 번째 로고 기준 X, Y
         let currentX = config.multiLogo?.x ?? 0;
-
-        // 각 로고 그리기
+        const baseY = config.multiLogo?.y ?? 0;
         validLogos.forEach(({ img }, index) => {
           const logoWidth = logoWidths[index];
-          
           // 로고 그리기
           ctx.drawImage(
             img,
             currentX,
-            config.multiLogo?.y ?? 0,
+            baseY,
             logoWidth,
             logoHe
           );
-
           currentX += logoWidth;
-
           // 마지막 로고가 아니면 구분자 그리기
           if (index < validLogos.length - 1 && config.multiLogo) {
-            const separatorX = currentX + ((config.multiLogo.logoGap - config.multiLogo.separatorWidth) / 2);
-            const separatorY = (config.multiLogo.y ?? 0) + logoHe * 0.2;
-            const separatorHeight = logoHe * 0.6;
-
-            // 세로선 구분자 그리기
-            ctx.fillStyle = '#6B7280'; // 회색 구분자
-            ctx.fillRect(separatorX, separatorY, config.multiLogo.separatorWidth, separatorHeight);
-
-            currentX += config.multiLogo.logoGap;
+            const separatorHeight = logoHe * 0.8;
+            const separatorX = currentX + ((logoGap - separatorWidth) / 2);
+            const separatorY = baseY + (logoHe - separatorHeight) / 2;
+            ctx.fillStyle = '#6B7280';
+            ctx.fillRect(separatorX, separatorY, separatorWidth, separatorHeight);
+            currentX += logoGap;
           }
         });
       }
