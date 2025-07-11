@@ -265,98 +265,113 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     });
   }, [config.name]);
 
-  // 배경과 로고를 그리는 함수
+  // 이미지/로고 캐싱용 useRef 추가
+  const cachedBackgroundImg = useRef<{ src: string; img: HTMLImageElement } | null>(null);
+  const cachedLogoImg = useRef<{ src: string; img: HTMLImageElement } | null>(null);
+  const cachedMultiLogoImgs = useRef<{ src: string; img: HTMLImageElement }[]>([]);
+
+  // drawBackground 함수 내 이미지/로고 로딩 최적화
   const drawBackground = useCallback(async (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
     if (onDrawStart) onDrawStart();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // 배경 이미지
     const imageToUse = uploadedImage || existingImageUrl;
+    let bgImg: HTMLImageElement | null = null;
+    let bgSrc = '';
     if (imageToUse) {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => {
-          // 이미지 비율 계산
-          const imageRatio = img.width / img.height;
-          const canvasRatio = canvas.width / canvas.height;
-          let drawWidth = canvas.width;
-          let drawHeight = canvas.height;
-          let offsetX = 0;
-          let offsetY = 0;
-          if (imageRatio > canvasRatio) {
-            drawHeight = canvas.width / imageRatio;
-            offsetY = (canvas.height - drawHeight) / 2;
-          } else {
-            drawWidth = canvas.height * imageRatio;
-            offsetX = (canvas.width - drawWidth) / 2;
-          }
-          ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-          resolve();
-        };
-        img.onerror = () => { resolve(); };
-        if (uploadedImage) {
-          img.src = URL.createObjectURL(uploadedImage);
+      bgSrc = uploadedImage ? URL.createObjectURL(uploadedImage) : (imageToUse as string);
+      if (!cachedBackgroundImg.current || cachedBackgroundImg.current.src !== bgSrc) {
+        const img = new window.Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise<void>((resolve) => {
+          img.onload = () => {
+            cachedBackgroundImg.current = { src: bgSrc, img };
+            resolve();
+          };
+          img.onerror = () => resolve();
+          img.src = bgSrc;
+        });
+      }
+      bgImg = cachedBackgroundImg.current?.img || null;
+      if (bgImg) {
+        // 이미지 비율 계산
+        const imageRatio = bgImg.width / bgImg.height;
+        const canvasRatio = canvas.width / canvas.height;
+        let drawWidth = canvas.width;
+        let drawHeight = canvas.height;
+        let offsetX = 0;
+        let offsetY = 0;
+        if (imageRatio > canvasRatio) {
+          drawHeight = canvas.width / imageRatio;
+          offsetY = (canvas.height - drawHeight) / 2;
         } else {
-          img.src = imageToUse as string;
+          drawWidth = canvas.height * imageRatio;
+          offsetX = (canvas.width - drawWidth) / 2;
         }
-      });
+        ctx.drawImage(bgImg, offsetX, offsetY, drawWidth, drawHeight);
+      }
     }
 
-    // 단일 로고 그리기
+    // 단일 로고
     const logoToUse = uploadedLogo || existingLogoUrl;
+    let logoImg: HTMLImageElement | null = null;
+    let logoSrc = '';
     if (logoToUse && config.logo) {
-      const logoImg = new Image();
-      logoImg.crossOrigin = 'anonymous';
-      
-      await new Promise<void>((resolve) => {
-        logoImg.onload = () => {
-          // 높이 logoHeight 고정, 비율에 맞는 너비 계산
-          const fixedHeight = logoHeight || 56;
-          const aspectRatio = logoImg.width / logoImg.height;
-          const calculatedWidth = fixedHeight * aspectRatio;
-          
-          ctx.drawImage(
-            logoImg,
-            config.logo!.x,
-            config.logo!.y,
-            calculatedWidth,
-            fixedHeight
-          );
-          resolve();
-        };
-        logoImg.onerror = () => resolve();
+      logoSrc = uploadedLogo ? URL.createObjectURL(uploadedLogo) : (logoToUse as string);
+      if (!cachedLogoImg.current || cachedLogoImg.current.src !== logoSrc) {
+        const img = new window.Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise<void>((resolve) => {
+          img.onload = () => {
+            cachedLogoImg.current = { src: logoSrc, img };
+            resolve();
+          };
+          img.onerror = () => resolve();
+          img.src = logoSrc;
+        });
+      }
+      logoImg = cachedLogoImg.current?.img || null;
+      if (logoImg) {
+        // 높이 logoHeight 고정, 비율에 맞는 너비 계산
+        const fixedHeight = logoHeight || 56;
+        const aspectRatio = logoImg.width / logoImg.height;
+        const calculatedWidth = fixedHeight * aspectRatio;
         
-        if (uploadedLogo) {
-          logoImg.src = URL.createObjectURL(uploadedLogo);
-        } else {
-          logoImg.src = logoToUse as string;
-        }
-      });
+        ctx.drawImage(
+          logoImg,
+          config.logo!.x,
+          config.logo!.y,
+          calculatedWidth,
+          fixedHeight
+        );
+      }
     }
 
-    // 다중 로고 그리기 (항공팀용)
+    // 다중 로고 (항공팀)
     const logosToUse = uploadedLogos.length > 0 ? uploadedLogos : existingLogoUrls;
     if (logosToUse.length > 0 && config.multiLogo) {
-      const logoImages = await Promise.all(
-        logosToUse.map((logo, index) => {
-          return new Promise<{ img: HTMLImageElement; index: number } | null>((resolve) => {
-            const logoImg = new Image();
-            logoImg.crossOrigin = 'anonymous';
-            
-            logoImg.onload = () => resolve({ img: logoImg, index });
-            logoImg.onerror = () => resolve(null);
-            
-            if (logo instanceof File) {
-              logoImg.src = URL.createObjectURL(logo);
-            } else {
-              logoImg.src = logo as string;
-            }
-          });
-        })
-      );
-
-      // 로고 배치 계산
-      const validLogos = logoImages.filter(item => item !== null) as { img: HTMLImageElement; index: number }[];
+      // 캐싱된 로고 배열 초기화
+      if (cachedMultiLogoImgs.current.length !== logosToUse.length ||
+          cachedMultiLogoImgs.current.some((c, i) => {
+            const src = logosToUse[i] instanceof File ? URL.createObjectURL(logosToUse[i] as File) : logosToUse[i] as string;
+            return c.src !== src;
+          })) {
+        cachedMultiLogoImgs.current = await Promise.all(
+          logosToUse.map(async (logo) => {
+            const src = logo instanceof File ? URL.createObjectURL(logo) : (logo as string);
+            const img = new window.Image();
+            img.crossOrigin = 'anonymous';
+            await new Promise<void>((resolve) => {
+              img.onload = () => resolve();
+              img.onerror = () => resolve();
+              img.src = src;
+            });
+            return { src, img };
+          })
+        );
+      }
+      const validLogos = cachedMultiLogoImgs.current;
       if (validLogos.length > 0 && config.multiLogo) {
         const logoHe = logoHeight || config.multiLogo.maxHeight;
         const logoWidths = validLogos.map(({ img }) => {
@@ -406,9 +421,9 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     // 배경 이미지 데이터 저장 (텍스트 렌더링 최적화용)
     backgroundImageRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
     if (onDrawComplete) onDrawComplete();
-  }, [uploadedImage, existingImageUrl, onDrawStart, logoHeight, uploadedLogo, existingLogoUrl, uploadedLogos, existingLogoUrls, config]);
+  }, [uploadedImage, uploadedLogo, uploadedLogos, existingImageUrl, existingLogoUrl, existingLogoUrls, config.logo, config.multiLogo, logoHeight, onDrawStart, onDrawComplete]);
 
-  // 2. Only call drawBackground when image/logo/config changes, not on text change
+  // drawBackground useEffect 최적화: config.width, config.height, drawBackground 등 불필요한 의존성 제거
   useEffect(() => {
     const canvas = (ref as RefObject<HTMLCanvasElement>).current;
     if (!canvas) return;
@@ -417,7 +432,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     drawBackground(ctx, canvas).then(() => {
       drawTextElements(ctx, textElements);
     });
-  }, [uploadedImage, uploadedLogo, uploadedLogos, existingImageUrl, existingLogoUrl, existingLogoUrls, config.width, config.height, drawBackground]);
+  }, [uploadedImage, uploadedLogo, uploadedLogos, existingImageUrl, existingLogoUrl, existingLogoUrls, config.logo, config.multiLogo, logoHeight]);
 
   // 3. When text changes, only update text, never set isLoading
   useEffect(() => {
