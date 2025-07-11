@@ -36,6 +36,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   const [dragStartY, setDragStartY] = useState<number | null>(null);
   const [startHeight, setStartHeight] = useState<number>(logoHeight || 56);
   // 이미지 로딩 상태
+  const [isLoading, setIsLoading] = useState(false);
   // 핸들 위치 계산 (단일/다중 로고 모두 지원)
   let handleX = 0, handleY = 0, handleW = 16, handleH = 16;
   let logoX = config.logo?.x ?? config.multiLogo?.x ?? 0;
@@ -265,13 +266,14 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     });
   }, [config.name]);
 
-  // 이미지/로고 캐싱용 useRef 추가
-  const cachedBackgroundImg = useRef<{ src: string; img: HTMLImageElement } | null>(null);
-  const cachedLogoImg = useRef<{ src: string; img: HTMLImageElement } | null>(null);
-  const cachedMultiLogoImgs = useRef<{ src: string; img: HTMLImageElement }[]>([]);
+  // 이미지/로고 캐싱용 useRef 추가 (URL도 함께 캐싱)
+  const cachedBackgroundImg = useRef<{ src: string; url: string; img: HTMLImageElement } | null>(null);
+  const cachedLogoImg = useRef<{ src: string; url: string; img: HTMLImageElement } | null>(null);
+  const cachedMultiLogoImgs = useRef<{ src: string; url: string; img: HTMLImageElement }[]>([]);
 
   // drawBackground 함수 내 이미지/로고 로딩 최적화
   const drawBackground = useCallback(async (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+    setIsLoading(true);
     if (onDrawStart) onDrawStart();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -279,18 +281,23 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     const imageToUse = uploadedImage || existingImageUrl;
     let bgImg: HTMLImageElement | null = null;
     let bgSrc = '';
+    let bgUrl = '';
     if (imageToUse) {
-      bgSrc = uploadedImage ? URL.createObjectURL(uploadedImage) : (imageToUse as string);
+      bgSrc = uploadedImage ? (uploadedImage as File).name + (uploadedImage as File).size : (imageToUse as string);
       if (!cachedBackgroundImg.current || cachedBackgroundImg.current.src !== bgSrc) {
+        if (cachedBackgroundImg.current && cachedBackgroundImg.current.url) {
+          URL.revokeObjectURL(cachedBackgroundImg.current.url);
+        }
+        bgUrl = uploadedImage ? URL.createObjectURL(uploadedImage) : (imageToUse as string);
         const img = new window.Image();
         img.crossOrigin = 'anonymous';
         await new Promise<void>((resolve) => {
           img.onload = () => {
-            cachedBackgroundImg.current = { src: bgSrc, img };
+            cachedBackgroundImg.current = { src: bgSrc, url: bgUrl, img };
             resolve();
           };
           img.onerror = () => resolve();
-          img.src = bgSrc;
+          img.src = bgUrl;
         });
       }
       bgImg = cachedBackgroundImg.current?.img || null;
@@ -317,18 +324,23 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     const logoToUse = uploadedLogo || existingLogoUrl;
     let logoImg: HTMLImageElement | null = null;
     let logoSrc = '';
+    let logoUrl = '';
     if (logoToUse && config.logo) {
-      logoSrc = uploadedLogo ? URL.createObjectURL(uploadedLogo) : (logoToUse as string);
+      logoSrc = uploadedLogo ? (uploadedLogo as File).name + (uploadedLogo as File).size : (logoToUse as string);
       if (!cachedLogoImg.current || cachedLogoImg.current.src !== logoSrc) {
+        if (cachedLogoImg.current && cachedLogoImg.current.url) {
+          URL.revokeObjectURL(cachedLogoImg.current.url);
+        }
+        logoUrl = uploadedLogo ? URL.createObjectURL(uploadedLogo) : (logoToUse as string);
         const img = new window.Image();
         img.crossOrigin = 'anonymous';
         await new Promise<void>((resolve) => {
           img.onload = () => {
-            cachedLogoImg.current = { src: logoSrc, img };
+            cachedLogoImg.current = { src: logoSrc, url: logoUrl, img };
             resolve();
           };
           img.onerror = () => resolve();
-          img.src = logoSrc;
+          img.src = logoUrl;
         });
       }
       logoImg = cachedLogoImg.current?.img || null;
@@ -352,22 +364,29 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     const logosToUse = uploadedLogos.length > 0 ? uploadedLogos : existingLogoUrls;
     if (logosToUse.length > 0 && config.multiLogo) {
       // 캐싱된 로고 배열 초기화
-      if (cachedMultiLogoImgs.current.length !== logosToUse.length ||
-          cachedMultiLogoImgs.current.some((c, i) => {
-            const src = logosToUse[i] instanceof File ? URL.createObjectURL(logosToUse[i] as File) : logosToUse[i] as string;
-            return c.src !== src;
-          })) {
+      if (
+        cachedMultiLogoImgs.current.length !== logosToUse.length ||
+        cachedMultiLogoImgs.current.some((c, i) => {
+          const src = logosToUse[i] instanceof File ? (logosToUse[i] as File).name + (logosToUse[i] as File).size : logosToUse[i] as string;
+          return c.src !== src;
+        })
+      ) {
+        // 기존 URL revoke
+        cachedMultiLogoImgs.current.forEach(c => {
+          if (c.url && c.url.startsWith('blob:')) URL.revokeObjectURL(c.url);
+        });
         cachedMultiLogoImgs.current = await Promise.all(
           logosToUse.map(async (logo) => {
-            const src = logo instanceof File ? URL.createObjectURL(logo) : (logo as string);
+            const src = logo instanceof File ? (logo as File).name + (logo as File).size : (logo as string);
+            const url = logo instanceof File ? URL.createObjectURL(logo) : (logo as string);
             const img = new window.Image();
             img.crossOrigin = 'anonymous';
             await new Promise<void>((resolve) => {
               img.onload = () => resolve();
               img.onerror = () => resolve();
-              img.src = src;
+              img.src = url;
             });
-            return { src, img };
+            return { src, url, img };
           })
         );
       }
@@ -410,6 +429,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     // 배경 이미지 데이터 저장 (텍스트 렌더링 최적화용)
     backgroundImageRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
     if (onDrawComplete) onDrawComplete();
+    setIsLoading(false);
   }, [uploadedImage, uploadedLogo, uploadedLogos, existingImageUrl, existingLogoUrl, existingLogoUrls, config.logo, config.multiLogo, logoHeight, onDrawStart, onDrawComplete]);
 
   // drawBackground useEffect 최적화: config.width, config.height, drawBackground 등 불필요한 의존성 제거
@@ -470,6 +490,26 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
               backgroundColor: '#f8f9fa'
             }}
           />
+          {isLoading && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: 'rgba(255,255,255,0.7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 20,
+              fontSize: 24,
+              fontWeight: 'bold',
+              color: '#2563eb',
+              borderRadius: 12
+            }}>
+              로딩중...
+            </div>
+          )}
           {/* 드래그 리사이즈 핸들 (오른쪽 아래) */}
           {(uploadedLogo || (uploadedLogos && uploadedLogos.length > 0)) && (
             <div
