@@ -138,6 +138,10 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
             ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-500'}`}
         >
           <input {...getInputProps()} />
+          <div className="text-sm text-gray-500 mb-2">
+            JPG, PNG, GIF 파일을 업로드할 수 있습니다.<br/>
+            <span className="text-red-500 font-semibold">※ 누끼(투명 배경) 로고는 반드시 PNG 파일로 업로드해야 투명 배경이 유지됩니다.</span>
+          </div>
           <div className="space-y-2">
             <svg
               className="mx-auto h-8 w-8 text-gray-400"
