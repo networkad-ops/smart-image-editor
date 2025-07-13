@@ -428,7 +428,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
             const separatorHeight = logoHe * 0.8;
             const separatorX = currentX + ((logoGap - separatorWidth) / 2);
             const separatorY = baseY + (logoHe - separatorHeight) / 2;
-            ctx.fillStyle = '#6B7280';
+            ctx.fillStyle = '#FFFFFF'; // 흰색으로 변경
             ctx.fillRect(separatorX, separatorY, separatorWidth, separatorHeight);
             currentX += logoGap;
           }

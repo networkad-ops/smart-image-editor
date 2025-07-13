@@ -413,8 +413,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       y: 96,
       height: 56,
       maxHeight: 56, // 개별 로고 최대 높이
-      logoGap: 17, // 로고 간 간격 (구분자 포함)
-      separatorWidth: 1, // 구분자 선 너비
+      logoGap: 24, // 로고 간 간격 (17 -> 24)
+      separatorWidth: 2, // 구분자 선 너비 (1 -> 2)
       maxLogos: 5, // 최대 로고 개수
       maxFileSize: 300 * 1024
     }
@@ -459,8 +459,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       y: 90,
       height: 56,
       maxHeight: 56, // 개별 로고 최대 높이
-      logoGap: 17, // 로고 간 간격 (구분자 포함)
-      separatorWidth: 1, // 구분자 선 너비
+      logoGap: 24, // 로고 간 간격 (17 -> 24)
+      separatorWidth: 2, // 구분자 선 너비 (1 -> 2)
       maxLogos: 6, // 최대 로고 개수 (PC는 더 많이)
       maxFileSize: 500 * 1024
     }
