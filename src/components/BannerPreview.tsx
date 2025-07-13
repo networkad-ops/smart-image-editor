@@ -30,7 +30,9 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   onDrawStart,
   onDrawComplete
 }, ref) => {
-  const backgroundImageRef = useRef<ImageData | null>(null);
+  // 더블 버퍼링을 위한 오프스크린 캔버스
+  const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  
   // 드래그 상태
   const [dragging, setDragging] = useState(false);
   const [dragStartY, setDragStartY] = useState<number | null>(null);
@@ -71,6 +73,14 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     handleX = logoX + logoW - handleW / 2;
     handleY = logoY + (logoHeight ?? config.multiLogo.maxHeight) - handleH / 2;
   }
+
+  // 더블 버퍼링용 오프스크린 캔버스 초기화
+  useEffect(() => {
+    const offscreenCanvas = document.createElement('canvas');
+    offscreenCanvas.width = config.width;
+    offscreenCanvas.height = config.height;
+    offscreenCanvasRef.current = offscreenCanvas;
+  }, [config.width, config.height]);
 
   // 드래그 이벤트 핸들러
   const onHandleMouseDown = (e: React.MouseEvent) => {
@@ -269,7 +279,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   // 이미지/로고 캐싱용 useRef 추가 (URL도 함께 캐싱)
   const cachedBackgroundImg = useRef<{ src: string; url: string; img: HTMLImageElement } | null>(null);
   const cachedLogoImg = useRef<{ src: string; url: string; img: HTMLImageElement } | null>(null);
-  const cachedMultiLogoImgs = useRef<{ src: string; url: string; img: HTMLImageElement }[]>([]);
+  const cachedMultiLogoImgs = useRef<{ src:string; url: string; img: HTMLImageElement }[]>([]);
 
   // drawBackground 함수 내 이미지/로고 로딩 최적화
   const drawBackground = useCallback(async (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
@@ -426,34 +436,46 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       }
     }
 
-    // 배경 이미지 데이터 저장 (텍스트 렌더링 최적화용)
-    backgroundImageRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    // 배경이 모두 그려진 후 콜백 실행 (로딩 상태 종료)
     if (onDrawComplete) onDrawComplete();
     setIsLoading(false);
   }, [uploadedImage, uploadedLogo, uploadedLogos, existingImageUrl, existingLogoUrl, existingLogoUrls, config.logo, config.multiLogo, logoHeight, onDrawStart, onDrawComplete]);
-
-  // drawBackground useEffect 최적화: config.width, config.height, drawBackground 등 불필요한 의존성 제거
+  
+  // 렌더링 로직 통합 (더블 버퍼링 적용)
   useEffect(() => {
-    const canvas = (ref as RefObject<HTMLCanvasElement>).current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    drawBackground(ctx, canvas).then(() => {
-      drawTextElements(ctx, textElements);
-    });
-  }, [uploadedImage, uploadedLogo, uploadedLogos, existingImageUrl, existingLogoUrl, existingLogoUrls, config.logo, config.multiLogo, logoHeight]);
+    const visibleCanvas = (ref as RefObject<HTMLCanvasElement>).current;
+    const offscreenCanvas = offscreenCanvasRef.current;
+    if (!visibleCanvas || !offscreenCanvas) return;
 
-  // 3. When text changes, only update text, never set isLoading
-  useEffect(() => {
-    const canvas = (ref as RefObject<HTMLCanvasElement>).current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    if (backgroundImageRef.current) {
-      ctx.putImageData(backgroundImageRef.current, 0, 0);
-      drawTextElements(ctx, textElements);
-    }
-  }, [textElements, drawTextElements]);
+    const visibleCtx = visibleCanvas.getContext('2d');
+    const offscreenCtx = offscreenCanvas.getContext('2d');
+    if (!visibleCtx || !offscreenCtx) return;
+
+    const render = async () => {
+      // 1. 모든 드로잉을 오프스크린 캔버스에서 수행
+      await drawBackground(offscreenCtx, offscreenCanvas);
+      drawTextElements(offscreenCtx, textElements);
+
+      // 2. 완성된 결과물을 보이는 캔버스로 한번에 복사
+      visibleCtx.clearRect(0, 0, visibleCanvas.width, visibleCanvas.height);
+      visibleCtx.drawImage(offscreenCanvas, 0, 0);
+    };
+
+    render();
+  }, [
+    ref, 
+    textElements, 
+    drawTextElements, 
+    drawBackground, 
+    uploadedImage, 
+    uploadedLogo, 
+    uploadedLogos, 
+    existingImageUrl, 
+    existingLogoUrl, 
+    existingLogoUrls, 
+    logoHeight, 
+    config
+  ]);
 
   // 미리보기 프레임 크기 계산 - 컨테이너에 맞게 조정
   const maxPreviewWidth = 600; // 좌측 70% 컨테이너에 맞는 크기
