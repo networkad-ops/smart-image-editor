@@ -40,6 +40,9 @@ CREATE TABLE IF NOT EXISTS banners (
     status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'in_progress', 'review', 'approved', 'rejected', 'completed')),
     background_image_url TEXT,
     logo_url TEXT,
+    logo_urls TEXT[], -- 다중 로고 URLs (항공팀용)
+    final_banner_url TEXT,
+    thumbnail_url TEXT,
     text_elements JSONB NOT NULL DEFAULT '[]',
     canvas_width INTEGER NOT NULL,
     canvas_height INTEGER NOT NULL,
