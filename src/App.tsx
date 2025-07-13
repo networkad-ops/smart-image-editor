@@ -276,7 +276,7 @@ function App() {
         }
       });
     }
-    
+
     // 하단 서브 타이틀
     if (selection.config.bottomSubTitle) {
       elements.push({
@@ -499,7 +499,7 @@ function App() {
         project_id: projectId,
         title: editingBanner?.title || '새 배너',
         description: editingBanner?.description || '',
-        banner_type: bannerSelection.bannerType,
+        banner_type: bannerSelection.config.dbType, // dbType을 직접 사용
         device_type: bannerSelection.deviceType,
         status: editingBanner?.status || 'draft' as const,
         background_image_url: backgroundImageUrl,

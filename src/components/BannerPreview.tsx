@@ -156,13 +156,13 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       ctx.textBaseline = 'top'; // 텍스트의 기준선을 상단으로 설정
       
       // 텍스트 정렬 설정
-      const isInteractiveBanner = config.name === '인터랙티브';
+      const isInteractiveBanner = config.name.includes('인터랙티브');
       
       if (element.id === 'button-text') {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-      } else if ((element.id === 'sub-title' || element.id === 'main-title') && isInteractiveBanner) {
-        // 인터랙티브 배너의 서브타이틀과 메인타이틀만 중앙 정렬
+      } else if ((element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') && isInteractiveBanner) {
+        // 인터랙티브 배너의 텍스트들만 중앙 정렬
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
       } else {
@@ -182,8 +182,8 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           // 버튼 텍스트는 가운데 정렬
           y = element.y + element.height / 2 + (lineIndex * lineHeight);
           currentX = element.x + element.width / 2;
-        } else if ((element.id === 'sub-title' || element.id === 'main-title') && isInteractiveBanner) {
-          // 인터랙티브 배너의 서브타이틀과 메인타이틀만 중앙 정렬
+        } else if ((element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') && isInteractiveBanner) {
+          // 인터랙티브 배너의 텍스트들만 중앙 정렬
           y = element.y + (lineIndex * lineHeight);
           currentX = element.x + element.width / 2;
         } else {
@@ -208,7 +208,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           const lineStart = lines.slice(0, lineIndex).join('\n').length + (lineIndex > 0 ? 1 : 0);
           
           // 인터랙티브 배너의 중앙 정렬인 경우 전체 텍스트 너비를 계산해서 시작 위치 조정
-          if ((element.id === 'sub-title' || element.id === 'main-title') && isInteractiveBanner) {
+          if ((element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') && isInteractiveBanner) {
             const totalWidth = element.letterSpacing 
               ? line.split('').reduce((sum, char, idx) => 
                   sum + ctx.measureText(char).width + (idx < line.length - 1 ? (element.letterSpacing || 0) : 0), 0)
