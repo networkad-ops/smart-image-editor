@@ -41,7 +41,7 @@ function App() {
     setEditingBanner(banner);
     
     // 배너 설정으로 BannerSelection 생성
-    const configKey = `${banner.banner_type}-${banner.device_type}` as keyof typeof bannerConfigs;
+    const configKey = `${banner.banner_type.replace(/-pc$|-mobile$/, '')}-${banner.device_type}` as keyof typeof bannerConfigs;
     let config = bannerConfigs[configKey];
     
     console.log('Config Key:', configKey);
@@ -56,7 +56,7 @@ function App() {
     
     if (config) {
       setBannerSelection({
-        bannerType: banner.banner_type,
+        bannerType: configKey.replace(`-${banner.device_type}`, ''), // 'interactive-mobile' -> 'interactive'
         deviceType: banner.device_type,
         config
       });
