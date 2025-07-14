@@ -70,6 +70,7 @@ export const MultiLogoUpload: React.FC<MultiLogoUploadProps> = ({
 
       {/* 업로드 영역 */}
       {uploadedLogos.length < multiLogoConfig.maxLogos && (
+        <>
         <div
           {...getRootProps()}
           className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
@@ -92,6 +93,8 @@ export const MultiLogoUpload: React.FC<MultiLogoUploadProps> = ({
             </p>
           </div>
         </div>
+        <div className="text-xs text-red-500 font-semibold mt-2">※ 누끼(투명 배경) 로고는 반드시 PNG 파일로 업로드해야 투명 배경이 유지됩니다.</div>
+        </>
       )}
 
       {/* 로고 미리보기 및 순서 조정 */}
