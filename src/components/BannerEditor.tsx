@@ -232,16 +232,7 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
                 onDrawComplete={handleDrawComplete}
               />
             </div>
-            {/* 다운로드 버튼 */}
-            <div className="mt-4">
-              <button
-                onClick={handleDownloadJPG}
-                disabled={!drawReady || isProcessing}
-                className={`px-4 py-2 rounded bg-blue-600 text-white font-semibold transition-colors ${(!drawReady || isProcessing) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
-              >
-                {isProcessing ? '이미지 생성 중...' : 'JPG 다운로드'}
-              </button>
-            </div>
+
           </div>
 
           {/* 우측 30%: 텍스트 편집 + 액션 버튼 */}
@@ -262,6 +253,16 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
 
               {/* 액션 버튼들 */}
               <div className="mt-6 pt-4 border-t border-gray-200 space-y-3">
+                {/* JPG 다운로드 버튼 */}
+                <button
+                  onClick={handleDownloadJPG}
+                  disabled={!drawReady || isProcessing}
+                  className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                >
+                  {isProcessing ? '이미지 생성 중...' : 'JPG 다운로드'}
+                </button>
+                
+                {/* 배너 저장 버튼 */}
                 <button
                   onClick={handleComplete}
                   disabled={!uploadedImage || isProcessing || loading}
