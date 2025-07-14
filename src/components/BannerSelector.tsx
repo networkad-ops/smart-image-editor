@@ -32,7 +32,7 @@ const BannerSelector: React.FC<BannerSelectorProps> = ({ onBannerSelect, onBanne
     onBannerSelect({
       bannerType,
       deviceType,
-      config
+      config: config as import('../types').BannerConfig
     });
   };
 
@@ -74,13 +74,13 @@ const BannerSelector: React.FC<BannerSelectorProps> = ({ onBannerSelect, onBanne
             {Object.entries(bannerConfigs).map(([key, config]) => (
               <div
                 key={key}
-                onClick={() => handleCardClick(key, config)}
+                onClick={() => handleCardClick(key, config as import('../types').BannerConfig)}
                 className="relative cursor-pointer border-2 rounded-lg transition-colors hover:border-blue-400 hover:shadow-md bg-white p-4 border-gray-200"
               >
                 {/* 배너 정보 */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900 text-lg">{config.name}</h3>
+                    <h3 className="font-semibold text-gray-900 text-lg">{(config as import('../types').BannerConfig).name}</h3>
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                       <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -92,7 +92,7 @@ const BannerSelector: React.FC<BannerSelectorProps> = ({ onBannerSelect, onBanne
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                     </svg>
-                    <span>{config.width} × {config.height}</span>
+                    <span>{(config as import('../types').BannerConfig).width} × {(config as import('../types').BannerConfig).height}</span>
                   </div>
                   
                   <div className="mt-3 pt-2 border-t border-gray-100">

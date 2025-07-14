@@ -36,7 +36,7 @@ export function CompletionForm({ finalImage, bannerType, deviceType, onSave, onE
       // 다운로드 링크 생성
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${title || 'banner'}.jpg`;
+      link.download = `${title || 'banner'}.png`;
       
       // 다운로드 실행
       document.body.appendChild(link);

@@ -68,10 +68,10 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
     // 파일로 변환
     canvas.toBlob((blob) => {
       if (blob) {
-        const resizedFile = new File([blob], originalFile.name || 'logo.jpg', { type: 'image/jpeg' });
+        const resizedFile = new File([blob], originalFile.name || 'logo.png', { type: 'image/png' });
         onUpload(resizedFile);
       }
-    }, 'image/jpeg', 0.9);
+    }, 'image/png');
   };
 
   // 크롭 완료 시 Blob 생성 (기존 크롭 기능 - 사용하지 않음)
@@ -79,8 +79,8 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
     if (!imageSrc || !croppedAreaPixels) return;
     const image = await createImage(imageSrc);
     const canvas = document.createElement('canvas');
-    canvas.width = logoConfig.width;
-    canvas.height = logoConfig.height;
+    canvas.width = logoConfig.width ?? 56;
+    canvas.height = logoConfig.height ?? 56;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     ctx.drawImage(
@@ -91,16 +91,16 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
       croppedAreaPixels.height,
       0,
       0,
-      logoConfig.width,
-      logoConfig.height
+      logoConfig.width ?? 56,
+      logoConfig.height ?? 56
     );
     return new Promise<File>((resolve) => {
       canvas.toBlob((blob) => {
         if (blob) {
-          const file = new File([blob], originalFile?.name || 'logo.jpg', { type: 'image/jpeg' });
+          const file = new File([blob], originalFile?.name || 'logo.png', { type: 'image/png' });
           resolve(file);
         }
-      }, 'image/jpeg');
+      }, 'image/png');
     });
   };
 
@@ -138,6 +138,10 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
             ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-500'}`}
         >
           <input {...getInputProps()} />
+          <div className="text-sm text-gray-500 mb-2">
+            JPG, PNG, GIF 파일을 업로드할 수 있습니다.<br/>
+            <span className="text-red-500 font-semibold">※ 누끼(투명 배경) 로고는 반드시 PNG 파일로 업로드해야 투명 배경이 유지됩니다.</span>
+          </div>
           <div className="space-y-2">
             <svg
               className="mx-auto h-8 w-8 text-gray-400"
@@ -186,7 +190,7 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ onUpload, logoConfig, up
                 image={imageSrc}
                 crop={crop}
                 zoom={zoom}
-                aspect={logoConfig.width / logoConfig.height}
+                aspect={(logoConfig.width ?? 56) / (logoConfig.height ?? 56)}
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}

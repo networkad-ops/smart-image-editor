@@ -10,9 +10,10 @@ export type DeviceType = 'pc' | 'mobile';
 // 배너 설정 타입
 export interface BannerConfig {
   name: string;
+  dbType: Banner['banner_type'];
   width: number;
   height: number;
-  maxFileSize?: number;
+  maxFileSize: number;
   fixedText?: boolean;
   allowCustomText?: boolean;
   mainTitle?: TextConfig;
@@ -42,7 +43,7 @@ export interface TextConfig {
 export interface LogoConfig {
   x: number;
   y: number;
-  width: number;
+  width?: number; // width is now optional
   height: number;
   maxFileSize?: number;
 }
@@ -51,7 +52,7 @@ export interface LogoConfig {
 export interface MultiLogoConfig {
   x: number;
   y: number;
-  width: number; // 전체 로고 영역 너비
+  width?: number; // 전체 로고 영역의 최대 너비 (선택사항)
   height: number;
   maxHeight: number; // 개별 로고 최대 높이
   logoGap: number; // 로고 간 간격 (구분자 포함)
@@ -83,10 +84,14 @@ export interface TextElement {
   color: string;
   backgroundColor?: string; // 버튼 배경색 (button-text일 때만 사용)
   colorSegments?: ColorSegment[];
-  editable: {
-    position: boolean;
-    size: boolean;
-    color: boolean;
+  editable?: {
+    position?: boolean;
+    size?: boolean;
+    color?: boolean;
+  };
+  gradient?: {
+    from: string;
+    to: string;
   };
 }
 
@@ -139,7 +144,7 @@ export interface Banner {
   project_id?: string; // 프로젝트 ID 추가
   title: string; // 이제 "팀명/프로젝트명" 형태로 저장
   description?: string;
-  banner_type: 'basic-no-logo' | 'basic-with-logo' | 'interactive' | 'fullscreen';
+  banner_type: 'basic-no-logo' | 'basic-with-logo' | 'event' | 'interactive' | 'fullscreen' | 'airline';
   device_type: 'pc' | 'mobile';
   status: BannerStatus;
   // 새로운 URL 구조
@@ -201,7 +206,7 @@ export interface BannerComment {
 
 // 배너 선택 타입
 export interface BannerSelection {
-  bannerType: 'basic-no-logo' | 'basic-with-logo' | 'interactive' | 'fullscreen';
+  bannerType: string;
   deviceType: 'pc' | 'mobile';
   config: BannerConfig;
 }

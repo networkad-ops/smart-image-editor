@@ -41,7 +41,7 @@ function App() {
     setEditingBanner(banner);
     
     // 배너 설정으로 BannerSelection 생성
-    const configKey = `${banner.banner_type}-${banner.device_type}` as keyof typeof bannerConfigs;
+    const configKey = `${banner.banner_type.replace(/-pc$|-mobile$/, '')}-${banner.device_type}` as keyof typeof bannerConfigs;
     let config = bannerConfigs[configKey];
     
     console.log('Config Key:', configKey);
@@ -56,7 +56,7 @@ function App() {
     
     if (config) {
       setBannerSelection({
-        bannerType: banner.banner_type,
+        bannerType: configKey.replace(`-${banner.device_type}`, ''), // 'interactive-mobile' -> 'interactive'
         deviceType: banner.device_type,
         config
       });
@@ -130,6 +130,14 @@ function App() {
             backgroundColor: '#4F46E5',
             editable: { position: true, size: false, color: true }
           });
+        }
+        
+        // [보완] 버튼 텍스트 요소가 있는데 text가 빈 문자열이면 기본값('버튼')을 넣어줌
+        if (config.buttonText) {
+          const btn = existingElements.find(el => el.id === 'button-text');
+          if (btn && (!btn.text || btn.text.trim() === '')) {
+            btn.text = '버튼';
+          }
         }
         
         setTextElements(existingElements);
@@ -268,7 +276,7 @@ function App() {
         }
       });
     }
-    
+
     // 하단 서브 타이틀
     if (selection.config.bottomSubTitle) {
       elements.push({
@@ -491,7 +499,7 @@ function App() {
         project_id: projectId,
         title: editingBanner?.title || '새 배너',
         description: editingBanner?.description || '',
-        banner_type: bannerSelection.bannerType,
+        banner_type: bannerSelection.config.dbType, // dbType을 직접 사용
         device_type: bannerSelection.deviceType,
         status: editingBanner?.status || 'draft' as const,
         background_image_url: backgroundImageUrl,
