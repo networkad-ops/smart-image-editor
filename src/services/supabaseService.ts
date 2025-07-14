@@ -36,7 +36,7 @@ export const createStorageBuckets = async (): Promise<{ success: boolean; messag
         const { data, error } = await supabase.storage.createBucket(bucket.name, {
           public: bucket.public,
           allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'],
-          fileSizeLimit: 10485760 // 10MB
+          fileSizeLimit: 52428800 // 50MB
         });
         
         if (error) {
@@ -641,10 +641,10 @@ export const bannerService = {
     });
     
     try {
-      // 파일 크기 검증 (10MB 제한)
-      const maxSize = 10 * 1024 * 1024; // 10MB
+      // 파일 크기 검증 (50MB 제한)
+      const maxSize = 50 * 1024 * 1024; // 50MB
       if (file.size > maxSize) {
-        throw new Error(`파일 크기가 너무 큽니다. 최대 10MB까지 업로드 가능합니다. (현재: ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+        throw new Error(`파일 크기가 너무 큽니다. 최대 50MB까지 업로드 가능합니다. (현재: ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
       }
 
       // 파일 형식 검증
@@ -978,10 +978,10 @@ export const storageService = {
     });
 
     try {
-      // 파일 크기 검증 (10MB 제한)
-      const maxSize = 10 * 1024 * 1024; // 10MB
+      // 파일 크기 검증 (50MB 제한)
+      const maxSize = 50 * 1024 * 1024; // 50MB
       if (file.size > maxSize) {
-        throw new Error(`파일 크기가 너무 큽니다. 최대 10MB까지 업로드 가능합니다. (현재: ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+        throw new Error(`파일 크기가 너무 큽니다. 최대 50MB까지 업로드 가능합니다. (현재: ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
       }
 
       // 파일 형식 검증
