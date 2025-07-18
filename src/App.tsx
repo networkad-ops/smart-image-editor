@@ -205,19 +205,17 @@ function App() {
     const config = bannerConfigs[configKey];
     
     if (config) {
-      setBannerSelection({
-        bannerType: bannerType as any,
-        deviceType: deviceType as any,
+      const newSelection = {
+        bannerType, // 변경된 bannerType으로 설정
+        deviceType: deviceType as 'pc' | 'mobile',
         config
-      });
+      };
+
+      setBannerSelection(newSelection);
       
       // 편집 모드에서 배너 타입이 변경되면 텍스트 요소도 업데이트
       if (editingBanner) {
-        initializeTextElements({
-          bannerType: bannerType as any,
-          deviceType: deviceType as any,
-          config
-        });
+        initializeTextElements(newSelection);
       }
     }
   };

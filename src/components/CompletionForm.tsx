@@ -30,21 +30,37 @@ export function CompletionForm({ finalImage, bannerType, deviceType, onSave, onE
     try {
       setIsDownloading(true);
       
-      // Blob을 URL로 변환
-      const url = URL.createObjectURL(finalImage);
+      // Canvas에서 JPG로 다시 생성
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
       
-      // 다운로드 링크 생성
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${title || 'banner'}.png`;
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx?.drawImage(img, 0, 0);
+          resolve();
+        };
+        img.onerror = reject;
+        img.src = URL.createObjectURL(finalImage);
+      });
       
-      // 다운로드 실행
-      document.body.appendChild(link);
-      link.click();
+      // JPG로 변환
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${title || 'banner'}.jpg`;
+          
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }
+      }, 'image/jpeg', 0.9);
       
-      // 정리
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
     } catch (error) {
       console.error('다운로드 중 오류 발생:', error);
       alert('다운로드 중 오류가 발생했습니다.');
