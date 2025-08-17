@@ -32,7 +32,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700,
       letterSpacing: -1.68, // 84 * -0.02
-      maxLength: 36,
+      maxLength: 40,
       maxLines: 1
     }
   },
@@ -68,7 +68,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700,
       letterSpacing: -1.6, // 80 * -0.02
-      maxLength: 24,
+      maxLength: 30,
       maxLines: 1
     }
   },
@@ -91,7 +91,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700,
       letterSpacing: -1.68, // 84 * -0.02
-      maxLength: 36,
+      maxLength: 40,
       maxLines: 2
     },
     logo: {
@@ -119,7 +119,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       lineHeight: 99,
       fontFamily: 'Pretendard',
       fontWeight: 700,
-      maxLength: 24,
+      maxLength: 30,
       maxLines: 2
     },
     logo: {
@@ -216,7 +216,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700,  // Bold
       letterSpacing: -1.68,
-      maxLength: 24,
+      maxLength: 30,
       maxLines: 2
     },
     logo: {
@@ -307,7 +307,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // -2%
-      maxLength: 24,
+      maxLength: 30,
       maxLines: 1
     },
     bottomSubTitle: {
@@ -356,7 +356,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // -2%
-      maxLength: 36,
+      maxLength: 40,
       maxLines: 1
     },
     bottomSubTitle: {
@@ -392,7 +392,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // 80 * -0.02
-      maxLength: 24,
+      maxLength: 30,
       maxLines: 1
     },
     bottomSubTitle: {
@@ -438,7 +438,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // 80 * -0.02
-      maxLength: 36,
+      maxLength: 40,
       maxLines: 1
     },
     bottomSubTitle: {
@@ -497,7 +497,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // -2%
-      maxLength: 36,
+      maxLength: 40,
       maxLines: 1
     },
     bottomSubTitle: {
@@ -546,7 +546,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // -2%
-      maxLength: 24,
+      maxLength: 30,
       maxLines: 1
     },
     bottomSubTitle: {

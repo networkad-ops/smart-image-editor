@@ -627,8 +627,8 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       </div>
       )}
 
-      {/* Position Control Panel - 선택된 요소가 있을 때만 표시 */}
-      {selectedElementId && (
+      {/* Position Control Panel - 인터랙티브 배너에서만 표시 */}
+      {selectedElementId && config.dbType === 'interactive' && (
         <div className="mb-4">
           <h3 className="font-medium text-sm mb-2">위치 및 정렬 조정</h3>
           <PositionControlPanel
