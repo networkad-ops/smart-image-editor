@@ -30,36 +30,40 @@ export function CompletionForm({ finalImage, bannerType, deviceType, onSave, onE
     try {
       setIsDownloading(true);
       
-      // Canvas에서 JPG로 다시 생성
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      
+      // 4x 해상도로 JPG 생성
+      const baseImg = new Image();
       await new Promise<void>((resolve, reject) => {
-        img.onload = () => {
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx?.drawImage(img, 0, 0);
-          resolve();
-        };
-        img.onerror = reject;
-        img.src = URL.createObjectURL(finalImage);
+        baseImg.onload = () => resolve();
+        baseImg.onerror = reject;
+        baseImg.src = URL.createObjectURL(finalImage);
       });
-      
-      // JPG로 변환
-      canvas.toBlob((blob) => {
-        if (blob) {
+
+      const scale = 4;
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = baseImg.width * scale;
+      exportCanvas.height = baseImg.height * scale;
+      const ctx = exportCanvas.getContext('2d');
+      if (!ctx) throw new Error('캔버스 컨텍스트를 생성할 수 없습니다.');
+
+      // 고해상도 스무딩 유지
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(baseImg, 0, 0, exportCanvas.width, exportCanvas.height);
+
+      await new Promise<void>((resolve, reject) => {
+        exportCanvas.toBlob((blob) => {
+          if (!blob) return reject(new Error('이미지 생성 실패'));
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
           link.download = `${title || 'banner'}.jpg`;
-          
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
-        }
-      }, 'image/jpeg', 0.9);
+          resolve();
+        }, 'image/jpeg', 0.92);
+      });
       
     } catch (error) {
       console.error('다운로드 중 오류 발생:', error);
