@@ -30,7 +30,7 @@ export function CompletionForm({ finalImage, bannerType, deviceType, onSave, onE
     try {
       setIsDownloading(true);
       
-      // 4x 해상도로 JPG 생성
+      // 원본 크기로 JPG 생성
       const baseImg = new Image();
       await new Promise<void>((resolve, reject) => {
         baseImg.onload = () => resolve();
@@ -38,16 +38,13 @@ export function CompletionForm({ finalImage, bannerType, deviceType, onSave, onE
         baseImg.src = URL.createObjectURL(finalImage);
       });
 
-      const scale = 4;
       const exportCanvas = document.createElement('canvas');
-      exportCanvas.width = baseImg.width * scale;
-      exportCanvas.height = baseImg.height * scale;
+      exportCanvas.width = baseImg.width;
+      exportCanvas.height = baseImg.height;
       const ctx = exportCanvas.getContext('2d');
       if (!ctx) throw new Error('캔버스 컨텍스트를 생성할 수 없습니다.');
 
-      // 고해상도 스무딩 유지
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
+      // 원본 크기로 그리기
       ctx.drawImage(baseImg, 0, 0, exportCanvas.width, exportCanvas.height);
 
       await new Promise<void>((resolve, reject) => {

@@ -100,12 +100,11 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
     try {
       setIsProcessing(true);
 
-      const scale = 4; // 4x 해상도
       const config = selection.config;
 
       const exportCanvas = document.createElement('canvas');
-      exportCanvas.width = config.width * scale;
-      exportCanvas.height = config.height * scale;
+      exportCanvas.width = config.width;
+      exportCanvas.height = config.height;
       const ctx = exportCanvas.getContext('2d');
       if (!ctx) throw new Error('캔버스 컨텍스트를 생성할 수 없습니다.');
 
@@ -148,13 +147,13 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
       if (logoSource && config.logo) {
         try {
           const logoImg = await loadImage(logoSource);
-          const fixedHeight = (logoHeight || 56) * scale;
+          const fixedHeight = (logoHeight || 56);
           const aspectRatio = logoImg.width / logoImg.height;
           const calculatedWidth = fixedHeight * aspectRatio;
           ctx.drawImage(
             logoImg,
-            config.logo.x * scale,
-            config.logo.y * scale,
+            config.logo.x,
+            config.logo.y,
             calculatedWidth,
             fixedHeight
           );
@@ -181,12 +180,12 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
           );
           const validImages = images.filter((img): img is HTMLImageElement => !!img);
           if (validImages.length > 0) {
-            const logoHe = (logoHeight || config.multiLogo.maxHeight) * scale;
-            const logoGap = (config.multiLogo.logoGap ?? 16) * scale;
-            const separatorWidth = (config.multiLogo.separatorWidth ?? 4) * scale;
+            const logoHe = (logoHeight || config.multiLogo.maxHeight);
+            const logoGap = (config.multiLogo.logoGap ?? 16);
+            const separatorWidth = (config.multiLogo.separatorWidth ?? 4);
             const logoWidths = validImages.map((img) => (logoHe * (img.width / img.height)));
-            let currentX = (config.multiLogo?.x ?? 0) * scale;
-            const baseY = (config.multiLogo?.y ?? 0) * scale;
+            let currentX = (config.multiLogo?.x ?? 0);
+            const baseY = (config.multiLogo?.y ?? 0);
             validImages.forEach((img, index) => {
               const logoWidth = logoWidths[index];
               ctx.drawImage(img, currentX, baseY, logoWidth, logoHe);
@@ -233,22 +232,22 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
       textElements.forEach((element) => {
         ctx.save();
         const fontWeight = element.fontWeight || 400;
-        ctx.font = `${fontWeight} ${element.fontSize * scale}px Pretendard`;
+        ctx.font = `${fontWeight} ${element.fontSize}px Pretendard`;
         ctx.textBaseline = 'top';
 
         if (element.id === 'button-text') {
           // 버튼 배경
-          const bx = element.x * scale;
-          const by = element.y * scale;
-          const bw = element.width * scale;
-          const bh = element.height * scale;
-          const borderRadius = 20 * scale;
+          const bx = element.x;
+          const by = element.y;
+          const bw = element.width;
+          const bh = element.height;
+          const borderRadius = 20;
           ctx.fillStyle = element.backgroundColor || '#4F46E5';
           drawRoundedRect(bx, by, bw, bh, borderRadius);
           // 그림자
           ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
-          ctx.shadowBlur = 6 * scale;
-          ctx.shadowOffsetY = 3 * scale;
+          ctx.shadowBlur = 6;
+          ctx.shadowOffsetY = 3;
           ctx.fill();
           ctx.shadowColor = 'transparent';
           ctx.shadowBlur = 0;
@@ -267,22 +266,22 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
         }
 
         const lines = element.text.split('\n');
-        const lineHeight = element.fontSize * 1.2 * scale;
-        const letterSpacing = (element.letterSpacing || 0) * scale;
+        const lineHeight = element.fontSize * 1.2;
+        const letterSpacing = (element.letterSpacing || 0);
 
         lines.forEach((line, lineIndex) => {
           let y: number;
           let currentX: number;
 
           if (element.id === 'button-text') {
-            y = element.y * scale + (element.height * scale) / 2 + (lineIndex * lineHeight);
-            currentX = element.x * scale + (element.width * scale) / 2;
+            y = element.y + (element.height) / 2 + (lineIndex * lineHeight);
+            currentX = element.x + (element.width) / 2;
           } else if ((element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') && isInteractiveBanner) {
-            y = element.y * scale + (lineIndex * lineHeight);
-            currentX = element.x * scale + (element.width * scale) / 2;
+            y = element.y + (lineIndex * lineHeight);
+            currentX = element.x + (element.width) / 2;
           } else {
-            y = element.y * scale + (lineIndex * lineHeight);
-            currentX = element.x * scale;
+            y = element.y + (lineIndex * lineHeight);
+            currentX = element.x;
           }
 
           if (element.id === 'button-text') {
@@ -344,10 +343,10 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
           } else {
             if (element.gradient) {
               const grad = ctx.createLinearGradient(
-                element.x * scale,
-                element.y * scale,
-                (element.x + element.width) * scale,
-                element.y * scale
+                element.x,
+                element.y,
+                (element.x + element.width),
+                element.y
               );
               grad.addColorStop(0, element.gradient.from);
               grad.addColorStop(1, element.gradient.to);
