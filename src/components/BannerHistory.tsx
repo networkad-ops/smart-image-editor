@@ -4,6 +4,9 @@ import { bannerService } from '../services/supabaseService';
 import { withLimit } from '../utils/limitConcurrency';
 import { supabaseWithRetry } from '../utils/fetchWithRetry';
 import { historyMetrics } from '../utils/metrics';
+import { SkeletonCard } from './SkeletonCard';
+import { startBannerHistoryMonitoring, stopBannerHistoryMonitoring } from '../utils/layoutShiftObserver';
+import { useBannerHistoryCursor } from '../utils/featureFlags';
 
 interface BannerHistoryProps {
   onBannerEdit: (banner: Banner) => void;
@@ -26,11 +29,19 @@ export const BannerHistory: React.FC<BannerHistoryProps> = ({ onBannerEdit, onBa
   const abortControllersRef = useRef<Map<string, AbortController>>(new Map());
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
+  // 기능 플래그 확인
+  const enableCursorPagination = useBannerHistoryCursor();
+
   // 초기 로드
   useEffect(() => {
     historyMetrics.startFirstListTTFB();
     historyMetrics.startFirstPaint();
+    startBannerHistoryMonitoring(); // 레이아웃 시프트 모니터링 시작
     loadInitialBanners();
+    
+    return () => {
+      stopBannerHistoryMonitoring(); // 컴포넌트 언마운트 시 모니터링 중지
+    };
   }, []);
 
   // 검색어 디바운스 처리 (300ms)
@@ -92,23 +103,34 @@ export const BannerHistory: React.FC<BannerHistoryProps> = ({ onBannerEdit, onBa
     try {
       setLoading(true);
       
-      // 서버 사이드 필터링 적용
-      const filters = debouncedSearchTerm ? { search_term: debouncedSearchTerm } : undefined;
-      
-      const result = await supabaseWithRetry(
-        () => bannerService.getBannersCursor(30, undefined, filters),
-        '배너 목록 로드 실패'
-      );
-      
-      setBanners(result.items);
-      setNextCursor(result.nextCursor);
-      setHasMore(!!result.nextCursor);
+      if (enableCursorPagination) {
+        // 커서 페이지네이션 사용
+        const filters = debouncedSearchTerm ? { search_term: debouncedSearchTerm } : undefined;
+        
+        const result = await supabaseWithRetry(
+          () => bannerService.getBannersCursor(30, undefined, filters),
+          '배너 목록 로드 실패'
+        );
+        
+        setBanners(result.items);
+        setNextCursor(result.nextCursor);
+        setHasMore(!!result.nextCursor);
+        
+        // 썸네일 로딩 시작
+        preloadThumbnails(result.items);
+      } else {
+        // 레거시 전체 로드 (롤백용)
+        const allBanners = await supabaseWithRetry(
+          () => bannerService.getBanners(),
+          '배너 목록 로드 실패'
+        );
+        
+        setBanners(allBanners as any); // 타입 호환성을 위한 캐스팅
+        setHasMore(false);
+      }
       
       // 성능 메트릭 기록
       historyMetrics.endFirstListTTFB();
-      
-      // 썸네일 로딩 시작
-      preloadThumbnails(result.items);
       
       // First Paint 완료
       setTimeout(() => {
@@ -291,9 +313,14 @@ export const BannerHistory: React.FC<BannerHistoryProps> = ({ onBannerEdit, onBa
 
         {/* 배너 목록 */}
         {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          </div>
+          <>
+            {/* 스켈레톤 12개 고정 슬롯 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {Array.from({ length: 12 }).map((_, index) => (
+                <SkeletonCard key={`skeleton-${index}`} aspectRatio="16/9" />
+              ))}
+            </div>
+          </>
         ) : filteredBanners.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📭</div>
