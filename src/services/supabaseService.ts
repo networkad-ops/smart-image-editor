@@ -476,18 +476,23 @@ export const projectService = {
 // ===== 배너 관리 =====
 
 export const bannerService = {
-  // 배너 목록 조회 (프로젝트, 팀 정보 포함)
-  async getBanners(filters?: FilterOptions): Promise<Banner[]> {
+  // 커서 기반 배너 목록 조회 (성능 최적화)
+  async getBannersCursor(
+    limit: number = 30, 
+    cursor?: { created_at: string; id: string }, 
+    filters?: FilterOptions
+  ): Promise<{ 
+    items: Pick<Banner, 'id' | 'title' | 'thumbnail_url' | 'canvas_width' | 'canvas_height' | 'created_at'>[]; 
+    nextCursor?: { created_at: string; id: string } 
+  }> {
     let query = supabase
       .from('banners')
-      .select(`
-        *,
-        project:projects(
-          *,
-          team:teams(*)
-        ),
-        comments:banner_comments(id)
-      `)
+      .select('id, title, thumbnail_url, canvas_width, canvas_height, created_at')
+
+    // 커서 조건 적용
+    if (cursor) {
+      query = query.or(`created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`)
+    }
 
     // 필터 적용
     if (filters?.project_id) {
@@ -506,16 +511,50 @@ export const bannerService = {
       query = query.or(`title.ilike.%${filters.search_term}%,description.ilike.%${filters.search_term}%`)
     }
 
-    query = query.order('created_at', { ascending: false })
+    // 정렬 및 제한
+    query = query
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(limit)
 
     const { data, error } = await query
     if (error) throw error
 
-    // 댓글 수 계산
-    return (data || []).map((banner: any) => ({
-      ...banner,
-      comment_count: banner.comments?.length || 0
-    }))
+    const items = data || []
+    
+    // 다음 커서 설정
+    let nextCursor: { created_at: string; id: string } | undefined
+    if (items.length === limit) {
+      const lastItem = items[items.length - 1]
+      nextCursor = {
+        created_at: lastItem.created_at,
+        id: lastItem.id
+      }
+    }
+
+    return { items, nextCursor }
+  },
+
+  // 배너 목록 조회 (레거시 호환성을 위해 유지, 내부적으로 getBannersCursor 사용)
+  async getBanners(filters?: FilterOptions): Promise<Banner[]> {
+    // 모든 데이터를 가져오기 위해 큰 limit 사용 (레거시 호환성)
+    const result = await this.getBannersCursor(1000, undefined, filters);
+    
+    // 전체 데이터가 필요한 경우 추가 페이지 로드
+    let allItems = [...result.items];
+    let cursor = result.nextCursor;
+    
+    while (cursor) {
+      const nextResult = await this.getBannersCursor(1000, cursor, filters);
+      allItems = [...allItems, ...nextResult.items];
+      cursor = nextResult.nextCursor;
+    }
+
+    // 기존 형식으로 변환 (프로젝트, 팀 정보는 별도 조회 필요시에만)
+    return allItems.map((item: any) => ({
+      ...item,
+      comment_count: 0 // 기본값
+    })) as Banner[];
   },
 
   // 배너 상세 조회
