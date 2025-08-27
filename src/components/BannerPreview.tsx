@@ -150,9 +150,10 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         ctx.shadowOffsetY = 0;
       }
       
-      // 폰트 두께 설정 (기본값 400)
+      // 폰트 크기 고정 (줄바꿈 시에도 동일한 크기 유지)
       const fontWeight = element.fontWeight || 400;
-      ctx.font = `${fontWeight} ${element.fontSize}px Pretendard`;
+      const fixedFontSize = element.fontSize; // 폰트 크기를 고정
+      ctx.font = `${fontWeight} ${fixedFontSize}px Pretendard`;
       ctx.textBaseline = 'top'; // 텍스트의 기준선을 상단으로 설정
       
       // 텍스트 정렬 설정

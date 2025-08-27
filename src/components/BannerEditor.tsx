@@ -232,7 +232,8 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
       textElements.forEach((element) => {
         ctx.save();
         const fontWeight = element.fontWeight || 400;
-        ctx.font = `${fontWeight} ${element.fontSize}px Pretendard`;
+        const fixedFontSize = element.fontSize; // 폰트 크기를 고정
+        ctx.font = `${fontWeight} ${fixedFontSize}px Pretendard`;
         ctx.textBaseline = 'top';
 
         if (element.id === 'button-text') {
