@@ -96,20 +96,31 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
   }, []);
 
   const handleDownloadJPG = async () => {
-    if (!previewCanvasRef.current || !uploadedImage || !drawReady) return;
+    if (!uploadedImage || !drawReady) return;
     try {
       setIsProcessing(true);
-      const blob = await new Promise<Blob>((resolve) => {
-        previewCanvasRef.current?.toBlob((blob: Blob | null) => {
-          if (blob) resolve(blob);
-        }, 'image/png');
-      });
+      
+      // 오프스크린 캔버스 기반 내보내기 사용
+      const { exportBanner } = await import('../utils/exportImage');
+      const blob = await exportBanner(
+        selection.config,
+        textElements,
+        uploadedImage,
+        uploadedLogo,
+        uploadedLogos,
+        editingBanner?.background_image_url || editingBanner?.image_url,
+        editingBanner?.logo_url,
+        editingBanner?.logo_urls,
+        logoHeight,
+        { scale: 1, format: 'image/jpeg', quality: 0.92 }
+      );
+      
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       const fileName = editingBanner?.title 
-        ? `${editingBanner.title.replace(/[^-\s-]/g, '').trim()}_${Date.now()}.png`
-        : `banner_${Date.now()}.png`;
+        ? `${editingBanner.title.replace(/[^a-zA-Z0-9가-힣\s\-_]/g, '').trim()}_${Date.now()}.jpg`
+        : `banner_${Date.now()}.jpg`;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();

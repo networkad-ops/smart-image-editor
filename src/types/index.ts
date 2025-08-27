@@ -78,6 +78,7 @@ export interface TextElement {
   width: number;
   height: number;
   fontSize: number;
+  fontPxAtBase?: number; // 기준 해상도에서의 픽셀 크기 (표준화용)
   fontFamily: string;
   fontWeight?: number;
   letterSpacing?: number;
