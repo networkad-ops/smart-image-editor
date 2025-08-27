@@ -3,7 +3,7 @@
 
 -- 1. 커서 페이지네이션 최적화용 복합 인덱스 생성
 -- created_at DESC, id DESC 순서로 정렬하여 커서 쿼리 성능 향상
-CREATE INDEX IF NOT EXISTS idx_banners_cursor_pagination 
+CREATE INDEX IF NOT EXISTS idx_banners_created_id 
 ON banners (created_at DESC, id DESC);
 
 -- 2. 기존 단일 컬럼 인덱스 제거 (중복 방지)
@@ -49,7 +49,7 @@ DO $$
 BEGIN
     RAISE NOTICE '✅ 커서 페이지네이션 최적화 인덱스 생성 완료';
     RAISE NOTICE '📊 생성된 인덱스:';
-    RAISE NOTICE '   - idx_banners_cursor_pagination (created_at DESC, id DESC)';
+    RAISE NOTICE '   - idx_banners_created_id (created_at DESC, id DESC)';
     RAISE NOTICE '   - idx_banners_title_search (GIN)';
     RAISE NOTICE '   - idx_banners_description_search (GIN)';
     RAISE NOTICE '   - idx_banners_banner_type';

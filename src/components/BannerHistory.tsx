@@ -182,8 +182,8 @@ export const BannerHistory: React.FC<BannerHistoryProps> = ({ onBannerEdit, onBa
       });
     });
 
-    // 최대 6개씩 동시 로딩
-    withLimit(6, loadTasks).catch(console.error);
+    // 환경변수 기반 동시 로딩 (기본값: 6개)
+    withLimit(undefined, loadTasks).catch(console.error);
   }, []);
 
   const handleDelete = async (bannerId: string) => {
@@ -208,7 +208,10 @@ export const BannerHistory: React.FC<BannerHistoryProps> = ({ onBannerEdit, onBa
   const handleBannerEdit = async (bannerItem: BannerListItem) => {
     try {
       // 상세 정보 조회 (Fetch-on-open)
-      const fullBanner = await bannerService.getBanner(bannerItem.id);
+      const fullBanner = await supabaseWithRetry(
+        () => bannerService.getBannerById(bannerItem.id),
+        '배너 상세 정보 로드 실패'
+      );
       onBannerEdit(fullBanner);
     } catch (error) {
       console.error('배너 상세 정보 로드 실패:', error);
@@ -320,7 +323,11 @@ export const BannerHistory: React.FC<BannerHistoryProps> = ({ onBannerEdit, onBa
                         decoding="async"
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover"
-                        style={{ maxWidth: '320px', objectFit: 'cover' }}
+                        style={
+                          banner.thumbnail_url 
+                            ? { objectFit: 'cover' } 
+                            : { maxWidth: '320px', height: 'auto', objectFit: 'cover' }
+                        }
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';

@@ -49,13 +49,51 @@ export async function withRetry<T>(
         break;
       }
 
-      // 지수 백오프 지연
-      const delay = baseDelayMs * Math.pow(2, attempt);
+      // 429/503 에러에 대한 특별한 지수 백오프 처리
+      let delay = baseDelayMs * Math.pow(2, attempt);
+      
+      // HTTP 에러 코드 확인 (Supabase 에러 또는 fetch 에러)
+      const isRateLimitError = lastError.message.includes('429') || 
+                              lastError.message.includes('503') ||
+                              lastError.message.includes('Too Many Requests') ||
+                              lastError.message.includes('Service Unavailable');
+      
+      if (isRateLimitError) {
+        // 429/503의 경우 더 긴 지연 (800ms → 1600ms → 3200ms, 최대 5초)
+        delay = Math.min(800 * Math.pow(2, attempt), 5000);
+        
+        // 네트워크 혼잡 메시지 표시
+        if (attempt < maxRetries) {
+          showNetworkCongestionToast();
+        }
+      }
+
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
 
   throw lastError!;
+}
+
+/**
+ * 네트워크 혼잡 토스트 표시
+ */
+export function showNetworkCongestionToast() {
+  const toast = document.createElement('div');
+  toast.className = 'fixed top-4 right-4 bg-orange-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity';
+  toast.textContent = '네트워크 혼잡으로 썸네일 재시도 중...';
+  
+  document.body.appendChild(toast);
+  
+  // 2초 후 제거
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => {
+      if (document.body.contains(toast)) {
+        document.body.removeChild(toast);
+      }
+    }, 300);
+  }, 2000);
 }
 
 /**

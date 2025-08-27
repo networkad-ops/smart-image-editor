@@ -22,11 +22,11 @@ BEGIN
 END $$;
 
 -- 2. status 인덱스 정리
--- 기존 인덱스 확인 후 최적화된 인덱스로 교체
+-- 기존 단일 인덱스 제거 후 최적화된 복합 인덱스로 교체
 DROP INDEX IF EXISTS idx_banners_status;
 
--- status 필터링을 위한 인덱스 생성
-CREATE INDEX IF NOT EXISTS idx_banners_status_created 
+-- status 필터링과 커서 페이지네이션을 위한 복합 인덱스 생성
+CREATE INDEX IF NOT EXISTS idx_banners_status_created_id 
 ON banners (status, created_at DESC, id DESC);
 
 -- 3. 상태별 통계 확인 (개발용)
@@ -62,7 +62,7 @@ DO $$
 BEGIN
     RAISE NOTICE '✅ status 컬럼과 인덱스 정리 완료';
     RAISE NOTICE '📊 생성된 인덱스:';
-    RAISE NOTICE '   - idx_banners_status_created (status, created_at DESC, id DESC)';
+    RAISE NOTICE '   - idx_banners_status_created_id (status, created_at DESC, id DESC)';
     RAISE NOTICE '🗑️  제거된 인덱스:';
     RAISE NOTICE '   - idx_banners_status (단일 컬럼 인덱스)';
 END $$;

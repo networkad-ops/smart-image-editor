@@ -557,8 +557,13 @@ export const bannerService = {
     })) as Banner[];
   },
 
-  // 배너 상세 조회
+  // 배너 상세 조회 (레거시 호환성)
   async getBanner(id: string): Promise<Banner> {
+    return this.getBannerById(id);
+  },
+
+  // 배너 상세 조회 (단건, ID로 조회)
+  async getBannerById(id: string): Promise<Banner> {
     const { data, error } = await supabase
       .from('banners')
       .select(`
