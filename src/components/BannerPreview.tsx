@@ -495,16 +495,13 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     config
   ]);
 
-  // 미리보기 프레임 크기 계산 - 컨테이너에 맞게 조정
+  // 미리보기 프레임 크기 계산 - 실제 크기 사용, 컨테이너에 맞게 스크롤 처리
   const maxPreviewWidth = 600; // 좌측 70% 컨테이너에 맞는 크기
   const maxPreviewHeight = 400;
   
-  const scaleByWidth = maxPreviewWidth / CANVAS_WIDTH;
-  const scaleByHeight = maxPreviewHeight / CANVAS_HEIGHT;
-  const previewScale = Math.min(scaleByWidth, scaleByHeight, 1); // 1을 넘지 않도록
-  
-  const previewWidth = CANVAS_WIDTH * previewScale;
-  const previewHeight = CANVAS_HEIGHT * previewScale;
+  // 실제 크기 사용 (스케일링 제거)
+  const previewWidth = Math.min(CANVAS_WIDTH, maxPreviewWidth);
+  const previewHeight = Math.min(CANVAS_HEIGHT, maxPreviewHeight);
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-4">

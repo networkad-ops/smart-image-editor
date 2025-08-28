@@ -242,6 +242,7 @@ function App() {
         width: selection.config.mainTitle.width,
         height: selection.config.mainTitle.height,
         fontSize: selection.config.mainTitle.fontSize,
+        fontPxAtBase: selection.config.mainTitle.fontSize, // 기준 해상도에서의 폰트 크기
         fontFamily: selection.config.mainTitle.fontFamily,
         fontWeight: selection.config.mainTitle.fontWeight ?? 700,
         letterSpacing: selection.config.mainTitle.letterSpacing,
@@ -265,6 +266,7 @@ function App() {
         width: selection.config.subTitle.width,
         height: selection.config.subTitle.height,
         fontSize: selection.config.subTitle.fontSize,
+        fontPxAtBase: selection.config.subTitle.fontSize, // 기준 해상도에서의 폰트 크기
         fontFamily: selection.config.subTitle.fontFamily,
         fontWeight: selection.config.subTitle.fontWeight ?? 500,
         letterSpacing: selection.config.subTitle.letterSpacing,
@@ -288,6 +290,7 @@ function App() {
         width: selection.config.bottomSubTitle.width,
         height: selection.config.bottomSubTitle.height,
         fontSize: selection.config.bottomSubTitle.fontSize,
+        fontPxAtBase: selection.config.bottomSubTitle.fontSize, // 기준 해상도에서의 폰트 크기
         fontFamily: selection.config.bottomSubTitle.fontFamily,
         fontWeight: selection.config.bottomSubTitle.fontWeight ?? 700,
         letterSpacing: selection.config.bottomSubTitle.letterSpacing,
@@ -311,6 +314,7 @@ function App() {
         width: selection.config.buttonText.width,
         height: selection.config.buttonText.height,
         fontSize: selection.config.buttonText.fontSize,
+        fontPxAtBase: selection.config.buttonText.fontSize, // 기준 해상도에서의 폰트 크기
         fontFamily: selection.config.buttonText.fontFamily,
         fontWeight: selection.config.buttonText.fontWeight ?? 600,
         letterSpacing: selection.config.buttonText.letterSpacing,

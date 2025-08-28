@@ -290,6 +290,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       width: 200,
       height: 100,
       fontSize: 24,
+      fontPxAtBase: 24, // 기준 해상도에서의 폰트 크기
       fontFamily: 'Pretendard',
       fontWeight: 400,
       color: '#000000',
