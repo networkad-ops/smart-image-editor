@@ -119,7 +119,15 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
       const link = document.createElement('a');
       link.href = url;
       const fileName = editingBanner?.title 
+<<<<<<< HEAD
         ? `${editingBanner.title.replace(/[^a-zA-Z0-9가-힣\s\-_]/g, '').trim()}_${Date.now()}.jpg`
+=======
+<<<<<<< HEAD
+        ? `${editingBanner.title.replace(/[^-\s-]/g, '').trim()}_${Date.now()}.jpg`
+=======
+        ? `${editingBanner.title.replace(/[^a-zA-Z0-9가-힣\s\-_]/g, '').trim()}_${Date.now()}.jpg`
+>>>>>>> 83b4a59 (Standardize canvas resolution to 1560×468 and implement offscreen rendering)
+>>>>>>> 791e3c6 (Resolve merge conflicts and complete canvas standardization)
         : `banner_${Date.now()}.jpg`;
       link.download = fileName;
       document.body.appendChild(link);

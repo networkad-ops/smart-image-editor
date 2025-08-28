@@ -74,9 +74,9 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     handleY = logoY + (logoHeight ?? config.multiLogo.maxHeight) - handleH / 2;
   }
 
-  // 기준 해상도 통일
-  const CANVAS_WIDTH = 1560;
-  const CANVAS_HEIGHT = 468;
+  // 각 배너의 실제 해상도 사용
+  const CANVAS_WIDTH = config.width;
+  const CANVAS_HEIGHT = config.height;
   
   // 더블 버퍼링용 오프스크린 캔버스 초기화
   useEffect(() => {

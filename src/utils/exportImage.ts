@@ -1,9 +1,7 @@
 import { BannerConfig, TextElement } from '../types';
 import { drawTextWithLetterSpacing } from './canvasUtils';
 
-// 기준 해상도 상수
-const CANVAS_WIDTH = 1560;
-const CANVAS_HEIGHT = 468;
+// 각 배너의 실제 해상도 사용 (함수 내에서 config로부터 가져옴)
 
 interface ExportOptions {
   scale?: number;
@@ -36,9 +34,9 @@ export const exportBanner = async (
     throw new Error('Canvas context를 생성할 수 없습니다.');
   }
   
-  // 캔버스 크기 설정 (스케일 적용)
-  canvas.width = CANVAS_WIDTH * scale;
-  canvas.height = CANVAS_HEIGHT * scale;
+  // 캔버스 크기 설정 (각 배너의 실제 해상도 사용)
+  canvas.width = config.width * scale;
+  canvas.height = config.height * scale;
   
   // 스케일 적용 (좌표계는 기준 해상도 유지)
   ctx.scale(scale, scale);
@@ -84,18 +82,18 @@ const drawBackground = async (
   
   // 이미지 비율 계산하여 전체 화면에 맞추기
   const imageRatio = img.width / img.height;
-  const canvasRatio = CANVAS_WIDTH / CANVAS_HEIGHT;
-  let drawWidth = CANVAS_WIDTH;
-  let drawHeight = CANVAS_HEIGHT;
+  const canvasRatio = config.width / config.height;
+  let drawWidth = config.width;
+  let drawHeight = config.height;
   let offsetX = 0;
   let offsetY = 0;
   
   if (imageRatio > canvasRatio) {
-    drawHeight = CANVAS_WIDTH / imageRatio;
-    offsetY = (CANVAS_HEIGHT - drawHeight) / 2;
+    drawHeight = config.width / imageRatio;
+    offsetY = (config.height - drawHeight) / 2;
   } else {
-    drawWidth = CANVAS_HEIGHT * imageRatio;
-    offsetX = (CANVAS_WIDTH - drawWidth) / 2;
+    drawWidth = config.height * imageRatio;
+    offsetX = (config.width - drawWidth) / 2;
   }
   
   ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
