@@ -74,8 +74,8 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     handleY = logoY + (logoHeight ?? config.multiLogo.maxHeight) - handleH / 2;
   }
 
-  // 기본배너 PC 타입에 대해서만 2880×480 해상도 고정
-  const isBasicBannerPC = config.dbType === 'basic-no-logo' && config.width === 2880 && config.height === 480;
+  // 기본배너 PC 전용 preset 적용
+  const isBasicBannerPC = config.dbType === 'basic-pc' || config.dbType === 'basic-pc-logo';
   
   // 디자인 크기 설정 (기본배너 PC는 2880×480 고정, 나머지는 config 기준)
   const designSize = isBasicBannerPC 
@@ -529,7 +529,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       <h2 className="text-lg font-semibold mb-3">
         미리보기
         <span className="text-sm text-gray-500 ml-2">
-          ({designSize.w} × {designSize.h})
+          {isBasicBannerPC ? '(2880 × 480)' : `(${designSize.w} × ${designSize.h})`}
         </span>
       </h2>
       <div className="flex justify-center items-center bg-gray-50 rounded-lg p-4 overflow-hidden">

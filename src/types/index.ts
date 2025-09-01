@@ -145,7 +145,7 @@ export interface Banner {
   project_id?: string; // 프로젝트 ID 추가
   title: string; // 이제 "팀명/프로젝트명" 형태로 저장
   description?: string;
-  banner_type: 'basic-no-logo' | 'basic-with-logo' | 'event' | 'interactive' | 'fullscreen' | 'airline';
+  banner_type: 'basic-no-logo' | 'basic-with-logo' | 'basic-pc' | 'basic-pc-logo' | 'event' | 'interactive' | 'fullscreen' | 'airline';
   device_type: 'pc' | 'mobile';
   status: BannerStatus;
   // 새로운 URL 구조
@@ -216,7 +216,7 @@ export interface BannerSelection {
 export interface BannerWork {
   id: string;
   title: string;
-  bannerType: 'basic-no-logo' | 'basic-with-logo' | 'interactive' | 'fullscreen';
+  bannerType: 'basic-no-logo' | 'basic-with-logo' | 'basic-pc' | 'basic-pc-logo' | 'interactive' | 'fullscreen';
   deviceType: 'pc' | 'mobile';
   originalImageUrl: string;
   editedImageUrl: string;

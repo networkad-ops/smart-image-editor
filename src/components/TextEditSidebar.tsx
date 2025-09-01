@@ -22,6 +22,9 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   showTitle = true,
   showBackground = true
 }) => {
+  // 기본배너 PC 전용 preset 검증
+  const isBasicBannerPC = config.dbType === 'basic-pc' || config.dbType === 'basic-pc-logo';
+  const isBasicBannerPCLogo = config.dbType === 'basic-pc-logo';
   const [newText, setNewText] = useState('');
   const [selectedRange, setSelectedRange] = useState<{elementId: string, start: number, end: number} | null>(null);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
@@ -362,25 +365,32 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     <div className={showBackground ? "bg-white rounded-lg shadow-lg p-4" : ""}>
       {showTitle && <h2 className="text-lg font-semibold mb-3">텍스트 편집</h2>}
 
-      {/* 서브타이틀 편집 - 컴팩트하게 */}
+      {/* 서브타이틀 편집 - 기본배너 PC preset 강제 적용 */}
       {config.subTitle && (
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">
               <h3 className="font-medium text-sm">서브타이틀</h3>
-              <button
-                onClick={() => setSelectedElementId(selectedElementId === 'sub-title' ? null : 'sub-title')}
-                className={`text-xs px-2 py-1 rounded transition-colors ${
-                  selectedElementId === 'sub-title'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {selectedElementId === 'sub-title' ? '선택됨' : '위치 조정'}
-              </button>
+              {!isBasicBannerPC && (
+                <button
+                  onClick={() => setSelectedElementId(selectedElementId === 'sub-title' ? null : 'sub-title')}
+                  className={`text-xs px-2 py-1 rounded transition-colors ${
+                    selectedElementId === 'sub-title'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {selectedElementId === 'sub-title' ? '선택됨' : '위치 조정'}
+                </button>
+              )}
+              {isBasicBannerPC && (
+                <span className="text-xs px-2 py-1 bg-gray-100 text-gray-500 rounded">
+                  고정 위치
+                </span>
+              )}
             </div>
             <span className="text-xs text-gray-500">
-              {subTitle?.text?.length || 0}/{config.subTitle.maxLength} | {subTitle?.text?.split('\n').length || 0}/{config.subTitle.maxLines || 1}줄
+              {subTitle?.text?.length || 0}/{isBasicBannerPC ? 20 : config.subTitle.maxLength} | {subTitle?.text?.split('\n').length || 0}/{isBasicBannerPC ? 1 : config.subTitle.maxLines || 1}줄
             </span>
           </div>
           
@@ -394,8 +404,8 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             onMouseUp={() => handleTextSelect('sub-title', subTitleInputRef)}
             onKeyUp={() => handleTextSelect('sub-title', subTitleInputRef)}
             className="w-full px-3 py-2 border rounded mb-2 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-            placeholder="서브타이틀 입력"
-            maxLength={config.subTitle.maxLength}
+            placeholder={isBasicBannerPC ? "서브타이틀 입력 (최대 20자, 1줄)" : "서브타이틀 입력"}
+            maxLength={isBasicBannerPC ? 20 : config.subTitle.maxLength}
           />
           
           {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}
@@ -407,25 +417,32 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
         </div>
       )}
 
-      {/* 메인타이틀 편집 - 컴팩트하게 */}
+      {/* 메인타이틀 편집 - 기본배너 PC preset 강제 적용 */}
       {config.mainTitle && (
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">
               <h3 className="font-medium text-sm">메인타이틀</h3>
-              <button
-                onClick={() => setSelectedElementId(selectedElementId === 'main-title' ? null : 'main-title')}
-                className={`text-xs px-2 py-1 rounded transition-colors ${
-                  selectedElementId === 'main-title'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {selectedElementId === 'main-title' ? '선택됨' : '위치 조정'}
-              </button>
+              {!isBasicBannerPC && (
+                <button
+                  onClick={() => setSelectedElementId(selectedElementId === 'main-title' ? null : 'main-title')}
+                  className={`text-xs px-2 py-1 rounded transition-colors ${
+                    selectedElementId === 'main-title'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {selectedElementId === 'main-title' ? '선택됨' : '위치 조정'}
+                </button>
+              )}
+              {isBasicBannerPC && (
+                <span className="text-xs px-2 py-1 bg-gray-100 text-gray-500 rounded">
+                  고정 위치
+                </span>
+              )}
             </div>
             <span className="text-xs text-gray-500">
-              {mainTitle?.text?.length || 0}/{config.mainTitle.maxLength} | {mainTitle?.text?.split('\n').length || 0}/{config.mainTitle.maxLines || 1}줄
+              {mainTitle?.text?.length || 0}/{isBasicBannerPC ? 36 : config.mainTitle.maxLength} | {mainTitle?.text?.split('\n').length || 0}/{isBasicBannerPC ? (isBasicBannerPCLogo ? 2 : 1) : config.mainTitle.maxLines || 1}줄
             </span>
           </div>
           
@@ -438,8 +455,8 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             onMouseUp={() => handleTextSelect('main-title', mainTitleInputRef)}
             onKeyUp={() => handleTextSelect('main-title', mainTitleInputRef)}
             className="w-full px-3 py-2 border rounded mb-2 min-h-[70px] resize-y text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-            placeholder="메인타이틀 입력 (여러 줄 가능)"
-            maxLength={config.mainTitle.maxLength}
+            placeholder={isBasicBannerPC ? `메인타이틀 입력 (최대 36자, ${isBasicBannerPCLogo ? '2줄' : '1줄'} 가능)` : "메인타이틀 입력 (여러 줄 가능)"}
+            maxLength={isBasicBannerPC ? 36 : config.mainTitle.maxLength}
           />
           
                     {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}

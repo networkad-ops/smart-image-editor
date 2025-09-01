@@ -1,5 +1,71 @@
 import { BannerConfig } from '../types';
 
+// 기본배너 PC 전용 preset 상수
+export const BASIC_PC = {
+  name: '기본배너 PC (로고없음)',
+  dbType: 'basic-no-logo' as const,
+  width: 2880,
+  height: 480,
+  maxFileSize: 1.5 * 1024 * 1024,
+  fixedText: true,
+  allowCustomText: false,
+  subTitle: {
+    x: 110,
+    y: 90,
+    width: 2680,
+    height: 60,
+    fontSize: 54,
+    lineHeight: 66.96, // 54 * 1.24
+    fontFamily: 'Pretendard',
+    fontWeight: 500,
+    letterSpacing: -0.54, // 54 * -0.01
+    maxLength: 20,
+    maxLines: 1
+  },
+  mainTitle: {
+    x: 110,
+    y: 182,
+    width: 2680,
+    height: 100,
+    fontSize: 84,
+    lineHeight: 104.16, // 84 * 1.24
+    fontFamily: 'Pretendard',
+    fontWeight: 700,
+    letterSpacing: -1.68, // 84 * -0.02
+    maxLength: 36,
+    maxLines: 1
+  }
+};
+
+export const BASIC_PC_LOGO = {
+  name: '기본배너 PC (로고포함)',
+  dbType: 'basic-with-logo' as const,
+  width: 2880,
+  height: 480,
+  maxFileSize: 1.5 * 1024 * 1024,
+  fixedText: true,
+  allowCustomText: false,
+  mainTitle: {
+    x: 100,
+    y: 182,
+    width: 2680,
+    height: 100,
+    fontSize: 84,
+    lineHeight: 104.16, // 84 * 1.24
+    fontFamily: 'Pretendard',
+    fontWeight: 700,
+    letterSpacing: -1.68, // 84 * -0.02
+    maxLength: 36,
+    maxLines: 2
+  },
+  logo: {
+    x: 110,
+    y: 90,
+    height: 56,
+    maxFileSize: 500 * 1024
+  }
+};
+
 export const bannerConfigs: Record<string, BannerConfig> = {
   'basic-no-logo-pc': {
     name: '기본 배너 (PC, 로고 없음)',
