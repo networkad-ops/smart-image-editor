@@ -78,15 +78,15 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   const CANVAS_WIDTH = config.width;
   const CANVAS_HEIGHT = config.height;
   
-  // 더블 버퍼링용 오프스크린 캔버스 초기화
+  // 더블 버퍼링용 오프스크린 캔버스 초기화 - 고정 해상도 사용
   useEffect(() => {
-    const dpr = window.devicePixelRatio || 1;
     const offscreenCanvas = document.createElement('canvas');
-    offscreenCanvas.width = config.width * dpr;
-    offscreenCanvas.height = config.height * dpr;
+    offscreenCanvas.width = config.width;
+    offscreenCanvas.height = config.height;
     const ctx = offscreenCanvas.getContext('2d');
     if (ctx) {
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // DPR 변환 제거 - 고정 해상도 기준으로 렌더링
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
     offscreenCanvasRef.current = offscreenCanvas;
   }, [config.width, config.height]);
@@ -464,13 +464,10 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     if (!visibleCtx || !offscreenCtx) return;
 
     const render = async () => {
-      // DPR 설정
-      const dpr = window.devicePixelRatio || 1;
-      
-      // 보이는 캔버스도 DPR 적용
-      visibleCanvas.width = config.width * dpr;
-      visibleCanvas.height = config.height * dpr;
-      visibleCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // 고정 해상도로 렌더링 (DPR 제거)
+      visibleCanvas.width = config.width;
+      visibleCanvas.height = config.height;
+      visibleCtx.setTransform(1, 0, 0, 1, 0, 0);
       
       // 1. 모든 드로잉을 오프스크린 캔버스에서 수행
       await drawBackground(offscreenCtx, offscreenCanvas);
@@ -497,13 +494,16 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     config
   ]);
 
-  // 미리보기 프레임 크기 계산 - 실제 크기 사용, 컨테이너에 맞게 스크롤 처리
+  // 미리보기 컨테이너 크기 - CSS 스케일링만 적용
   const maxPreviewWidth = 600; // 좌측 70% 컨테이너에 맞는 크기
   const maxPreviewHeight = 400;
   
-  // 실제 크기 사용 (스케일링 제거)
-  const previewWidth = Math.min(config.width, maxPreviewWidth);
-  const previewHeight = Math.min(config.height, maxPreviewHeight);
+  // 컨테이너 크기 계산 (스케일링 제거)
+  const containerWidth = Math.min(config.width, maxPreviewWidth);
+  const containerHeight = Math.min(config.height, maxPreviewHeight);
+  
+  // 미리보기 스케일 계산 (고정 해상도 대비 컨테이너 크기)
+  const previewScale = Math.min(containerWidth / config.width, containerHeight / config.height);
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-4">
@@ -513,20 +513,28 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           ({config.width} × {config.height})
         </span>
       </h2>
-      <div className="flex justify-center items-center bg-gray-50 rounded-lg p-4">
-        <div className="relative" style={{ width: previewWidth, height: previewHeight }}>
+      <div className="flex justify-center items-center bg-gray-50 rounded-lg p-4 overflow-hidden">
+        <div 
+          className="relative" 
+          style={{ 
+            width: containerWidth, 
+            height: containerHeight,
+            boxSizing: 'border-box',
+            overflow: 'hidden'
+          }}
+        >
           <canvas
             ref={ref}
-            width={config.width * (window.devicePixelRatio || 1)}
-            height={config.height * (window.devicePixelRatio || 1)}
-            className="border-2 border-gray-300 rounded-lg shadow-sm w-full h-full"
+            width={config.width}
+            height={config.height}
+            className="border-2 border-gray-300 rounded-lg shadow-sm"
             style={{
-              width: config.width + 'px',
-              height: config.height + 'px',
+              width: '100%',
+              height: 'auto',
               maxWidth: '100%',
-              maxHeight: '100%',
               objectFit: 'contain',
-              backgroundColor: '#f8f9fa'
+              backgroundColor: '#f8f9fa',
+              boxSizing: 'border-box'
             }}
           />
           {isLoading && (
