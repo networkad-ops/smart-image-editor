@@ -74,22 +74,39 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     handleY = logoY + (logoHeight ?? config.multiLogo.maxHeight) - handleH / 2;
   }
 
-  // 각 배너의 실제 해상도 사용
-  const CANVAS_WIDTH = config.width;
-  const CANVAS_HEIGHT = config.height;
+  // 기본배너 PC 타입에 대해서만 2880×480 해상도 고정
+  const isBasicBannerPC = config.dbType === 'basic-no-logo' && config.width === 2880 && config.height === 480;
   
-  // 더블 버퍼링용 오프스크린 캔버스 초기화 - 고정 해상도 사용
+  // 디자인 크기 설정 (기본배너 PC는 2880×480 고정, 나머지는 config 기준)
+  const designSize = isBasicBannerPC 
+    ? { w: 2880, h: 480 }
+    : { w: config.width, h: config.height };
+  
+  // 각 배너의 실제 해상도 사용
+  const CANVAS_WIDTH = designSize.w;
+  const CANVAS_HEIGHT = designSize.h;
+  
+  // 더블 버퍼링용 오프스크린 캔버스 초기화 - DPR 반영
   useEffect(() => {
+    const dpr = window.devicePixelRatio || 1;
     const offscreenCanvas = document.createElement('canvas');
-    offscreenCanvas.width = config.width;
-    offscreenCanvas.height = config.height;
+    
+    if (isBasicBannerPC) {
+      // 기본배너 PC: 2880×480 고정, DPR 반영
+      offscreenCanvas.width = 2880 * dpr;
+      offscreenCanvas.height = 480 * dpr;
+    } else {
+      // 기타 배너: config 기준, DPR 반영
+      offscreenCanvas.width = config.width * dpr;
+      offscreenCanvas.height = config.height * dpr;
+    }
+    
     const ctx = offscreenCanvas.getContext('2d');
     if (ctx) {
-      // DPR 변환 제거 - 고정 해상도 기준으로 렌더링
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     offscreenCanvasRef.current = offscreenCanvas;
-  }, [config.width, config.height]);
+  }, [config.width, config.height, isBasicBannerPC]);
 
   // 드래그 이벤트 핸들러
   const onHandleMouseDown = (e: React.MouseEvent) => {
@@ -297,7 +314,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   const drawBackground = useCallback(async (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
     setIsLoading(true);
     if (onDrawStart) onDrawStart();
-    ctx.clearRect(0, 0, config.width, config.height);
+    ctx.clearRect(0, 0, designSize.w, designSize.h);
 
     // 배경 이미지
     const imageToUse = uploadedImage || existingImageUrl;
@@ -326,17 +343,17 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       if (bgImg) {
         // 이미지 비율 계산
         const imageRatio = bgImg.width / bgImg.height;
-        const canvasRatio = config.width / config.height;
-        let drawWidth = config.width;
-        let drawHeight = config.height;
+        const canvasRatio = designSize.w / designSize.h;
+        let drawWidth = designSize.w;
+        let drawHeight = designSize.h;
         let offsetX = 0;
         let offsetY = 0;
         if (imageRatio > canvasRatio) {
-          drawHeight = config.width / imageRatio;
-          offsetY = (config.height - drawHeight) / 2;
+          drawHeight = designSize.w / imageRatio;
+          offsetY = (designSize.h - drawHeight) / 2;
         } else {
-          drawWidth = config.height * imageRatio;
-          offsetX = (config.width - drawWidth) / 2;
+          drawWidth = designSize.h * imageRatio;
+          offsetX = (designSize.w - drawWidth) / 2;
         }
         ctx.drawImage(bgImg, offsetX, offsetY, drawWidth, drawHeight);
       }
@@ -464,17 +481,19 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     if (!visibleCtx || !offscreenCtx) return;
 
     const render = async () => {
-      // 고정 해상도로 렌더링 (DPR 제거)
-      visibleCanvas.width = config.width;
-      visibleCanvas.height = config.height;
-      visibleCtx.setTransform(1, 0, 0, 1, 0, 0);
+      const dpr = window.devicePixelRatio || 1;
+      
+      // designSize 기준으로 DPR 반영하여 렌더링
+      visibleCanvas.width = designSize.w * dpr;
+      visibleCanvas.height = designSize.h * dpr;
+      visibleCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
       
       // 1. 모든 드로잉을 오프스크린 캔버스에서 수행
       await drawBackground(offscreenCtx, offscreenCanvas);
       drawTextElements(offscreenCtx, textElements);
 
       // 2. 완성된 결과물을 보이는 캔버스로 한번에 복사
-      visibleCtx.clearRect(0, 0, config.width, config.height);
+      visibleCtx.clearRect(0, 0, designSize.w, designSize.h);
       visibleCtx.drawImage(offscreenCanvas, 0, 0);
     };
 
@@ -498,19 +517,19 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   const maxPreviewWidth = 600; // 좌측 70% 컨테이너에 맞는 크기
   const maxPreviewHeight = 400;
   
-  // 컨테이너 크기 계산 (스케일링 제거)
-  const containerWidth = Math.min(config.width, maxPreviewWidth);
-  const containerHeight = Math.min(config.height, maxPreviewHeight);
+  // 컨테이너 크기 계산 (designSize 기준)
+  const containerWidth = Math.min(designSize.w, maxPreviewWidth);
+  const containerHeight = Math.min(designSize.h, maxPreviewHeight);
   
-  // 미리보기 스케일 계산 (고정 해상도 대비 컨테이너 크기)
-  const previewScale = Math.min(containerWidth / config.width, containerHeight / config.height);
+  // 미리보기 스케일 계산 (designSize 대비 컨테이너 크기)
+  const previewScale = Math.min(containerWidth / designSize.w, containerHeight / designSize.h);
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-4">
       <h2 className="text-lg font-semibold mb-3">
         미리보기
         <span className="text-sm text-gray-500 ml-2">
-          ({config.width} × {config.height})
+          ({designSize.w} × {designSize.h})
         </span>
       </h2>
       <div className="flex justify-center items-center bg-gray-50 rounded-lg p-4 overflow-hidden">
@@ -525,8 +544,8 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         >
           <canvas
             ref={ref}
-            width={config.width}
-            height={config.height}
+            width={designSize.w}
+            height={designSize.h}
             className="border-2 border-gray-300 rounded-lg shadow-sm"
             style={{
               width: '100%',
