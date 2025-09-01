@@ -511,6 +511,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       
       if (isBasicBannerPC) {
         // 기본배너 PC: 2880×480 고정, DPR 반영
+        // HTML 속성 width/height 설정으로 내부 픽셀 확정
         visibleCanvas.width = 2880 * dpr;
         visibleCanvas.height = 480 * dpr;
         visibleCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -572,6 +573,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     
     if (isBasicBannerPC) {
       // 기본배너 PC: 2880×480 고정, DPR 반영
+      // HTML 속성 width/height 설정으로 내부 픽셀 확정
       canvas.width = 2880 * dpr;
       canvas.height = 480 * dpr;
     } else {
@@ -603,6 +605,11 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         <span className="text-sm text-gray-500 ml-2">
           {isBasicBannerPC ? '(2880 × 480)' : `(${designSize.w} × ${designSize.h})`}
         </span>
+        {isBasicBannerPC && (
+          <span className="text-xs text-blue-600 ml-2">
+            (기본배너 PC 전용 해상도)
+          </span>
+        )}
       </h2>
       <div className="flex justify-center items-center bg-gray-50 rounded-lg p-4 overflow-hidden">
         <div 
@@ -611,25 +618,14 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
             width: containerWidth, 
             height: containerHeight,
             boxSizing: 'border-box',
-            overflow: 'hidden',
-            ...(isBasicBannerPC && {
-              transform: `scale(${containerWidth / 2880})`,
-              transformOrigin: 'top left'
-            })
+            overflow: 'hidden'
           }}
         >
           <canvas
             ref={ref}
-            width={isBasicBannerPC ? 2880 : designSize.w}
-            height={isBasicBannerPC ? 480 : designSize.h}
-            className="border-2 border-gray-300 rounded-lg shadow-sm"
+            className="border-2 border-gray-300 rounded-lg shadow-sm w-full h-auto"
             style={{
-              width: '100%',
-              height: 'auto',
-              maxWidth: '100%',
-              objectFit: 'contain',
-              backgroundColor: '#f8f9fa',
-              boxSizing: 'border-box'
+              backgroundColor: '#f8f9fa'
             }}
           />
           {isLoading && (
