@@ -82,14 +82,14 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   useEffect(() => {
     const dpr = window.devicePixelRatio || 1;
     const offscreenCanvas = document.createElement('canvas');
-    offscreenCanvas.width = CANVAS_WIDTH * dpr;
-    offscreenCanvas.height = CANVAS_HEIGHT * dpr;
+    offscreenCanvas.width = config.width * dpr;
+    offscreenCanvas.height = config.height * dpr;
     const ctx = offscreenCanvas.getContext('2d');
     if (ctx) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     offscreenCanvasRef.current = offscreenCanvas;
-  }, []);
+  }, [config.width, config.height]);
 
   // 드래그 이벤트 핸들러
   const onHandleMouseDown = (e: React.MouseEvent) => {
@@ -181,11 +181,13 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         ctx.textBaseline = 'top';
       }
       
-      // 줄바꿈 처리
+      // 줄바꿈 처리 (maxLines 제한 적용)
       const lines = element.text.split('\n');
+      const maxLines = config.mainTitle?.maxLines || config.subTitle?.maxLines || config.bottomSubTitle?.maxLines || 1;
+      const limitedLines = lines.slice(0, maxLines); // maxLines 제한 적용
       const lineHeight = finalFontSize * 1.2; // 줄 간격 설정
       
-      lines.forEach((line, lineIndex) => {
+      limitedLines.forEach((line, lineIndex) => {
         let y, currentX;
         
         if (element.id === 'button-text') {
@@ -295,7 +297,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   const drawBackground = useCallback(async (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
     setIsLoading(true);
     if (onDrawStart) onDrawStart();
-    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.clearRect(0, 0, config.width, config.height);
 
     // 배경 이미지
     const imageToUse = uploadedImage || existingImageUrl;
@@ -324,17 +326,17 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       if (bgImg) {
         // 이미지 비율 계산
         const imageRatio = bgImg.width / bgImg.height;
-        const canvasRatio = CANVAS_WIDTH / CANVAS_HEIGHT;
-        let drawWidth = CANVAS_WIDTH;
-        let drawHeight = CANVAS_HEIGHT;
+        const canvasRatio = config.width / config.height;
+        let drawWidth = config.width;
+        let drawHeight = config.height;
         let offsetX = 0;
         let offsetY = 0;
         if (imageRatio > canvasRatio) {
-          drawHeight = CANVAS_WIDTH / imageRatio;
-          offsetY = (CANVAS_HEIGHT - drawHeight) / 2;
+          drawHeight = config.width / imageRatio;
+          offsetY = (config.height - drawHeight) / 2;
         } else {
-          drawWidth = CANVAS_HEIGHT * imageRatio;
-          offsetX = (CANVAS_WIDTH - drawWidth) / 2;
+          drawWidth = config.height * imageRatio;
+          offsetX = (config.width - drawWidth) / 2;
         }
         ctx.drawImage(bgImg, offsetX, offsetY, drawWidth, drawHeight);
       }
@@ -466,8 +468,8 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       const dpr = window.devicePixelRatio || 1;
       
       // 보이는 캔버스도 DPR 적용
-      visibleCanvas.width = CANVAS_WIDTH * dpr;
-      visibleCanvas.height = CANVAS_HEIGHT * dpr;
+      visibleCanvas.width = config.width * dpr;
+      visibleCanvas.height = config.height * dpr;
       visibleCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
       
       // 1. 모든 드로잉을 오프스크린 캔버스에서 수행
@@ -475,7 +477,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       drawTextElements(offscreenCtx, textElements);
 
       // 2. 완성된 결과물을 보이는 캔버스로 한번에 복사
-      visibleCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      visibleCtx.clearRect(0, 0, config.width, config.height);
       visibleCtx.drawImage(offscreenCanvas, 0, 0);
     };
 
@@ -500,27 +502,27 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   const maxPreviewHeight = 400;
   
   // 실제 크기 사용 (스케일링 제거)
-  const previewWidth = Math.min(CANVAS_WIDTH, maxPreviewWidth);
-  const previewHeight = Math.min(CANVAS_HEIGHT, maxPreviewHeight);
+  const previewWidth = Math.min(config.width, maxPreviewWidth);
+  const previewHeight = Math.min(config.height, maxPreviewHeight);
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-4">
       <h2 className="text-lg font-semibold mb-3">
         미리보기
         <span className="text-sm text-gray-500 ml-2">
-          ({CANVAS_WIDTH} × {CANVAS_HEIGHT})
+          ({config.width} × {config.height})
         </span>
       </h2>
       <div className="flex justify-center items-center bg-gray-50 rounded-lg p-4">
         <div className="relative" style={{ width: previewWidth, height: previewHeight }}>
           <canvas
             ref={ref}
-            width={CANVAS_WIDTH * (window.devicePixelRatio || 1)}
-            height={CANVAS_HEIGHT * (window.devicePixelRatio || 1)}
+            width={config.width * (window.devicePixelRatio || 1)}
+            height={config.height * (window.devicePixelRatio || 1)}
             className="border-2 border-gray-300 rounded-lg shadow-sm w-full h-full"
             style={{
-              width: CANVAS_WIDTH + 'px',
-              height: CANVAS_HEIGHT + 'px',
+              width: config.width + 'px',
+              height: config.height + 'px',
               maxWidth: '100%',
               maxHeight: '100%',
               objectFit: 'contain',

@@ -380,7 +380,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               </button>
             </div>
             <span className="text-xs text-gray-500">
-              {subTitle?.text?.length || 0}/{config.subTitle.maxLength}
+              {subTitle?.text?.length || 0}/{config.subTitle.maxLength} | {subTitle?.text?.split('\n').length || 0}/{config.subTitle.maxLines || 1}줄
             </span>
           </div>
           
@@ -425,7 +425,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               </button>
             </div>
             <span className="text-xs text-gray-500">
-              {mainTitle?.text?.length || 0}/{config.mainTitle.maxLength}
+              {mainTitle?.text?.length || 0}/{config.mainTitle.maxLength} | {mainTitle?.text?.split('\n').length || 0}/{config.mainTitle.maxLines || 1}줄
             </span>
           </div>
           
@@ -469,7 +469,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 </button>
             </div>
             <span className="text-xs text-gray-500">
-              {bottomSubTitle?.text?.length || 0}/{config.bottomSubTitle.maxLength}
+              {bottomSubTitle?.text?.length || 0}/{config.bottomSubTitle.maxLength} | {bottomSubTitle?.text?.split('\n').length || 0}/{config.bottomSubTitle.maxLines || 1}줄
             </span>
                   </div>
                   
@@ -514,7 +514,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               </button>
             </div>
             <span className="text-xs text-gray-500">
-              {buttonText?.text?.length || 0}/{config.buttonText.maxLength}
+              {buttonText?.text?.length || 0}/{config.buttonText.maxLength} | {buttonText?.text?.split('\n').length || 0}/{config.buttonText.maxLines || 1}줄
             </span>
           </div>
           

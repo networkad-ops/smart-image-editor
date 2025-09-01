@@ -266,11 +266,13 @@ const drawTextElements = (
       ctx.textBaseline = 'top';
     }
     
-    // 줄바꿈 처리
+    // 줄바꿈 처리 (maxLines 제한 적용)
     const lines = element.text.split('\n');
+    const maxLines = config.mainTitle?.maxLines || config.subTitle?.maxLines || config.bottomSubTitle?.maxLines || 1;
+    const limitedLines = lines.slice(0, maxLines); // maxLines 제한 적용
     const lineHeight = finalFontSize * 1.2;
     
-    lines.forEach((line, lineIndex) => {
+    limitedLines.forEach((line, lineIndex) => {
       let y, currentX;
       
       if (element.id === 'button-text') {
