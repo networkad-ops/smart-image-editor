@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
 import { BannerConfig, TextElement, ColorSegment } from '../types';
-import { PositionControlPanel } from './PositionControlPanel';
 import FigmaColorPicker from './FigmaColorPicker';
 import { mergeSegments } from '../utils/textSegments';
 
@@ -30,7 +29,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   const isBasicBannerPCLogo = config.dbType === 'basic-pc-logo';
   const [newText, setNewText] = useState('');
   const [selectionRange, setSelectionRange] = useState<{start: number, end: number} | null>(null);
-  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [activeTextKey, setActiveTextKey] = useState<'subtitle' | 'mainTitle'>('subtitle');
   const subTitleInputRef = useRef<HTMLInputElement>(null);
   const mainTitleInputRef = useRef<HTMLTextAreaElement>(null);
@@ -423,18 +421,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">
               <h3 className="font-medium text-sm">서브타이틀</h3>
-              {!isBasicBannerPC && (
-                <button
-                  onClick={() => setSelectedElementId(selectedElementId === 'sub-title' ? null : 'sub-title')}
-                  className={`text-xs px-2 py-1 rounded transition-colors ${
-                    selectedElementId === 'sub-title'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {selectedElementId === 'sub-title' ? '선택됨' : '위치 조정'}
-                </button>
-              )}
               {isBasicBannerPC && (
                 <span className="text-xs px-2 py-1 bg-gray-100 text-gray-500 rounded">
                   고정 위치
@@ -482,18 +468,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">
               <h3 className="font-medium text-sm">메인타이틀</h3>
-              {!isBasicBannerPC && (
-                <button
-                  onClick={() => setSelectedElementId(selectedElementId === 'main-title' ? null : 'main-title')}
-                  className={`text-xs px-2 py-1 rounded transition-colors ${
-                    selectedElementId === 'main-title'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {selectedElementId === 'main-title' ? '선택됨' : '위치 조정'}
-                </button>
-              )}
               {isBasicBannerPC && (
                 <span className="text-xs px-2 py-1 bg-gray-100 text-gray-500 rounded">
                   고정 위치
@@ -542,16 +516,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">
               <h3 className="font-medium text-sm">하단 서브타이틀</h3>
-                <button
-                onClick={() => setSelectedElementId(selectedElementId === 'bottom-sub-title' ? null : 'bottom-sub-title')}
-                className={`text-xs px-2 py-1 rounded transition-colors ${
-                  selectedElementId === 'bottom-sub-title'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {selectedElementId === 'bottom-sub-title' ? '선택됨' : '위치 조정'}
-                </button>
             </div>
             <span className="text-xs text-gray-500">
               {bottomSubTitle?.text?.length || 0}/{config.bottomSubTitle.maxLength} | {bottomSubTitle?.text?.split('\n').length || 0}/{config.bottomSubTitle.maxLines || 1}줄
@@ -587,16 +551,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center space-x-2">
               <h3 className="font-medium text-sm">버튼 텍스트</h3>
-              <button
-                onClick={() => setSelectedElementId(selectedElementId === 'button-text' ? null : 'button-text')}
-                className={`text-xs px-2 py-1 rounded transition-colors ${
-                  selectedElementId === 'button-text'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {selectedElementId === 'button-text' ? '선택됨' : '위치 조정'}
-              </button>
             </div>
             <span className="text-xs text-gray-500">
               {buttonText?.text?.length || 0}/{config.buttonText.maxLength} | {buttonText?.text?.split('\n').length || 0}/{config.buttonText.maxLines || 1}줄
@@ -714,17 +668,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       )}
 
       {/* Position Control Panel - 선택된 요소가 있을 때만 표시 */}
-      {selectedElementId && (
-        <div className="mb-4">
-          <h3 className="font-medium text-sm mb-2">위치 및 정렬 조정</h3>
-          <PositionControlPanel
-            selectedElement={textElements.find(el => el.id === selectedElementId) || null}
-            onUpdateElement={onUpdateTextLegacy}
-            canvasWidth={config.width}
-            canvasHeight={config.height}
-          />
-        </div>
-      )}
 
       {/* 추가된 텍스트 목록 */}
       {config.allowCustomText && otherTexts.length > 0 && (
@@ -734,29 +677,11 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             {otherTexts.map((element) => (
               <div 
                 key={element.id} 
-                className={`border rounded p-2 cursor-pointer transition-all text-sm ${
-                  selectedElementId === element.id 
-                    ? 'bg-blue-50 border-blue-300 shadow-sm' 
-                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                }`}
-                onClick={() => setSelectedElementId(element.id === selectedElementId ? null : element.id)}
+                className="border rounded p-2 cursor-pointer transition-all text-sm bg-gray-50 border-gray-200 hover:bg-gray-100"
               >
                 <div className="flex justify-between items-center mb-1">
                   <div className="flex items-center space-x-2">
                     <span className="text-xs font-medium text-gray-700">텍스트 #{element.id.slice(-4)}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedElementId(element.id === selectedElementId ? null : element.id);
-                      }}
-                      className={`text-xs px-1 py-0.5 rounded transition-all ${
-                        selectedElementId === element.id
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {selectedElementId === element.id ? '선택됨' : '편집'}
-                    </button>
                   </div>
                   <button
                     onClick={(e) => {
@@ -826,16 +751,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                     </div>
                   </div>
                   
-                  {/* 위치 조정 안내 */}
-                  <div className="border rounded p-2 bg-gray-50 border-gray-200">
-                    <div className="text-xs text-gray-700">
-                      {selectedElementId === element.id ? (
-                        <>위치 조정 활성화: 상단의 "위치 및 정렬 조정" 패널에서 정밀한 위치 조정이 가능합니다.</>
-                      ) : (
-                        <>위치 조정: 편집 버튼을 클릭하면 상단에 위치 조정 패널이 나타납니다.</>
-                      )}
-                    </div>
-                  </div>
                   
                   {/* 빠른 색상 선택 */}
                   <div>
