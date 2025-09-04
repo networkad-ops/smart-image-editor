@@ -3,6 +3,9 @@ import { BannerConfig, TextElement, ColorSegment } from '../types';
 import FigmaColorPicker from './FigmaColorPicker';
 import { mergeSegments, getMultiLineRanges } from '../utils/textSegments';
 
+// 텍스트 정규화 함수
+const textNormalize = (s: string | undefined): string => s?.replace(/\r\n/g, '\n') ?? '';
+
 interface TextEditSidebarProps {
   config: BannerConfig;
   textElements: TextElement[];
@@ -425,10 +428,10 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               const target = e.target as HTMLInputElement;
               const start = target.selectionStart || 0;
               const end = target.selectionEnd || 0;
-              const text = target.value;
+              const normalizedText = textNormalize(target.value);
               
               setSelectionRange({ start, end });
-              setSelectionRanges(getMultiLineRanges(text, start, end));
+              setSelectionRanges(getMultiLineRanges(normalizedText, start, end));
               handleTextSelect('sub-title', subTitleInputRef);
             }}
             onMouseUp={() => handleTextSelect('sub-title', subTitleInputRef)}
@@ -478,10 +481,10 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               const target = e.target as HTMLTextAreaElement;
               const start = target.selectionStart || 0;
               const end = target.selectionEnd || 0;
-              const text = target.value;
+              const normalizedText = textNormalize(target.value);
               
               setSelectionRange({ start, end });
-              setSelectionRanges(getMultiLineRanges(text, start, end));
+              setSelectionRanges(getMultiLineRanges(normalizedText, start, end));
               handleTextSelect('main-title', mainTitleInputRef);
             }}
             onMouseUp={() => handleTextSelect('main-title', mainTitleInputRef)}

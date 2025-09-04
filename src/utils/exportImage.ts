@@ -2,6 +2,56 @@ import { BannerConfig, TextElement } from '../types';
 import { drawTextWithLetterSpacing } from './canvasUtils';
 import { buildRuns } from './textSegments';
 
+// 텍스트 정규화 함수
+const textNormalize = (s: string | undefined): string => s?.replace(/\r\n/g, '\n') ?? '';
+
+// 줄별 런 생성 함수
+const buildRunsForLine = (
+  lineText: string,
+  colorSegments: Array<{start: number, end: number, color: string}> = [],
+  previewSegments: Array<{start: number, end: number, color: string}> = [],
+  defaultColor: string
+): Array<{text: string, color: string}> => {
+  const allSegments = [...colorSegments, ...previewSegments]
+    .sort((a, b) => a.start - b.start);
+  
+  const runs: Array<{text: string, color: string}> = [];
+  let currentIndex = 0;
+  
+  for (const segment of allSegments) {
+    // 세그먼트 시작 전까지의 텍스트
+    if (currentIndex < segment.start) {
+      const textBefore = lineText.slice(currentIndex, segment.start);
+      if (textBefore) {
+        runs.push({ text: textBefore, color: defaultColor });
+      }
+    }
+    
+    // 세그먼트 텍스트
+    const segmentText = lineText.slice(segment.start, segment.end);
+    if (segmentText) {
+      runs.push({ text: segmentText, color: segment.color });
+    }
+    
+    currentIndex = Math.max(currentIndex, segment.end);
+  }
+  
+  // 남은 텍스트
+  if (currentIndex < lineText.length) {
+    const remainingText = lineText.slice(currentIndex);
+    if (remainingText) {
+      runs.push({ text: remainingText, color: defaultColor });
+    }
+  }
+  
+  // 텍스트가 비어있으면 기본 런 반환
+  if (runs.length === 0 && lineText) {
+    runs.push({ text: lineText, color: defaultColor });
+  }
+  
+  return runs;
+};
+
 // 각 배너의 실제 해상도 사용 (함수 내에서 config로부터 가져옴)
 
 interface ExportOptions {
@@ -281,21 +331,24 @@ const drawTextElements = (
     
     // 메인타이틀인 경우 특별 처리 (2줄까지 허용)
     if (element.id === 'main-title') {
-      const maxLines = 2;
-      const limitedLines = lines.slice(0, maxLines);
-      const lineHeight = finalFontSize * 1.24; // 124% 행간
+      const normalizedText = textNormalize(element.text);
+      const lines = normalizedText.split('\n').slice(0, 2);
+      const lineHeight = 66.96; // 124% 행간을 픽셀로 고정
       ctx.textBaseline = 'top';
-      limitedLines.forEach((line, lineIndex) => {
+      
+      lines.forEach((line, lineIndex) => {
         const y = element.y + (lineIndex * lineHeight);
-        const currentX = element.x;
+        let x = element.x; // 줄마다 x를 left로 초기화
         const letterSpacing = finalFontSize * -0.02; // -2% 자간
         
-        // buildRuns를 사용하여 부분 색상 렌더링 (줄 단위)
-        const runs = buildRuns(line || ' ', element.color, element.colorSegments, element.previewSegments);
-        const lineRuns = runs.filter(run => run.line === lineIndex);
-        let x = currentX;
+        // 해당 줄의 세그먼트 필터링
+        const lineColorSegments = (element.colorSegments || []).filter(s => s.line === lineIndex);
+        const linePreviewSegments = (element.previewSegments || []).filter(s => s.line === lineIndex);
         
-        lineRuns.forEach(run => {
+        // buildRunsForLine을 사용하여 부분 색상 렌더링
+        const runs = buildRunsForLine(line, lineColorSegments, linePreviewSegments, element.color);
+        
+        runs.forEach(run => {
           ctx.fillStyle = run.color;
           if (letterSpacing !== 0) {
             drawTextWithLetterSpacing(ctx, run.text, x, y, letterSpacing);
