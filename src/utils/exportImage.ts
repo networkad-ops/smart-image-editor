@@ -280,6 +280,10 @@ const drawTextElements = (
         const y = element.y + (lineIndex * lineHeight);
         const currentX = element.x;
         const letterSpacing = finalFontSize * -0.02; // -2% 자간
+        
+        // 색상 설정
+        ctx.fillStyle = element.color;
+        
         if (letterSpacing !== 0) {
           drawTextWithLetterSpacing(ctx, line || ' ', currentX, y, letterSpacing);
         } else {
@@ -287,8 +291,8 @@ const drawTextElements = (
         }
       });
     } else {
-      // 다른 텍스트 요소들은 기존 maxLines 제한 적용
-      const maxLines = config.mainTitle?.maxLines || config.subTitle?.maxLines || config.bottomSubTitle?.maxLines || 1;
+      // 다른 텍스트 요소들은 기존 maxLines 제한 적용 (서브타이틀은 1줄)
+      const maxLines = element.id === 'sub-title' ? 1 : (config.mainTitle?.maxLines || config.subTitle?.maxLines || config.bottomSubTitle?.maxLines || 1);
       const limitedLines = lines.slice(0, maxLines);
       const lineHeight = finalFontSize * 1.2;
       
