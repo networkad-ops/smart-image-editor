@@ -449,7 +449,11 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                     <textarea
             ref={mainTitleInputRef}
             value={mainTitle?.text || ''}
-            onChange={(e) => onUpdateText('main-title', { text: e.target.value })}
+            onChange={(e) => {
+              // \r\n을 \n으로 통일하여 줄바꿈 보존
+              const normalizedText = e.target.value.replace(/\r\n/g, '\n');
+              onUpdateText('main-title', { text: normalizedText });
+            }}
             onFocus={() => handleTextFocus('main-title')}
             onSelect={() => handleTextSelect('main-title', mainTitleInputRef)}
             onMouseUp={() => handleTextSelect('main-title', mainTitleInputRef)}

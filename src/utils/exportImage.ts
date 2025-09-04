@@ -267,8 +267,8 @@ const drawTextElements = (
       ctx.textBaseline = 'top';
     }
     
-    // 줄바꿈 처리 (maxLines 제한 적용)
-    const lines = element.text.split('\n');
+    // 줄바꿈 처리 (maxLines 제한 적용) - \r\n도 \n으로 통일하여 처리
+    const lines = element.text.replace(/\r\n/g, '\n').split('\n');
     const maxLines = config.mainTitle?.maxLines || config.subTitle?.maxLines || config.bottomSubTitle?.maxLines || 1;
     const limitedLines = lines.slice(0, maxLines); // maxLines 제한 적용
     const lineHeight = finalFontSize * 1.2;

@@ -48,6 +48,7 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
   loading
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showDomPreview, setShowDomPreview] = useState(false);
   const [drawReady, setDrawReady] = useState(false); // draw 완료 상태
   // 로고 크기 상태 (height만, width는 비율로 자동)
   const [logoHeight, setLogoHeight] = useState(selection.config.logo?.height || selection.config.multiLogo?.maxHeight || 56);
@@ -228,6 +229,21 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
                   <span className="text-xs text-gray-500">{logoHeight}px</span>
                 </div>
               )}
+              
+              {/* 미리보기 전환 버튼 */}
+              <div className="mb-3 flex justify-center">
+                <button
+                  onClick={() => setShowDomPreview(!showDomPreview)}
+                  className={`px-3 py-1 text-xs rounded transition-colors ${
+                    showDomPreview 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {showDomPreview ? 'DOM 미리보기' : '캔버스 미리보기'}
+                </button>
+              </div>
+              
               <BannerPreview
                 ref={previewCanvasRef}
                 config={selection.config}
@@ -241,6 +257,7 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
                 logoHeight={logoHeight}
                 onDrawStart={handleDrawStart}
                 onDrawComplete={handleDrawComplete}
+                showDomPreview={showDomPreview}
               />
             </div>
 
