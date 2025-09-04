@@ -603,7 +603,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       <h2 className="text-lg font-semibold mb-3">
         미리보기
         <span className="text-sm text-gray-500 ml-2">
-          {isBasicBannerPC ? '(2880 × 480)' : `(${designSize.w} × ${designSize.h})`}
+          ({designSize.w} × {designSize.h})
         </span>
         {isBasicBannerPC && (
           <span className="text-xs text-blue-600 ml-2">
