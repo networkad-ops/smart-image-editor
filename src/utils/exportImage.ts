@@ -333,7 +333,7 @@ const drawTextElements = (
     if (element.id === 'main-title') {
       const normalizedText = textNormalize(element.text);
       const lines = normalizedText.split('\n').slice(0, 2);
-      const lineHeight = 66.96; // 124% 행간을 픽셀로 고정
+      const lineHeight = (config.mainTitle?.lineHeight ?? (finalFontSize * 1.24));
       ctx.textBaseline = 'top';
       
       lines.forEach((line, lineIndex) => {
@@ -362,7 +362,13 @@ const drawTextElements = (
       // 다른 텍스트 요소들은 기존 maxLines 제한 적용 (서브타이틀은 1줄)
       const maxLines = element.id === 'sub-title' ? 1 : (config.mainTitle?.maxLines || config.subTitle?.maxLines || config.bottomSubTitle?.maxLines || 1);
       const limitedLines = lines.slice(0, maxLines);
-      const lineHeight = finalFontSize * 1.2;
+      const lineHeight = (() => {
+        if (element.id === 'sub-title' && config.subTitle?.lineHeight) return config.subTitle.lineHeight;
+        if (element.id === 'main-title' && config.mainTitle?.lineHeight) return config.mainTitle.lineHeight;
+        if (element.id === 'bottom-sub-title' && config.bottomSubTitle?.lineHeight) return config.bottomSubTitle.lineHeight;
+        if (element.id === 'button-text' && config.buttonText?.lineHeight) return config.buttonText.lineHeight;
+        return finalFontSize * 1.2;
+      })();
       
       limitedLines.forEach((line, lineIndex) => {
       let y, currentX;

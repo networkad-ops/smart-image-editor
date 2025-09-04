@@ -257,13 +257,9 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         ctx.textBaseline = 'top';
       }
       
-<<<<<<< HEAD
-      // 줄바꿈 처리 (maxLines 제한 적용) - \r\n도 \n으로 통일하여 처리
+      // 줄바꿈 처리 (CRLF 통일)
       const lines = element.text.replace(/\r\n/g, '\n').split('\n');
-=======
-      // 줄바꿈 처리
-      const lines = element.text.split('\n');
-      // 설정된 lineHeight가 있으면 우선 사용, 없으면 1.2배수 기본값
+      // 설정된 lineHeight 우선 사용
       const configLineHeight = (() => {
         if (element.id === 'sub-title' && config.subTitle?.lineHeight) return config.subTitle.lineHeight;
         if (element.id === 'main-title' && config.mainTitle?.lineHeight) return config.mainTitle.lineHeight;
@@ -271,8 +267,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         if (element.id === 'button-text' && config.buttonText?.lineHeight) return config.buttonText.lineHeight;
         return undefined;
       })();
-      const lineHeight = configLineHeight ?? (element.fontSize * 1.2);
->>>>>>> b50c1ee (fix(text): respect configured lineHeight in preview and export renderers)
+      const lineHeight = configLineHeight ?? (finalFontSize * 1.2);
       
       // 메인타이틀인 경우 특별 처리 (2줄까지 허용)
       if (element.id === 'main-title') {
