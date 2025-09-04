@@ -680,7 +680,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           <h3 className="font-medium text-sm mb-2">위치 및 정렬 조정</h3>
           <PositionControlPanel
             selectedElement={textElements.find(el => el.id === selectedElementId) || null}
-            onUpdateElement={onUpdateText}
+            onUpdateElement={onUpdateTextLegacy}
             canvasWidth={config.width}
             canvasHeight={config.height}
           />
