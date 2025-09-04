@@ -48,7 +48,6 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
   loading
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showDomPreview, setShowDomPreview] = useState(false);
   const [drawReady, setDrawReady] = useState(false); // draw 완료 상태
   // 로고 크기 상태 (height만, width는 비율로 자동)
   const [logoHeight, setLogoHeight] = useState(selection.config.logo?.height || selection.config.multiLogo?.maxHeight || 56);
@@ -101,15 +100,19 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
     try {
       setIsProcessing(true);
       
-      // DOM 미리보기 활성화 후 내보내기
-      setShowDomPreview(true);
-      
-      await new Promise(resolve => requestAnimationFrame(resolve));
-      
-      // DOM 기반 내보내기 사용
-      const { exportBannerFromDOM } = await import('../utils/exportImage');
-      const blob = await exportBannerFromDOM(
-        { quality: 0.92 }
+      // 캔버스 기반 내보내기 사용
+      const { exportBanner } = await import('../utils/exportImage');
+      const blob = await exportBanner(
+        selection.config,
+        textElements,
+        uploadedImage,
+        uploadedLogo,
+        uploadedLogos,
+        editingBanner?.background_image_url || editingBanner?.image_url,
+        editingBanner?.logo_url,
+        editingBanner?.logo_urls,
+        logoHeight,
+        { scale: 1, format: 'image/jpeg', quality: 0.92 }
       );
       
       const url = URL.createObjectURL(blob);
@@ -226,20 +229,6 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
                 </div>
               )}
               
-              {/* 미리보기 전환 버튼 */}
-              <div className="mb-3 flex justify-center">
-                <button
-                  onClick={() => setShowDomPreview(!showDomPreview)}
-                  className={`px-3 py-1 text-xs rounded transition-colors ${
-                    showDomPreview 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  {showDomPreview ? 'DOM 미리보기' : '캔버스 미리보기'}
-                </button>
-              </div>
-              
               <BannerPreview
                 ref={previewCanvasRef}
                 config={selection.config}
@@ -253,7 +242,6 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
                 logoHeight={logoHeight}
                 onDrawStart={handleDrawStart}
                 onDrawComplete={handleDrawComplete}
-                showDomPreview={showDomPreview}
               />
             </div>
 

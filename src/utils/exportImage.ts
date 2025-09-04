@@ -1,6 +1,5 @@
 import { BannerConfig, TextElement } from '../types';
 import { drawTextWithLetterSpacing } from './canvasUtils';
-import { toJpeg } from 'html-to-image';
 
 // 각 배너의 실제 해상도 사용 (함수 내에서 config로부터 가져옴)
 
@@ -386,31 +385,3 @@ const drawTextElements = (
   });
 };
 
-// DOM 기반 배너 내보내기 함수
-export const exportBannerFromDOM = async (
-  options: ExportOptions = {}
-): Promise<Blob> => {
-  const { quality = 0.92 } = options;
-  
-  // 웹폰트 로딩 완료 대기
-  await document.fonts.ready;
-  
-  // preview-root 노드 찾기
-  const node = document.querySelector('[data-testid="preview-root"]') as HTMLElement;
-  if (!node) {
-    throw new Error('Preview root node not found');
-  }
-  
-  // DOM을 JPG로 변환
-  const dataUrl = await toJpeg(node, {
-    pixelRatio: 2,
-    quality,
-    style: {
-      transform: 'none'
-    }
-  });
-  
-  // Blob으로 변환
-  const response = await fetch(dataUrl);
-  return response.blob();
-};

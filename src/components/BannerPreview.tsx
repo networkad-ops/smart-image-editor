@@ -15,7 +15,6 @@ interface BannerPreviewProps {
   logoHeight?: number;
   onDrawStart?: () => void;
   onDrawComplete?: () => void;
-  showDomPreview?: boolean; // DOM 기반 미리보기 표시 여부
 }
 
 export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewProps>(({
@@ -29,8 +28,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   existingLogoUrls = [],
   logoHeight,
   onDrawStart,
-  onDrawComplete,
-  showDomPreview = false
+  onDrawComplete
 }, ref) => {
   // 더블 버퍼링을 위한 오프스크린 캔버스
   const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -620,115 +618,6 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     return canvas.toDataURL(format, quality);
   };
 
-  // DOM 기반 미리보기 렌더링 함수
-  const renderDomPreview = () => {
-    const mainTitle = textElements.find(el => el.id === 'main-title');
-    const subTitle = textElements.find(el => el.id === 'sub-title');
-    const bottomSubTitle = textElements.find(el => el.id === 'bottom-sub-title');
-    const buttonText = textElements.find(el => el.id === 'button-text');
-    
-    return (
-      <div 
-        data-testid="preview-root"
-        className="relative bg-gray-100 rounded-lg overflow-hidden"
-        style={{ 
-          width: containerWidth, 
-          height: containerHeight,
-          backgroundImage: uploadedImage || existingImageUrl ? `url(${uploadedImage ? URL.createObjectURL(uploadedImage) : existingImageUrl})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          transform: 'none'
-        }}
-      >
-        {/* 서브타이틀 */}
-        {subTitle && (
-          <div
-            className="absolute text-white font-medium"
-            style={{
-              left: subTitle.x * previewScale,
-              top: subTitle.y * previewScale,
-              fontSize: (subTitle.fontPxAtBase || subTitle.fontSize) * previewScale,
-              fontWeight: subTitle.fontWeight || 400,
-              color: subTitle.color,
-              maxWidth: subTitle.width * previewScale,
-              whiteSpace: 'pre-line',
-              wordBreak: 'break-word'
-            }}
-          >
-            {subTitle.text}
-          </div>
-        )}
-        
-        {/* 메인타이틀 - 줄바꿈 유지 */}
-        {mainTitle && (
-          <div
-            className="absolute text-white font-bold"
-            style={{
-              left: mainTitle.x * previewScale,
-              top: mainTitle.y * previewScale,
-              fontSize: (mainTitle.fontPxAtBase || mainTitle.fontSize) * previewScale,
-              fontWeight: mainTitle.fontWeight || 700,
-              color: mainTitle.color,
-              maxWidth: mainTitle.width * previewScale,
-              letterSpacing: `${(mainTitle.fontPxAtBase || mainTitle.fontSize) * -0.02}px` // -2% 자간
-            }}
-          >
-            {mainTitle.text.replace(/\r\n/g, '\n').split('\n').map((line, index) => (
-              <div 
-                key={index} 
-                className="whitespace-pre-wrap break-words"
-                style={{ 
-                  lineHeight: `${(mainTitle.fontPxAtBase || mainTitle.fontSize) * 1.24}px` // 124% 행간
-                }}
-              >
-                {line}
-              </div>
-            ))}
-          </div>
-        )}
-        
-        {/* 하단 서브타이틀 */}
-        {bottomSubTitle && (
-          <div
-            className="absolute text-white font-medium"
-            style={{
-              left: bottomSubTitle.x * previewScale,
-              top: bottomSubTitle.y * previewScale,
-              fontSize: (bottomSubTitle.fontPxAtBase || bottomSubTitle.fontSize) * previewScale,
-              fontWeight: bottomSubTitle.fontWeight || 400,
-              color: bottomSubTitle.color,
-              maxWidth: bottomSubTitle.width * previewScale,
-              whiteSpace: 'pre-line',
-              wordBreak: 'break-word'
-            }}
-          >
-            {bottomSubTitle.text}
-          </div>
-        )}
-        
-        {/* 버튼 텍스트 */}
-        {buttonText && (
-          <div
-            className="absolute flex items-center justify-center rounded-lg"
-            style={{
-              left: buttonText.x * previewScale,
-              top: buttonText.y * previewScale,
-              width: buttonText.width * previewScale,
-              height: buttonText.height * previewScale,
-              backgroundColor: buttonText.backgroundColor || '#4F46E5',
-              fontSize: (buttonText.fontPxAtBase || buttonText.fontSize) * previewScale,
-              fontWeight: buttonText.fontWeight || 400,
-              color: buttonText.color || '#FFFFFF',
-              whiteSpace: 'pre-line',
-              wordBreak: 'break-word'
-            }}
-          >
-            {buttonText.text}
-          </div>
-        )}
-      </div>
-    );
-  };
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-4">
@@ -745,24 +634,13 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
             overflow: 'hidden'
           }}
         >
-          {showDomPreview ? (
-            <div className="block">
-              {renderDomPreview()}
-            </div>
-          ) : (
-            <canvas
-              ref={ref}
-              className="border-2 border-gray-300 rounded-lg shadow-sm w-full h-auto"
-              style={{
-                backgroundColor: '#f8f9fa'
-              }}
-            />
-          )}
-          {!showDomPreview && (
-            <div className="hidden">
-              {renderDomPreview()}
-            </div>
-          )}
+          <canvas
+            ref={ref}
+            className="border-2 border-gray-300 rounded-lg shadow-sm w-full h-auto"
+            style={{
+              backgroundColor: '#f8f9fa'
+            }}
+          />
           {isLoading && (
             <div style={{
               position: 'absolute',
