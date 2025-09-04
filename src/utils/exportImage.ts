@@ -290,11 +290,12 @@ const drawTextElements = (
         const currentX = element.x;
         const letterSpacing = finalFontSize * -0.02; // -2% 자간
         
-        // buildRuns를 사용하여 부분 색상 렌더링
+        // buildRuns를 사용하여 부분 색상 렌더링 (줄 단위)
         const runs = buildRuns(line || ' ', element.color, element.colorSegments, element.previewSegments);
+        const lineRuns = runs.filter(run => run.line === lineIndex);
         let x = currentX;
         
-        runs.forEach(run => {
+        lineRuns.forEach(run => {
           ctx.fillStyle = run.color;
           if (letterSpacing !== 0) {
             drawTextWithLetterSpacing(ctx, run.text, x, y, letterSpacing);
@@ -346,11 +347,12 @@ const drawTextElements = (
           currentX = currentX - totalWidth / 2;
         }
         
-        // buildRuns를 사용하여 부분 색상 렌더링
+        // buildRuns를 사용하여 부분 색상 렌더링 (줄 단위)
         const runs = buildRuns(line, element.color, element.colorSegments, element.previewSegments);
+        const lineRuns = runs.filter(run => run.line === lineIndex);
         let x = currentX;
         
-        runs.forEach(run => {
+        lineRuns.forEach(run => {
           ctx.fillStyle = run.color;
           if (element.letterSpacing) {
             drawTextWithLetterSpacing(ctx, run.text, x, y, element.letterSpacing);

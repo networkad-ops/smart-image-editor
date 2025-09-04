@@ -63,6 +63,7 @@ export interface MultiLogoConfig {
 
 // 색상 세그먼트 타입 (부분 색상 변경용)
 export interface ColorSegment {
+  line: number;
   start: number;
   end: number;
   color: string;

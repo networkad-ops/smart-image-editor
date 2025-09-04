@@ -221,12 +221,13 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           const currentX = element.x;
           const letterSpacing = finalFontSize * -0.02; // -2% 자간
           
-          // buildRuns를 사용하여 부분 색상 렌더링
+          // buildRuns를 사용하여 부분 색상 렌더링 (줄 단위)
           const runs = buildRuns(line || ' ', element.color, element.colorSegments, element.previewSegments);
-          console.debug('[RUNS]', { elementId: element.id, runsLength: runs.length });
+          const lineRuns = runs.filter(run => run.line === lineIndex);
+          console.debug('[RUNS]', { elementId: element.id, lineIndex, runsLength: lineRuns.length });
           let x = currentX;
           
-          runs.forEach(run => {
+          lineRuns.forEach(run => {
             ctx.fillStyle = run.color;
             if (letterSpacing !== 0) {
               drawTextWithLetterSpacing(ctx, run.text, x, y, letterSpacing);
@@ -283,12 +284,13 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
             currentX = currentX - totalWidth / 2;
           }
           
-          // buildRuns를 사용하여 부분 색상 렌더링
+          // buildRuns를 사용하여 부분 색상 렌더링 (줄 단위)
           const runs = buildRuns(line, element.color, element.colorSegments, element.previewSegments);
-          console.debug('[RUNS]', { elementId: element.id, runsLength: runs.length });
+          const lineRuns = runs.filter(run => run.line === lineIndex);
+          console.debug('[RUNS]', { elementId: element.id, lineIndex, runsLength: lineRuns.length });
           let x = currentX;
           
-          runs.forEach(run => {
+          lineRuns.forEach(run => {
             ctx.fillStyle = run.color;
             if (element.letterSpacing) {
               drawTextWithLetterSpacing(ctx, run.text, x, y, element.letterSpacing);
