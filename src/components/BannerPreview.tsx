@@ -136,6 +136,14 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
 
   // 텍스트 렌더링 함수
   const drawTextElements = useCallback((ctx: CanvasRenderingContext2D, elements: TextElement[]) => {
+    // 진단 로그: 메인타이틀과 서브타이틀 색상 정보 출력
+    const mainTitle = elements.find(el => el.id === 'main-title');
+    const subTitle = elements.find(el => el.id === 'sub-title');
+    console.debug('[PREVIEW_COLOR]', { 
+      subtitle: subTitle?.color, 
+      mainTitle: mainTitle?.color 
+    });
+    
     elements.forEach(element => {
       ctx.save();
       

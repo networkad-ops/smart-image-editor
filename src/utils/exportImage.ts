@@ -209,6 +209,14 @@ const drawTextElements = (
   textElements: TextElement[],
   config: BannerConfig
 ): void => {
+  // 진단 로그: 메인타이틀과 서브타이틀 색상 정보 출력
+  const mainTitle = textElements.find(el => el.id === 'main-title');
+  const subTitle = textElements.find(el => el.id === 'sub-title');
+  console.debug('[EXPORT_COLOR]', { 
+    subtitle: subTitle?.color, 
+    mainTitle: mainTitle?.color 
+  });
+  
   textElements.forEach(element => {
     ctx.save();
     

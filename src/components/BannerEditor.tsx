@@ -16,7 +16,8 @@ interface BannerEditorProps {
   onLogoUpload: (file: File) => void;
   onMultiLogoUpload: (files: File[]) => void; // 다중 로고 업로드
   onAddText: (text: TextElement) => void;
-  onTextUpdate: (id: string, updates: Partial<TextElement>) => void;
+  onTextUpdate: ({ target, patch }: { target: 'subtitle' | 'mainTitle'; patch: Partial<TextElement> }) => void;
+  onTextUpdateLegacy: (id: string, updates: Partial<TextElement>) => void;
   onTextDelete: (id: string) => void;
   onComplete: (image: Blob) => void;
   onReset: () => void;
@@ -38,6 +39,7 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
   onMultiLogoUpload,
   onAddText,
   onTextUpdate,
+  onTextUpdateLegacy,
   onTextDelete,
   onComplete,
   onReset,
@@ -258,6 +260,7 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
                 textElements={textElements}
                 onAddText={onAddText}
                 onUpdateText={onTextUpdate}
+                onUpdateTextLegacy={onTextUpdateLegacy}
                 onDeleteText={onTextDelete}
                 showTitle={false}
                 showBackground={false}

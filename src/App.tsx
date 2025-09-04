@@ -347,7 +347,20 @@ function App() {
     setTextElements(prev => [...prev, text]);
   };
 
-  const handleTextUpdate = (id: string, updates: Partial<TextElement>) => {
+  const handleTextUpdate = ({ target, patch }: { target: 'subtitle' | 'mainTitle'; patch: Partial<TextElement> }) => {
+    console.debug('[UPDATE_TEXT]', { target, patch });
+    
+    const id = target === 'subtitle' ? 'sub-title' : 'main-title';
+    setTextElements(prev => 
+      prev.map(element => 
+        element.id === id 
+          ? { ...element, ...patch }
+          : element
+      )
+    );
+  };
+
+  const handleTextUpdateLegacy = (id: string, updates: Partial<TextElement>) => {
     setTextElements(prev => 
       prev.map(element => 
         element.id === id 
@@ -754,6 +767,7 @@ function App() {
             onMultiLogoUpload={handleMultiLogoUpload}
             onAddText={handleAddText}
             onTextUpdate={handleTextUpdate}
+            onTextUpdateLegacy={handleTextUpdateLegacy}
             onTextDelete={handleTextDelete}
             onComplete={handleComplete}
             onReset={handleReset}

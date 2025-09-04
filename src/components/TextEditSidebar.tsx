@@ -7,7 +7,8 @@ interface TextEditSidebarProps {
   config: BannerConfig;
   textElements: TextElement[];
   onAddText: (text: TextElement) => void;
-  onUpdateText: (id: string, updates: Partial<TextElement>) => void;
+  onUpdateText: ({ target, patch }: { target: 'subtitle' | 'mainTitle'; patch: Partial<TextElement> }) => void;
+  onUpdateTextLegacy: (id: string, updates: Partial<TextElement>) => void;
   onDeleteText: (id: string) => void;
   showTitle?: boolean;
   showBackground?: boolean;
@@ -18,6 +19,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   textElements,
   onAddText,
   onUpdateText,
+  onUpdateTextLegacy,
   onDeleteText,
   showTitle = true,
   showBackground = true
@@ -28,6 +30,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   const [newText, setNewText] = useState('');
   const [selectedRange, setSelectedRange] = useState<{elementId: string, start: number, end: number} | null>(null);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [activeTextKey, setActiveTextKey] = useState<'subtitle' | 'mainTitle'>('subtitle');
   const subTitleInputRef = useRef<HTMLInputElement>(null);
   const mainTitleInputRef = useRef<HTMLTextAreaElement>(null);
   const bottomSubTitleInputRef = useRef<HTMLInputElement>(null);
@@ -93,7 +96,10 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   };
 
   // 색상 미리보기 적용
-  const applyColorPreview = (elementId: string, color: string) => {
+  const applyColorPreview = ({ target, color, mode }: { target: 'subtitle' | 'mainTitle'; color: string; mode: any }) => {
+    console.debug('[APPLY_PREVIEW]', { target, color, mode });
+    
+    const elementId = target === 'subtitle' ? 'sub-title' : 'main-title';
     setColorPickerMode(prev => ({ ...prev, previewColor: color }));
     
     // 선택된 범위가 있으면 부분 색상 미리보기
@@ -123,15 +129,22 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       updatedSegments.push(newSegment);
       updatedSegments.sort((a, b) => a.start - b.start);
       
-      onUpdateText(elementId, { colorSegments: updatedSegments });
+      onUpdateText({ target, patch: { colorSegments: updatedSegments } });
     } else {
-      // 전체 색상 미리보기
-      onUpdateText(elementId, { color });
+      // 전체 색상 미리보기 - segments 비우기
+      onUpdateText({ target, patch: { color, colorSegments: [] } });
     }
   };
 
   // 색상 변경 확인
   const confirmColorChange = () => {
+    if (colorPickerMode.previewColor && colorPickerMode.elementId) {
+      // 최종 색상 적용
+      const elementId = colorPickerMode.elementId;
+      const target = elementId === 'sub-title' ? 'subtitle' : 'mainTitle';
+      applyColorInstantly({ target, color: colorPickerMode.previewColor });
+    }
+    
     setColorPickerMode({
       isActive: false,
       elementId: null,
@@ -147,16 +160,19 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     if (!colorPickerMode.isActive || !colorPickerMode.elementId) return;
     
     // 원래 색상으로 복구
+    const elementId = colorPickerMode.elementId;
+    const target = elementId === 'sub-title' ? 'subtitle' : 'mainTitle';
+    
     if (colorPickerMode.originalColorSegments) {
-      onUpdateText(colorPickerMode.elementId, { 
+      onUpdateText({ target, patch: { 
         color: colorPickerMode.originalColor || undefined,
         colorSegments: colorPickerMode.originalColorSegments 
-      });
+      }});
     } else {
-      onUpdateText(colorPickerMode.elementId, { 
+      onUpdateText({ target, patch: { 
         color: colorPickerMode.originalColor || undefined,
         colorSegments: []
-      });
+      }});
     }
     
     setColorPickerMode({
@@ -170,13 +186,16 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   };
 
   // 색상 즉시 적용 - 엑셀 스타일 (기존 방식 유지)
-  const applyColorInstantly = (elementId: string, color: string) => {
+  const applyColorInstantly = ({ target, color }: { target: 'subtitle' | 'mainTitle'; color: string }) => {
+    console.debug('[APPLY_NOW]', { target, color });
+    
+    const elementId = target === 'subtitle' ? 'sub-title' : 'main-title';
     // 선택된 범위가 있으면 부분 색상 적용
     if (selectedRange && selectedRange.elementId === elementId) {
       applyPartialColor(elementId, color);
     } else {
-      // 선택된 범위가 없으면 전체 색상 적용
-      onUpdateText(elementId, { color });
+      // 선택된 범위가 없으면 전체 색상 적용 - segments 비우기
+      onUpdateText({ target, patch: { color, colorSegments: [] } });
     }
   };
     
@@ -215,7 +234,8 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     updatedSegments.push(newSegment);
     updatedSegments.sort((a, b) => a.start - b.start);
     
-    onUpdateText(elementId, { colorSegments: updatedSegments });
+    const target = elementId === 'sub-title' ? 'subtitle' : 'mainTitle';
+    onUpdateText({ target, patch: { colorSegments: updatedSegments } });
     setSelectedRange(null);
   };
 
@@ -262,15 +282,16 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           key={`${colorPickerMode.elementId}-${currentColor}`}
           color={currentColor}
           onChange={(color) => {
+            console.debug('[PICKER]', { activeTextKey, color, mode: colorPickerMode });
             // 색상이 변경될 때마다 즉시 미리보기에 반영
             if (colorPickerMode.elementId) {
-              applyColorPreview(colorPickerMode.elementId, color);
+              applyColorPreview({ target: activeTextKey, color, mode: colorPickerMode });
             }
           }}
           onPreview={(color) => {
             // 드래그 중일 때도 실시간 반영
             if (colorPickerMode.elementId) {
-              applyColorPreview(colorPickerMode.elementId, color);
+              applyColorPreview({ target: activeTextKey, color, mode: colorPickerMode });
             }
           }}
           onConfirm={confirmColorChange}
@@ -319,7 +340,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
         <input
           type="color"
           value={element.color}
-          onChange={e => onUpdateText(element.id, { color: e.target.value })}
+          onChange={e => onUpdateTextLegacy(element.id, { color: e.target.value })}
           disabled={gradientMode.enabled && gradientMode.elementId === element.id}
         />
       </div>
@@ -332,9 +353,9 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             onChange={e => {
               setGradientMode({elementId: element.id, enabled: e.target.checked});
               if (e.target.checked) {
-                onUpdateText(element.id, { gradient: { from: gradientFrom, to: gradientTo } });
+                onUpdateTextLegacy(element.id, { gradient: { from: gradientFrom, to: gradientTo } });
               } else {
-                onUpdateText(element.id, { gradient: undefined });
+                onUpdateTextLegacy(element.id, { gradient: undefined });
               }
             }}
             className="w-3 h-3"
@@ -347,13 +368,13 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             <span className="text-xs">시작</span>
             <input type="color" value={gradientFrom} onChange={e => {
               setGradientFrom(e.target.value);
-              onUpdateText(element.id, { gradient: { from: e.target.value, to: gradientTo } });
+              onUpdateTextLegacy(element.id, { gradient: { from: e.target.value, to: gradientTo } });
             }} className="w-5 h-5 p-0 border rounded" />
             <span className="text-xs">→</span>
             <span className="text-xs">끝</span>
             <input type="color" value={gradientTo} onChange={e => {
               setGradientTo(e.target.value);
-              onUpdateText(element.id, { gradient: { from: gradientFrom, to: e.target.value } });
+              onUpdateTextLegacy(element.id, { gradient: { from: gradientFrom, to: e.target.value } });
             }} className="w-5 h-5 p-0 border rounded" />
           </div>
         )}
@@ -398,8 +419,11 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             ref={subTitleInputRef}
             type="text"
             value={subTitle?.text || ''}
-            onChange={(e) => onUpdateText('sub-title', { text: e.target.value })}
-            onFocus={() => handleTextFocus('sub-title')}
+            onChange={(e) => onUpdateText({ target: 'subtitle', patch: { text: e.target.value } })}
+            onFocus={() => {
+              handleTextFocus('sub-title');
+              setActiveTextKey('subtitle');
+            }}
             onSelect={() => handleTextSelect('sub-title', subTitleInputRef)}
             onMouseUp={() => handleTextSelect('sub-title', subTitleInputRef)}
             onKeyUp={() => handleTextSelect('sub-title', subTitleInputRef)}
@@ -450,9 +474,12 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             ref={mainTitleInputRef}
             value={mainTitle?.text || ''}
             onChange={(e) => {
-              onUpdateText('main-title', { text: e.target.value.replace(/\r\n/g, '\n') });
+              onUpdateText({ target: 'mainTitle', patch: { text: e.target.value.replace(/\r\n/g, '\n') } });
             }}
-            onFocus={() => handleTextFocus('main-title')}
+            onFocus={() => {
+              handleTextFocus('main-title');
+              setActiveTextKey('mainTitle');
+            }}
             onSelect={() => handleTextSelect('main-title', mainTitleInputRef)}
             onMouseUp={() => handleTextSelect('main-title', mainTitleInputRef)}
             onKeyUp={() => handleTextSelect('main-title', mainTitleInputRef)}
@@ -496,7 +523,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             ref={bottomSubTitleInputRef}
             type="text"
             value={bottomSubTitle?.text || ''}
-            onChange={(e) => onUpdateText('bottom-sub-title', { text: e.target.value })}
+            onChange={(e) => onUpdateTextLegacy('bottom-sub-title', { text: e.target.value })}
             onFocus={() => handleTextFocus('bottom-sub-title')}
             onSelect={() => handleTextSelect('bottom-sub-title', bottomSubTitleInputRef)}
             onMouseUp={() => handleTextSelect('bottom-sub-title', bottomSubTitleInputRef)}
@@ -544,7 +571,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           <input
             type="text"
             value={buttonText?.text || ''}
-            onChange={(e) => onUpdateText('button-text', { text: e.target.value })}
+            onChange={(e) => onUpdateTextLegacy('button-text', { text: e.target.value })}
             onFocus={() => handleTextFocus('button-text')}
             className="w-full px-3 py-2 border rounded mb-3 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             placeholder="버튼 텍스트 입력"
@@ -559,8 +586,8 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                  <input
                    type="color"
                    value={buttonText?.color || '#FFFFFF'}
-                  onInput={(e) => onUpdateText('button-text', { color: (e.target as HTMLInputElement).value })}
-                  onChange={(e) => onUpdateText('button-text', { color: (e.target as HTMLInputElement).value })}
+                  onInput={(e) => onUpdateTextLegacy('button-text', { color: (e.target as HTMLInputElement).value })}
+                  onChange={(e) => onUpdateTextLegacy('button-text', { color: (e.target as HTMLInputElement).value })}
                    className="w-8 h-8 border rounded cursor-pointer"
                  />
                  <span className="text-xs text-gray-500">{buttonText?.color || '#FFFFFF'}</span>
@@ -572,8 +599,8 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                  <input
                    type="color"
                    value={buttonText?.backgroundColor || '#4F46E5'}
-                  onInput={(e) => onUpdateText('button-text', { backgroundColor: (e.target as HTMLInputElement).value })}
-                  onChange={(e) => onUpdateText('button-text', { backgroundColor: (e.target as HTMLInputElement).value })}
+                  onInput={(e) => onUpdateTextLegacy('button-text', { backgroundColor: (e.target as HTMLInputElement).value })}
+                  onChange={(e) => onUpdateTextLegacy('button-text', { backgroundColor: (e.target as HTMLInputElement).value })}
                    className="w-8 h-8 border rounded cursor-pointer"
                  />
                  <span className="text-xs text-gray-500">{buttonText?.backgroundColor || '#4F46E5'}</span>
@@ -594,7 +621,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                    key={color}
                     className="w-5 h-5 rounded border border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
                    style={{ backgroundColor: color }}
-                   onClick={() => onUpdateText('button-text', { color })}
+                   onClick={() => onUpdateTextLegacy('button-text', { color })}
                    title={`텍스트 색상: ${color}`}
                  />
                ))}
@@ -612,7 +639,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                    key={color}
                     className="w-5 h-5 rounded border border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
                    style={{ backgroundColor: color }}
-                   onClick={() => onUpdateText('button-text', { backgroundColor: color })}
+                   onClick={() => onUpdateTextLegacy('button-text', { backgroundColor: color })}
                    title={`배경 색상: ${color}`}
                  />
                ))}
@@ -706,7 +733,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 {/* 텍스트 입력 */}
                 <textarea
                   value={element.text}
-                  onChange={(e) => onUpdateText(element.id, { text: e.target.value })}
+                  onChange={(e) => onUpdateTextLegacy(element.id, { text: e.target.value })}
                   onFocus={() => handleTextFocus(element.id)}
                   className="w-full px-3 py-2 border rounded mb-3 min-h-[60px] resize-y text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
                   placeholder="텍스트를 입력하세요"
@@ -721,7 +748,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                     <label className="block text-xs font-medium text-gray-600 mb-1">폰트 굵기</label>
                     <select
                       value={element.fontWeight || 400}
-                      onChange={(e) => onUpdateText(element.id, { fontWeight: parseInt(e.target.value) })}
+                      onChange={(e) => onUpdateTextLegacy(element.id, { fontWeight: parseInt(e.target.value) })}
                       className="w-full px-2 py-1 text-sm border rounded"
                     >
                       <option value={100}>얇게 (100)</option>
@@ -743,7 +770,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                       <input
                         type="number"
                         value={element.width}
-                        onChange={(e) => onUpdateText(element.id, { width: parseInt(e.target.value) || 100 })}
+                        onChange={(e) => onUpdateTextLegacy(element.id, { width: parseInt(e.target.value) || 100 })}
                         className="w-full px-2 py-1 text-sm border rounded"
                         min="10"
                       />
@@ -753,7 +780,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                       <input
                         type="number"
                         value={element.height}
-                        onChange={(e) => onUpdateText(element.id, { height: parseInt(e.target.value) || 30 })}
+                        onChange={(e) => onUpdateTextLegacy(element.id, { height: parseInt(e.target.value) || 30 })}
                         className="w-full px-2 py-1 text-sm border rounded"
                         min="10"
                       />
@@ -784,7 +811,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                           key={color}
                           className="w-5 h-5 rounded border border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
                           style={{ backgroundColor: color }}
-                          onClick={() => onUpdateText(element.id, { color })}
+                          onClick={() => onUpdateTextLegacy(element.id, { color })}
                           title={color}
                         />
                       ))}
