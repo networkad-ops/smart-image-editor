@@ -101,19 +101,15 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
     try {
       setIsProcessing(true);
       
-      // 오프스크린 캔버스 기반 내보내기 사용
-      const { exportBanner } = await import('../utils/exportImage');
-      const blob = await exportBanner(
-        selection.config,
-        textElements,
-        uploadedImage,
-        uploadedLogo,
-        uploadedLogos,
-        editingBanner?.background_image_url || editingBanner?.image_url,
-        editingBanner?.logo_url,
-        editingBanner?.logo_urls,
-        logoHeight,
-        { scale: 1, format: 'image/jpeg', quality: 0.92 }
+      // DOM 미리보기 활성화 후 내보내기
+      setShowDomPreview(true);
+      
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      
+      // DOM 기반 내보내기 사용
+      const { exportBannerFromDOM } = await import('../utils/exportImage');
+      const blob = await exportBannerFromDOM(
+        { quality: 0.92 }
       );
       
       const url = URL.createObjectURL(blob);

@@ -206,7 +206,16 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       const limitedLines = lines.slice(0, maxLines); // maxLines 제한 적용
       const lineHeight = finalFontSize * 1.2; // 줄 간격 설정
       
-      limitedLines.forEach((line, lineIndex) => {
+      // 메인타이틀인 경우 특별 처리
+      if (element.id === 'main-title') {
+        ctx.textBaseline = 'top';
+        limitedLines.forEach((line, lineIndex) => {
+          const y = element.y + (lineIndex * 66.96);
+          const currentX = element.x;
+          ctx.fillText(line || ' ', currentX, y);
+        });
+      } else {
+        limitedLines.forEach((line, lineIndex) => {
         let y, currentX;
         
         if (element.id === 'button-text') {
@@ -302,6 +311,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           }
         }
       });
+      }
       
       ctx.restore();
     });
@@ -609,13 +619,15 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     
     return (
       <div 
+        data-testid="preview-root"
         className="relative bg-gray-100 rounded-lg overflow-hidden"
         style={{ 
           width: containerWidth, 
           height: containerHeight,
           backgroundImage: uploadedImage || existingImageUrl ? `url(${uploadedImage ? URL.createObjectURL(uploadedImage) : existingImageUrl})` : undefined,
           backgroundSize: 'cover',
-          backgroundPosition: 'center'
+          backgroundPosition: 'center',
+          transform: 'none'
         }}
       >
         {/* 서브타이틀 */}
@@ -647,12 +659,14 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
               fontSize: (mainTitle.fontPxAtBase || mainTitle.fontSize) * previewScale,
               fontWeight: mainTitle.fontWeight || 700,
               color: mainTitle.color,
-              maxWidth: mainTitle.width * previewScale,
-              whiteSpace: 'pre-line',
-              wordBreak: 'break-word'
+              maxWidth: mainTitle.width * previewScale
             }}
           >
-            {mainTitle.text}
+            {mainTitle.text.replace(/\r\n/g, '\n').split('\n').map((line, index) => (
+              <div key={index} className="whitespace-pre-wrap break-words leading-[66.96px]">
+                {line}
+              </div>
+            ))}
           </div>
         )}
         
@@ -715,7 +729,9 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           }}
         >
           {showDomPreview ? (
-            renderDomPreview()
+            <div className="block">
+              {renderDomPreview()}
+            </div>
           ) : (
             <canvas
               ref={ref}
@@ -724,6 +740,11 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
                 backgroundColor: '#f8f9fa'
               }}
             />
+          )}
+          {!showDomPreview && (
+            <div className="hidden">
+              {renderDomPreview()}
+            </div>
           )}
           {isLoading && (
             <div style={{
