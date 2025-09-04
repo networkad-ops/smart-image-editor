@@ -257,14 +257,28 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         ctx.textBaseline = 'top';
       }
       
+<<<<<<< HEAD
       // 줄바꿈 처리 (maxLines 제한 적용) - \r\n도 \n으로 통일하여 처리
       const lines = element.text.replace(/\r\n/g, '\n').split('\n');
+=======
+      // 줄바꿈 처리
+      const lines = element.text.split('\n');
+      // 설정된 lineHeight가 있으면 우선 사용, 없으면 1.2배수 기본값
+      const configLineHeight = (() => {
+        if (element.id === 'sub-title' && config.subTitle?.lineHeight) return config.subTitle.lineHeight;
+        if (element.id === 'main-title' && config.mainTitle?.lineHeight) return config.mainTitle.lineHeight;
+        if (element.id === 'bottom-sub-title' && config.bottomSubTitle?.lineHeight) return config.bottomSubTitle.lineHeight;
+        if (element.id === 'button-text' && config.buttonText?.lineHeight) return config.buttonText.lineHeight;
+        return undefined;
+      })();
+      const lineHeight = configLineHeight ?? (element.fontSize * 1.2);
+>>>>>>> b50c1ee (fix(text): respect configured lineHeight in preview and export renderers)
       
       // 메인타이틀인 경우 특별 처리 (2줄까지 허용)
       if (element.id === 'main-title') {
         const normalizedText = textNormalize(element.text);
         const lines = normalizedText.split('\n').slice(0, 2);
-        const lineHeight = 66.96; // 124% 행간을 픽셀로 고정
+        const lineHeight = (config.mainTitle?.lineHeight ?? 66.96);
         ctx.textBaseline = 'top';
         
         lines.forEach((line, lineIndex) => {
@@ -292,8 +306,17 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       } else {
         // 다른 텍스트 요소들은 기존 maxLines 제한 적용 (서브타이틀은 1줄)
         const maxLines = element.id === 'sub-title' ? 1 : (config.mainTitle?.maxLines || config.subTitle?.maxLines || config.bottomSubTitle?.maxLines || 1);
+        // 줄바꿈 처리 (CRLF 통일)
+        const lines = element.text.replace(/\r\n/g, '\n').split('\n');
         const limitedLines = lines.slice(0, maxLines);
-        const lineHeight = finalFontSize * 1.2; // 줄 간격 설정
+        // 설정된 lineHeight가 있으면 우선 사용, 없으면 1.2배수 기본값
+        const lineHeight = (() => {
+          if (element.id === 'sub-title' && config.subTitle?.lineHeight) return config.subTitle.lineHeight;
+          if (element.id === 'main-title' && config.mainTitle?.lineHeight) return config.mainTitle.lineHeight;
+          if (element.id === 'bottom-sub-title' && config.bottomSubTitle?.lineHeight) return config.bottomSubTitle.lineHeight;
+          if (element.id === 'button-text' && config.buttonText?.lineHeight) return config.buttonText.lineHeight;
+          return finalFontSize * 1.2;
+        })();
         
         limitedLines.forEach((line, lineIndex) => {
         let y, currentX;
