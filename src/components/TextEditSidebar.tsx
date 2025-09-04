@@ -442,7 +442,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               )}
             </div>
             <span className="text-xs text-gray-500">
-              {mainTitle?.text?.length || 0}/{isBasicBannerPC ? 36 : config.mainTitle.maxLength} | {mainTitle?.text?.split('\n').length || 0}/{isBasicBannerPC ? (isBasicBannerPCLogo ? 2 : 1) : config.mainTitle.maxLines || 1}줄
+              {mainTitle?.text?.length || 0}/{isBasicBannerPC ? 36 : config.mainTitle.maxLength} | {mainTitle?.text?.split('\n').length || 0}/2줄
             </span>
           </div>
           

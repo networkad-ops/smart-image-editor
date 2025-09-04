@@ -20,7 +20,7 @@ export const BASIC_PC = {
     fontWeight: 500,
     letterSpacing: -0.54, // 54 * -0.01
     maxLength: 20,
-    maxLines: 1
+    maxLines: 2
   },
   mainTitle: {
     x: 110,
@@ -33,7 +33,7 @@ export const BASIC_PC = {
     fontWeight: 700,
     letterSpacing: -1.68, // 84 * -0.02
     maxLength: 36,
-    maxLines: 1
+    maxLines: 2
   }
 };
 
@@ -86,7 +86,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 500,
       letterSpacing: -0.54, // 54 * -0.01
       maxLength: 20,
-      maxLines: 1
+      maxLines: 2
     },
     mainTitle: {
       x: 110,
@@ -99,7 +99,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700,
       letterSpacing: -1.68, // 84 * -0.02
       maxLength: 36,
-      maxLines: 1
+      maxLines: 2
     }
   },
 
@@ -122,7 +122,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 500,
       letterSpacing: -0.6, // 60 * -0.01
       maxLength: 20,
-      maxLines: 1
+      maxLines: 2
     },
     mainTitle: {
       x: 81,
@@ -135,7 +135,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700,
       letterSpacing: -1.6, // 80 * -0.02
       maxLength: 24,
-      maxLines: 1
+      maxLines: 2
     }
   },
 
@@ -215,7 +215,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 600,
       letterSpacing: -0.5,
       maxLength: 25,
-      maxLines: 1
+      maxLines: 2
     },
     mainTitle: {
       x: 460,
@@ -247,7 +247,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 600,
       letterSpacing: -1,
       maxLength: 10,
-      maxLines: 1
+      maxLines: 2
     }
   },
 
@@ -270,7 +270,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 600,  // Semibold
       letterSpacing: -0.42,
       maxLength: 20,
-      maxLines: 1
+      maxLines: 2
     },
     mainTitle: {
       x: 180,  // 중앙 정렬: 1050/2 - 690/2 = 525 - 345 = 180
@@ -302,7 +302,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 600,
       letterSpacing: -0.84,
       maxLength: 7,  // 띄어쓰기 포함 7글자
-      maxLines: 1
+      maxLines: 2
     }
   },
 
@@ -325,7 +325,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 600,
       letterSpacing: -0.76,
       maxLength: 25,
-      maxLines: 1
+      maxLines: 2
     },
     mainTitle: {
       x: 645,
@@ -361,7 +361,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 500, // Medium
       letterSpacing: -0.6, // -1%
       maxLength: 20,
-      maxLines: 1
+      maxLines: 2
     },
     mainTitle: {
       x: 81,
@@ -374,7 +374,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // -2%
       maxLength: 24,
-      maxLines: 1
+      maxLines: 2
     },
     bottomSubTitle: {
       x: 81,
@@ -387,7 +387,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700, // Bold
       letterSpacing: -1.2, // -2%
       maxLength: 20,
-      maxLines: 1
+      maxLines: 2
     }
   },
 
@@ -410,7 +410,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 500, // Medium
       letterSpacing: -0.54, // -1%
       maxLength: 20,
-      maxLines: 1
+      maxLines: 2
     },
     mainTitle: {
       x: 110,
@@ -423,7 +423,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // -2%
       maxLength: 36,
-      maxLines: 1
+      maxLines: 2
     },
     bottomSubTitle: {
       x: 110,
@@ -436,7 +436,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700, // Bold
       letterSpacing: -1.28, // -2%
       maxLength: 30,
-      maxLines: 1
+      maxLines: 2
     }
   },
 
@@ -459,7 +459,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // 80 * -0.02
       maxLength: 24,
-      maxLines: 1
+      maxLines: 2
     },
     bottomSubTitle: {
       x: 81,
@@ -472,7 +472,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700, // Bold
       letterSpacing: -1.2, // 60 * -0.02
       maxLength: 20,
-      maxLines: 1
+      maxLines: 2
     },
     multiLogo: {
       x: 81,
@@ -505,7 +505,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // 80 * -0.02
       maxLength: 36,
-      maxLines: 1
+      maxLines: 2
     },
     bottomSubTitle: {
       x: 110,
@@ -518,7 +518,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700, // Bold
       letterSpacing: -1.28, // 64 * -0.02
       maxLength: 30,
-      maxLines: 1
+      maxLines: 2
     },
     multiLogo: {
       x: 110,
@@ -551,7 +551,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 500, // Medium
       letterSpacing: -0.54, // -1%
       maxLength: 20,
-      maxLines: 1
+      maxLines: 2
     },
     mainTitle: {
       x: 110,
@@ -564,7 +564,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // -2%
       maxLength: 36,
-      maxLines: 1
+      maxLines: 2
     },
     bottomSubTitle: {
       x: 110,
@@ -577,7 +577,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700, // Bold
       letterSpacing: -1.28, // -2%
       maxLength: 30,
-      maxLines: 1
+      maxLines: 2
     }
   },
 
@@ -600,7 +600,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 500, // Medium
       letterSpacing: -0.6, // -1%
       maxLength: 20,
-      maxLines: 1
+      maxLines: 2
     },
     mainTitle: {
       x: 81,
@@ -613,7 +613,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // -2%
       maxLength: 24,
-      maxLines: 1
+      maxLines: 2
     },
     bottomSubTitle: {
       x: 81,
@@ -626,7 +626,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700, // Bold
       letterSpacing: -1.2, // -2%
       maxLength: 20,
-      maxLines: 1
+      maxLines: 2
     }
   }
 };

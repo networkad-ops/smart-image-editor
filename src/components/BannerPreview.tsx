@@ -202,12 +202,11 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       
       // 줄바꿈 처리 (maxLines 제한 적용) - \r\n도 \n으로 통일하여 처리
       const lines = element.text.replace(/\r\n/g, '\n').split('\n');
-      const maxLines = config.mainTitle?.maxLines || config.subTitle?.maxLines || config.bottomSubTitle?.maxLines || 1;
-      const limitedLines = lines.slice(0, maxLines); // maxLines 제한 적용
-      const lineHeight = finalFontSize * 1.2; // 줄 간격 설정
       
-      // 메인타이틀인 경우 특별 처리
+      // 메인타이틀인 경우 특별 처리 (2줄까지 허용)
       if (element.id === 'main-title') {
+        const maxLines = 2;
+        const limitedLines = lines.slice(0, maxLines);
         ctx.textBaseline = 'top';
         limitedLines.forEach((line, lineIndex) => {
           const y = element.y + (lineIndex * 66.96);
@@ -215,6 +214,11 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           ctx.fillText(line || ' ', currentX, y);
         });
       } else {
+        // 다른 텍스트 요소들은 기존 maxLines 제한 적용
+        const maxLines = config.mainTitle?.maxLines || config.subTitle?.maxLines || config.bottomSubTitle?.maxLines || 1;
+        const limitedLines = lines.slice(0, maxLines);
+        const lineHeight = finalFontSize * 1.2; // 줄 간격 설정
+        
         limitedLines.forEach((line, lineIndex) => {
         let y, currentX;
         
