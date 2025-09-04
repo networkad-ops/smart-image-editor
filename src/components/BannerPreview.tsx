@@ -2,6 +2,7 @@
 import React, { useEffect, RefObject, useCallback, useRef, useState } from 'react';
 import { BannerConfig, TextElement } from '../types';
 import { drawTextWithLetterSpacing } from '../utils/canvasUtils';
+import { buildRuns } from '../utils/textSegments';
 
 interface BannerPreviewProps {
   config: BannerConfig;
@@ -220,14 +221,20 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           const currentX = element.x;
           const letterSpacing = finalFontSize * -0.02; // -2% 자간
           
-          // 색상 설정
-          ctx.fillStyle = element.color;
+          // buildRuns를 사용하여 부분 색상 렌더링
+          const runs = buildRuns(line || ' ', element.color, element.colorSegments, element.previewSegments);
+          console.debug('[RUNS]', { elementId: element.id, runsLength: runs.length });
+          let x = currentX;
           
-          if (letterSpacing !== 0) {
-            drawTextWithLetterSpacing(ctx, line || ' ', currentX, y, letterSpacing);
-          } else {
-            ctx.fillText(line || ' ', currentX, y);
-          }
+          runs.forEach(run => {
+            ctx.fillStyle = run.color;
+            if (letterSpacing !== 0) {
+              drawTextWithLetterSpacing(ctx, run.text, x, y, letterSpacing);
+            } else {
+              ctx.fillText(run.text, x, y);
+            }
+            x += ctx.measureText(run.text).width;
+          });
         });
       } else {
         // 다른 텍스트 요소들은 기존 maxLines 제한 적용 (서브타이틀은 1줄)
@@ -262,8 +269,8 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
             ctx.fillText(displayText, currentX, y);
           }
         }
-        // 부분 색상이 있는 경우
-        else if (element.colorSegments && element.colorSegments.length > 0) {
+        // 부분 색상이 있는 경우 (buildRuns 사용)
+        else if ((element.colorSegments && element.colorSegments.length > 0) || (element.previewSegments && element.previewSegments.length > 0)) {
           // 현재 줄의 시작 인덱스 계산
           const lineStart = lines.slice(0, lineIndex).join('\n').length + (lineIndex > 0 ? 1 : 0);
           
@@ -276,43 +283,20 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
             currentX = currentX - totalWidth / 2;
           }
           
-          let lastIndex = 0;
+          // buildRuns를 사용하여 부분 색상 렌더링
+          const runs = buildRuns(line, element.color, element.colorSegments, element.previewSegments);
+          console.debug('[RUNS]', { elementId: element.id, runsLength: runs.length });
+          let x = currentX;
           
-          for (let i = 0; i < line.length; i++) {
-            const globalIndex = lineStart + i;
-            
-            // 이 위치에 적용되는 색상 세그먼트 찾기
-            const segment = element.colorSegments.find(seg => 
-              globalIndex >= seg.start && globalIndex < seg.end
-            );
-            
-            const nextChar = line[i + 1];
-            const nextGlobalIndex = globalIndex + 1;
-            const nextSegment = element.colorSegments.find(seg => 
-              nextGlobalIndex >= seg.start && nextGlobalIndex < seg.end
-            );
-            
-            // 색상이 바뀌거나 마지막 글자인 경우 렌더링
-            if (!nextChar || segment?.color !== nextSegment?.color) {
-              const textPart = line.substring(lastIndex, i + 1);
-              ctx.fillStyle = segment?.color || element.color;
-              
-              // letterSpacing 적용
-              if (element.letterSpacing) {
-                drawTextWithLetterSpacing(ctx, textPart, currentX, y, element.letterSpacing);
-                // letterSpacing이 적용된 텍스트의 너비 계산
-                let partWidth = 0;
-                for (let j = 0; j < textPart.length; j++) {
-                  partWidth += ctx.measureText(textPart[j]).width + (j < textPart.length - 1 ? element.letterSpacing : 0);
-                }
-                currentX += partWidth;
-              } else {
-                ctx.fillText(textPart, currentX, y);
-                currentX += ctx.measureText(textPart).width;
-              }
-              lastIndex = i + 1;
+          runs.forEach(run => {
+            ctx.fillStyle = run.color;
+            if (element.letterSpacing) {
+              drawTextWithLetterSpacing(ctx, run.text, x, y, element.letterSpacing);
+            } else {
+              ctx.fillText(run.text, x, y);
             }
-          }
+            x += ctx.measureText(run.text).width;
+          });
         } else {
           // 부분 색상이 없는 경우 전체 색상 또는 그라데이션으로 렌더링
           if (element.gradient) {

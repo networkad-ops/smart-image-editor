@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { BannerConfig, TextElement, ColorSegment } from '../types';
 import { PositionControlPanel } from './PositionControlPanel';
 import FigmaColorPicker from './FigmaColorPicker';
+import { mergeSegments } from '../utils/textSegments';
 
 interface TextEditSidebarProps {
   config: BannerConfig;
@@ -28,7 +29,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   const isBasicBannerPC = config.dbType === 'basic-pc' || config.dbType === 'basic-pc-logo';
   const isBasicBannerPCLogo = config.dbType === 'basic-pc-logo';
   const [newText, setNewText] = useState('');
-  const [selectedRange, setSelectedRange] = useState<{elementId: string, start: number, end: number} | null>(null);
+  const [selectionRange, setSelectionRange] = useState<{start: number, end: number} | null>(null);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [activeTextKey, setActiveTextKey] = useState<'subtitle' | 'mainTitle'>('subtitle');
   const subTitleInputRef = useRef<HTMLInputElement>(null);
@@ -68,9 +69,9 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     const end = input.selectionEnd || 0;
     
     if (start !== end) {
-      setSelectedRange({ elementId, start, end });
+      setSelectionRange({ start, end });
     } else {
-      setSelectedRange(null);
+      setSelectionRange(null);
     }
   };
 
@@ -95,46 +96,72 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     });
   };
 
+  // throttle 함수
+  const throttle = (func: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout | null = null;
+    let lastExecTime = 0;
+    return (...args: any[]) => {
+      const currentTime = Date.now();
+      
+      if (currentTime - lastExecTime > delay) {
+        func(...args);
+        lastExecTime = currentTime;
+      } else {
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          func(...args);
+          lastExecTime = Date.now();
+        }, delay - (currentTime - lastExecTime));
+      }
+    };
+  };
+
   // 색상 미리보기 적용
-  const applyColorPreview = ({ target, color, mode }: { target: 'subtitle' | 'mainTitle'; color: string; mode: any }) => {
-    console.debug('[APPLY_PREVIEW]', { target, color, mode });
+  const applyColorPreview = ({ target, range, color, mode, cancel }: { 
+    target: 'subtitle' | 'mainTitle'; 
+    range: {start: number, end: number} | null; 
+    color: string; 
+    mode: any;
+    cancel?: boolean;
+  }) => {
+    console.debug('[APPLY_PREVIEW]', { target, range, color, mode, cancel });
     
     const elementId = target === 'subtitle' ? 'sub-title' : 'main-title';
     setColorPickerMode(prev => ({ ...prev, previewColor: color }));
     
+    if (cancel) {
+      // 미리보기 상태 초기화
+      onUpdateText({ target, patch: { previewSegments: [] } });
+      return;
+    }
+    
     // 선택된 범위가 있으면 부분 색상 미리보기
-    if (selectedRange && selectedRange.elementId === elementId) {
+    if (range && range.start !== range.end) {
       const element = textElements.find(el => el.id === elementId);
       if (!element) return;
       
-      const { start, end } = selectedRange;
       const existingSegments = element.colorSegments || [];
-      const newSegment: ColorSegment = { start, end, color };
+      const updatedSegments = mergeSegments(existingSegments, range, color);
       
-      let updatedSegments = existingSegments.filter(segment => 
-        segment.end <= start || segment.start >= end
-      );
-      
-      existingSegments.forEach(segment => {
-        if (segment.start < start && segment.end > start && segment.end <= end) {
-          updatedSegments.push({ ...segment, end: start });
-        } else if (segment.start >= start && segment.start < end && segment.end > end) {
-          updatedSegments.push({ ...segment, start: end });
-        } else if (segment.start < start && segment.end > end) {
-          updatedSegments.push({ ...segment, end: start });
-          updatedSegments.push({ ...segment, start: end });
-        }
-      });
-      
-      updatedSegments.push(newSegment);
-      updatedSegments.sort((a, b) => a.start - b.start);
-      
-      onUpdateText({ target, patch: { colorSegments: updatedSegments } });
+      onUpdateText({ target, patch: { previewSegments: updatedSegments } });
     } else {
-      // 전체 색상 미리보기 - segments 비우기
-      onUpdateText({ target, patch: { color, colorSegments: [] } });
+      // 선택 범위가 비었거나 공백이면 전체 텍스트에 적용
+      const element = textElements.find(el => el.id === elementId);
+      if (element) {
+        const fullRange = { start: 0, end: element.text.length };
+        const existingSegments = element.colorSegments || [];
+        const updatedSegments = mergeSegments(existingSegments, fullRange, color);
+        
+        onUpdateText({ target, patch: { previewSegments: updatedSegments } });
+      } else {
+        // 전체 색상 미리보기 - segments 비우기
+        onUpdateText({ target, patch: { color, colorSegments: [], previewSegments: [] } });
+      }
     }
   };
+
+  // throttled applyColorPreview
+  const throttledApplyColorPreview = throttle(applyColorPreview, 16);
 
   // 색상 변경 확인
   const confirmColorChange = () => {
@@ -142,7 +169,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       // 최종 색상 적용
       const elementId = colorPickerMode.elementId;
       const target = elementId === 'sub-title' ? 'subtitle' : 'mainTitle';
-      applyColorInstantly({ target, color: colorPickerMode.previewColor });
+      applyColorInstantly({ target, range: selectionRange, color: colorPickerMode.previewColor });
     }
     
     setColorPickerMode({
@@ -152,28 +179,18 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       originalColorSegments: undefined,
       previewColor: null
     });
-    setSelectedRange(null);
+    setSelectionRange(null);
   };
 
   // 색상 변경 취소
   const cancelColorChange = () => {
     if (!colorPickerMode.isActive || !colorPickerMode.elementId) return;
     
-    // 원래 색상으로 복구
+    // 미리보기 상태 초기화
     const elementId = colorPickerMode.elementId;
     const target = elementId === 'sub-title' ? 'subtitle' : 'mainTitle';
     
-    if (colorPickerMode.originalColorSegments) {
-      onUpdateText({ target, patch: { 
-        color: colorPickerMode.originalColor || undefined,
-        colorSegments: colorPickerMode.originalColorSegments 
-      }});
-    } else {
-      onUpdateText({ target, patch: { 
-        color: colorPickerMode.originalColor || undefined,
-        colorSegments: []
-      }});
-    }
+    applyColorPreview({ target, range: null, color: '', mode: colorPickerMode, cancel: true });
     
     setColorPickerMode({
       isActive: false,
@@ -182,28 +199,42 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       originalColorSegments: undefined,
       previewColor: null
     });
-    setSelectedRange(null);
+    setSelectionRange(null);
   };
 
   // 색상 즉시 적용 - 엑셀 스타일 (기존 방식 유지)
-  const applyColorInstantly = ({ target, color }: { target: 'subtitle' | 'mainTitle'; color: string }) => {
-    console.debug('[APPLY_NOW]', { target, color });
+  const applyColorInstantly = ({ target, range, color }: { 
+    target: 'subtitle' | 'mainTitle'; 
+    range: {start: number, end: number} | null; 
+    color: string; 
+  }) => {
+    console.debug('[APPLY_NOW]', { target, range, color });
     
     const elementId = target === 'subtitle' ? 'sub-title' : 'main-title';
+    const element = textElements.find(el => el.id === elementId);
+    if (!element) return;
+    
     // 선택된 범위가 있으면 부분 색상 적용
-    if (selectedRange && selectedRange.elementId === elementId) {
-      applyPartialColor(elementId, color);
+    if (range && range.start !== range.end) {
+      const existingSegments = element.colorSegments || [];
+      const updatedSegments = mergeSegments(existingSegments, range, color);
+      
+      onUpdateText({ target, patch: { colorSegments: updatedSegments, previewSegments: [] } });
     } else {
-      // 선택된 범위가 없으면 전체 색상 적용 - segments 비우기
-      onUpdateText({ target, patch: { color, colorSegments: [] } });
+      // 선택 범위가 비었거나 공백이면 전체 텍스트에 적용
+      const fullRange = { start: 0, end: element.text.length };
+      const existingSegments = element.colorSegments || [];
+      const updatedSegments = mergeSegments(existingSegments, fullRange, color);
+      
+      onUpdateText({ target, patch: { colorSegments: updatedSegments, previewSegments: [] } });
     }
   };
     
   // 부분 색상 변경 함수
   const applyPartialColor = (elementId: string, color: string) => {
-    if (!selectedRange || selectedRange.elementId !== elementId) return;
+    if (!selectionRange) return;
     
-    const { start, end } = selectedRange;
+    const { start, end } = selectionRange;
     const element = textElements.find(el => el.id === elementId);
     if (!element) return;
     
@@ -236,7 +267,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     
     const target = elementId === 'sub-title' ? 'subtitle' : 'mainTitle';
     onUpdateText({ target, patch: { colorSegments: updatedSegments } });
-    setSelectedRange(null);
+    setSelectionRange(null);
   };
 
   // 통합 색상 선택기 컴포넌트
@@ -282,16 +313,16 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           key={`${colorPickerMode.elementId}-${currentColor}`}
           color={currentColor}
           onChange={(color) => {
-            console.debug('[PICKER]', { activeTextKey, color, mode: colorPickerMode });
+            console.debug('[PICKER]', { activeTextKey, range: selectionRange, color });
             // 색상이 변경될 때마다 즉시 미리보기에 반영
             if (colorPickerMode.elementId) {
-              applyColorPreview({ target: activeTextKey, color, mode: colorPickerMode });
+              throttledApplyColorPreview({ target: activeTextKey, range: selectionRange, color, mode: colorPickerMode });
             }
           }}
           onPreview={(color) => {
             // 드래그 중일 때도 실시간 반영
             if (colorPickerMode.elementId) {
-              applyColorPreview({ target: activeTextKey, color, mode: colorPickerMode });
+              throttledApplyColorPreview({ target: activeTextKey, range: selectionRange, color, mode: colorPickerMode });
             }
           }}
           onConfirm={confirmColorChange}
@@ -424,7 +455,11 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               handleTextFocus('sub-title');
               setActiveTextKey('subtitle');
             }}
-            onSelect={() => handleTextSelect('sub-title', subTitleInputRef)}
+            onSelect={(e) => {
+              const target = e.target as HTMLInputElement;
+              setSelectionRange({ start: target.selectionStart || 0, end: target.selectionEnd || 0 });
+              handleTextSelect('sub-title', subTitleInputRef);
+            }}
             onMouseUp={() => handleTextSelect('sub-title', subTitleInputRef)}
             onKeyUp={() => handleTextSelect('sub-title', subTitleInputRef)}
             className="w-full px-3 py-2 border rounded mb-2 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
@@ -432,12 +467,12 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             maxLength={isBasicBannerPC ? 20 : config.subTitle.maxLength}
           />
           
-          {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}
-          {selectedRange && selectedRange.elementId === 'sub-title' && (
+                    {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}
+          {selectionRange && activeTextKey === 'subtitle' && (
             <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
-              <div className="text-xs text-blue-700">선택된 텍스트: "{(subTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"</div>
+              <div className="text-xs text-blue-700">선택된 텍스트: "{(subTitle?.text || '').substring(selectionRange.start, selectionRange.end)}"</div>
               </div>
-            )}
+          )}
         </div>
       )}
 
@@ -480,7 +515,11 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               handleTextFocus('main-title');
               setActiveTextKey('mainTitle');
             }}
-            onSelect={() => handleTextSelect('main-title', mainTitleInputRef)}
+            onSelect={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              setSelectionRange({ start: target.selectionStart || 0, end: target.selectionEnd || 0 });
+              handleTextSelect('main-title', mainTitleInputRef);
+            }}
             onMouseUp={() => handleTextSelect('main-title', mainTitleInputRef)}
             onKeyUp={() => handleTextSelect('main-title', mainTitleInputRef)}
             className="w-full px-3 py-2 border rounded mb-2 min-h-[70px] resize-y text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
@@ -488,12 +527,12 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             maxLength={isBasicBannerPC ? 36 : config.mainTitle.maxLength}
           />
           
-                    {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}
-          {selectedRange && selectedRange.elementId === 'main-title' && (
+                                        {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}
+          {selectionRange && activeTextKey === 'mainTitle' && (
             <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
-              <div className="text-xs text-blue-700">선택된 텍스트: "{(mainTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"</div>
+              <div className="text-xs text-blue-700">선택된 텍스트: "{(mainTitle?.text || '').substring(selectionRange.start, selectionRange.end)}"</div>
               </div>
-            )}
+          )}
               </div>
             )}
             
@@ -533,12 +572,12 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             maxLength={config.bottomSubTitle.maxLength}
           />
           
-                    {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}
-          {selectedRange && selectedRange.elementId === 'bottom-sub-title' && (
+                                        {/* 선택된 텍스트 표시 - 더 컴팩트하게 */}
+          {selectionRange && activeTextKey === 'subtitle' && (
             <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2">
-              <div className="text-xs text-blue-700">선택된 텍스트: "{(bottomSubTitle?.text || '').substring(selectedRange.start, selectedRange.end)}"</div>
+              <div className="text-xs text-blue-700">선택된 텍스트: "{(bottomSubTitle?.text || '').substring(selectionRange.start, selectionRange.end)}"</div>
               </div>
-            )}
+          )}
         </div>
       )}
 

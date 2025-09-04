@@ -85,6 +85,7 @@ export interface TextElement {
   color: string;
   backgroundColor?: string; // 버튼 배경색 (button-text일 때만 사용)
   colorSegments?: ColorSegment[];
+  previewSegments?: ColorSegment[]; // 미리보기 전용 색상 세그먼트
   editable?: {
     position?: boolean;
     size?: boolean;

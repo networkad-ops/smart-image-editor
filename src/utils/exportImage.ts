@@ -1,5 +1,6 @@
 import { BannerConfig, TextElement } from '../types';
 import { drawTextWithLetterSpacing } from './canvasUtils';
+import { buildRuns } from './textSegments';
 
 // 각 배너의 실제 해상도 사용 (함수 내에서 config로부터 가져옴)
 
@@ -289,14 +290,19 @@ const drawTextElements = (
         const currentX = element.x;
         const letterSpacing = finalFontSize * -0.02; // -2% 자간
         
-        // 색상 설정
-        ctx.fillStyle = element.color;
+        // buildRuns를 사용하여 부분 색상 렌더링
+        const runs = buildRuns(line || ' ', element.color, element.colorSegments, element.previewSegments);
+        let x = currentX;
         
-        if (letterSpacing !== 0) {
-          drawTextWithLetterSpacing(ctx, line || ' ', currentX, y, letterSpacing);
-        } else {
-          ctx.fillText(line || ' ', currentX, y);
-        }
+        runs.forEach(run => {
+          ctx.fillStyle = run.color;
+          if (letterSpacing !== 0) {
+            drawTextWithLetterSpacing(ctx, run.text, x, y, letterSpacing);
+          } else {
+            ctx.fillText(run.text, x, y);
+          }
+          x += ctx.measureText(run.text).width;
+        });
       });
     } else {
       // 다른 텍스트 요소들은 기존 maxLines 제한 적용 (서브타이틀은 1줄)
@@ -328,8 +334,8 @@ const drawTextElements = (
           ctx.fillText(displayText, currentX, y);
         }
       }
-      // 부분 색상이 있는 경우
-      else if (element.colorSegments && element.colorSegments.length > 0) {
+      // 부분 색상이 있는 경우 (buildRuns 사용)
+      else if ((element.colorSegments && element.colorSegments.length > 0) || (element.previewSegments && element.previewSegments.length > 0)) {
         const lineStart = lines.slice(0, lineIndex).join('\n').length + (lineIndex > 0 ? 1 : 0);
         
         if ((element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') && isInteractiveBanner) {
@@ -340,39 +346,19 @@ const drawTextElements = (
           currentX = currentX - totalWidth / 2;
         }
         
-        let lastIndex = 0;
+        // buildRuns를 사용하여 부분 색상 렌더링
+        const runs = buildRuns(line, element.color, element.colorSegments, element.previewSegments);
+        let x = currentX;
         
-        for (let i = 0; i < line.length; i++) {
-          const globalIndex = lineStart + i;
-          
-          const segment = element.colorSegments.find(seg => 
-            globalIndex >= seg.start && globalIndex < seg.end
-          );
-          
-          const nextChar = line[i + 1];
-          const nextGlobalIndex = globalIndex + 1;
-          const nextSegment = element.colorSegments.find(seg => 
-            nextGlobalIndex >= seg.start && nextGlobalIndex < seg.end
-          );
-          
-          if (!nextChar || segment?.color !== nextSegment?.color) {
-            const textPart = line.substring(lastIndex, i + 1);
-            ctx.fillStyle = segment?.color || element.color;
-            
-            if (element.letterSpacing) {
-              drawTextWithLetterSpacing(ctx, textPart, currentX, y, element.letterSpacing);
-              let partWidth = 0;
-              for (let j = 0; j < textPart.length; j++) {
-                partWidth += ctx.measureText(textPart[j]).width + (j < textPart.length - 1 ? element.letterSpacing : 0);
-              }
-              currentX += partWidth;
-            } else {
-              ctx.fillText(textPart, currentX, y);
-              currentX += ctx.measureText(textPart).width;
-            }
-            lastIndex = i + 1;
+        runs.forEach(run => {
+          ctx.fillStyle = run.color;
+          if (element.letterSpacing) {
+            drawTextWithLetterSpacing(ctx, run.text, x, y, element.letterSpacing);
+          } else {
+            ctx.fillText(run.text, x, y);
           }
-        }
+          x += ctx.measureText(run.text).width;
+        });
       } else {
         // 부분 색상이 없는 경우
         if (element.gradient) {
