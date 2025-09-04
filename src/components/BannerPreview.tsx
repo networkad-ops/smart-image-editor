@@ -207,11 +207,17 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       if (element.id === 'main-title') {
         const maxLines = 2;
         const limitedLines = lines.slice(0, maxLines);
+        const lineHeight = finalFontSize * 1.24; // 124% 행간
         ctx.textBaseline = 'top';
         limitedLines.forEach((line, lineIndex) => {
-          const y = element.y + (lineIndex * 66.96);
+          const y = element.y + (lineIndex * lineHeight);
           const currentX = element.x;
-          ctx.fillText(line || ' ', currentX, y);
+          const letterSpacing = finalFontSize * -0.02; // -2% 자간
+          if (letterSpacing !== 0) {
+            drawTextWithLetterSpacing(ctx, line || ' ', currentX, y, letterSpacing);
+          } else {
+            ctx.fillText(line || ' ', currentX, y);
+          }
         });
       } else {
         // 다른 텍스트 요소들은 기존 maxLines 제한 적용
@@ -663,11 +669,18 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
               fontSize: (mainTitle.fontPxAtBase || mainTitle.fontSize) * previewScale,
               fontWeight: mainTitle.fontWeight || 700,
               color: mainTitle.color,
-              maxWidth: mainTitle.width * previewScale
+              maxWidth: mainTitle.width * previewScale,
+              letterSpacing: `${(mainTitle.fontPxAtBase || mainTitle.fontSize) * -0.02}px` // -2% 자간
             }}
           >
             {mainTitle.text.replace(/\r\n/g, '\n').split('\n').map((line, index) => (
-              <div key={index} className="whitespace-pre-wrap break-words leading-[66.96px]">
+              <div 
+                key={index} 
+                className="whitespace-pre-wrap break-words"
+                style={{ 
+                  lineHeight: `${(mainTitle.fontPxAtBase || mainTitle.fontSize) * 1.24}px` // 124% 행간
+                }}
+              >
                 {line}
               </div>
             ))}

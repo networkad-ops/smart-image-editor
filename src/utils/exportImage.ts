@@ -275,11 +275,17 @@ const drawTextElements = (
     if (element.id === 'main-title') {
       const maxLines = 2;
       const limitedLines = lines.slice(0, maxLines);
+      const lineHeight = finalFontSize * 1.24; // 124% 행간
       ctx.textBaseline = 'top';
       limitedLines.forEach((line, lineIndex) => {
-        const y = element.y + (lineIndex * 66.96);
+        const y = element.y + (lineIndex * lineHeight);
         const currentX = element.x;
-        ctx.fillText(line || ' ', currentX, y);
+        const letterSpacing = finalFontSize * -0.02; // -2% 자간
+        if (letterSpacing !== 0) {
+          drawTextWithLetterSpacing(ctx, line || ' ', currentX, y, letterSpacing);
+        } else {
+          ctx.fillText(line || ' ', currentX, y);
+        }
       });
     } else {
       // 다른 텍스트 요소들은 기존 maxLines 제한 적용
