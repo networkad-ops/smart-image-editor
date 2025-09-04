@@ -42,7 +42,7 @@ export const exportBanner = async (
   ctx.scale(scale, scale);
   
   // 배경 렌더링
-  await drawBackground(ctx, uploadedImage, existingImageUrl);
+  await drawBackground(ctx, config, uploadedImage, existingImageUrl);
   
   // 로고 렌더링
   await drawLogo(ctx, config, uploadedLogo, uploadedLogos, existingLogoUrl, existingLogoUrls, logoHeight);
@@ -65,6 +65,7 @@ export const exportBanner = async (
 // 배경 이미지 그리기
 const drawBackground = async (
   ctx: CanvasRenderingContext2D,
+  config: BannerConfig,
   uploadedImage: File | null,
   existingImageUrl?: string | null
 ): Promise<void> => {
