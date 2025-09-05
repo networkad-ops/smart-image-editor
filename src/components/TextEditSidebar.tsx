@@ -100,7 +100,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
       
       const { start, end } = selectedRange;
       const existingSegments = element.colorSegments || [];
-      const newSegment: ColorSegment = { start, end, color };
+      const newSegment: ColorSegment = { line: 0, start, end, color };
       
       let updatedSegments = existingSegments.filter(segment => 
         segment.end <= start || segment.start >= end
@@ -189,7 +189,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     const existingSegments = element.colorSegments || [];
     
     // 새로운 세그먼트 생성
-    const newSegment: ColorSegment = { start, end, color };
+    const newSegment: ColorSegment = { line: 0, start, end, color };
     
     // 기존 세그먼트와 겹치는 부분 처리
     let updatedSegments = existingSegments.filter(segment => 

@@ -63,9 +63,25 @@ export interface MultiLogoConfig {
 
 // 색상 세그먼트 타입 (부분 색상 변경용)
 export interface ColorSegment {
+  line: number;
   start: number;
   end: number;
   color: string;
+}
+
+// 크롭 좌표 타입
+export interface CropCoords {
+  sx: number;
+  sy: number;
+  sw: number;
+  sh: number;
+  sourceW: number;
+  sourceH: number;
+}
+
+// 크롭된 파일 타입
+export interface CroppedFile extends File {
+  cropCoords?: CropCoords;
 }
 
 // 텍스트 요소 타입
@@ -78,12 +94,16 @@ export interface TextElement {
   width: number;
   height: number;
   fontSize: number;
+  fontPxAtBase?: number; // 기준 해상도에서의 픽셀 크기 (표준화용)
+  lineHeight?: number; // 행간 (선택사항)
   fontFamily: string;
   fontWeight?: number;
   letterSpacing?: number;
   color: string;
   backgroundColor?: string; // 버튼 배경색 (button-text일 때만 사용)
   colorSegments?: ColorSegment[];
+  previewSegments?: ColorSegment[]; // 미리보기 전용 색상 세그먼트
+  textAlign?: 'left' | 'center' | 'right'; // 텍스트 정렬
   editable?: {
     position?: boolean;
     size?: boolean;
