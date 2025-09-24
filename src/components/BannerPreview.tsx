@@ -16,10 +16,10 @@ const buildRunsForLine = (
 ): Array<{text: string, color: string}> => {
   const allSegments = [...colorSegments, ...previewSegments]
     .sort((a, b) => a.start - b.start);
-  
+
   const runs: Array<{text: string, color: string}> = [];
   let currentIndex = 0;
-  
+
   for (const segment of allSegments) {
     // 세그먼트 시작 전까지의 텍스트
     if (currentIndex < segment.start) {
@@ -28,16 +28,16 @@ const buildRunsForLine = (
         runs.push({ text: textBefore, color: defaultColor });
       }
     }
-    
+
     // 세그먼트 텍스트
     const segmentText = lineText.slice(segment.start, segment.end);
     if (segmentText) {
       runs.push({ text: segmentText, color: segment.color });
     }
-    
+
     currentIndex = Math.max(currentIndex, segment.end);
   }
-  
+
   // 남은 텍스트
   if (currentIndex < lineText.length) {
     const remainingText = lineText.slice(currentIndex);
@@ -45,12 +45,12 @@ const buildRunsForLine = (
       runs.push({ text: remainingText, color: defaultColor });
     }
   }
-  
+
   // 텍스트가 비어있으면 기본 런 반환
   if (runs.length === 0 && lineText) {
     runs.push({ text: lineText, color: defaultColor });
   }
-  
+
   return runs;
 };
 
@@ -83,7 +83,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
 }, ref) => {
   // 더블 버퍼링을 위한 오프스크린 캔버스
   const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  
+
   // 드래그 상태
   const [dragging, setDragging] = useState(false);
   const [dragStartY, setDragStartY] = useState<number | null>(null);
@@ -127,21 +127,21 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
 
   // 기본배너 PC 전용 preset 적용
   const isBasicBannerPC = config.dbType === 'basic-pc' || config.dbType === 'basic-pc-logo';
-  
+
   // 디자인 크기 설정 (기본배너 PC는 2880×480 고정, 나머지는 config 기준)
-  const designSize = isBasicBannerPC 
+  const designSize = isBasicBannerPC
     ? { w: 2880, h: 480 }
     : { w: config.width, h: config.height };
-  
+
   // 각 배너의 실제 해상도 사용
   const CANVAS_WIDTH = designSize.w;
   const CANVAS_HEIGHT = designSize.h;
-  
+
   // 더블 버퍼링용 오프스크린 캔버스 초기화 - 기본배너 PC는 2880×480 고정
   useEffect(() => {
     const dpr = window.devicePixelRatio || 1;
     const offscreenCanvas = document.createElement('canvas');
-    
+
     if (isBasicBannerPC) {
       // 기본배너 PC: 2880×480 고정, DPR 반영
       offscreenCanvas.width = 2880 * dpr;
@@ -151,7 +151,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       offscreenCanvas.width = config.width * dpr;
       offscreenCanvas.height = config.height * dpr;
     }
-    
+
     const ctx = offscreenCanvas.getContext('2d');
     if (ctx) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -190,14 +190,14 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     // 진단 로그: 메인타이틀과 서브타이틀 색상 정보 출력
     const mainTitle = elements.find(el => el.id === 'main-title');
     const subTitle = elements.find(el => el.id === 'sub-title');
-    console.debug('[PREVIEW_COLOR]', { 
-      subtitle: subTitle?.color, 
-      mainTitle: mainTitle?.color 
+    console.debug('[PREVIEW_COLOR]', {
+      subtitle: subTitle?.color,
+      mainTitle: mainTitle?.color
     });
-    
+
     elements.forEach(element => {
       ctx.save();
-      
+
       // 버튼 텍스트인 경우 배경 그리기 (텍스트가 없어도 표시)
       if (element.id === 'button-text') {
         // 버튼 배경 그리기 (끝만 둥근 사각형)
@@ -206,11 +206,11 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         const buttonWidth = element.width;
         const buttonHeight = element.height;
         const borderRadius = 20;  // 적당한 둥근 모서리
-        
+
         // 사용자 설정 배경색 또는 기본값
         const backgroundColor = element.backgroundColor || '#4F46E5';
         ctx.fillStyle = backgroundColor;
-        
+
         // 둥근 모서리 사각형 그리기
         ctx.beginPath();
         ctx.moveTo(buttonX + borderRadius, buttonY);
@@ -224,7 +224,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         ctx.quadraticCurveTo(buttonX, buttonY, buttonX + borderRadius, buttonY);
         ctx.closePath();
         ctx.fill();
-        
+
         // 버튼 그림자 효과
         ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
         ctx.shadowBlur = 6;
@@ -234,16 +234,16 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         ctx.shadowBlur = 0;
         ctx.shadowOffsetY = 0;
       }
-      
+
       // 폰트 설정 (fontPxAtBase 우선 사용)
       const fontWeight = element.fontWeight || 400;
       const finalFontSize = element.fontPxAtBase || element.fontSize;
       ctx.font = `${fontWeight} ${finalFontSize}px Pretendard`;
       ctx.textBaseline = 'top'; // 텍스트의 기준선을 상단으로 설정
-      
+
       // 텍스트 정렬 설정
       const isInteractiveBanner = config.name.includes('인터랙티브');
-      
+
       if (element.id === 'button-text') {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -256,7 +256,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         ctx.textAlign = 'start';
         ctx.textBaseline = 'top';
       }
-      
+
       // 줄바꿈 처리 (CRLF 통일)
       const lines = element.text.replace(/\r\n/g, '\n').split('\n');
       // 설정된 lineHeight 우선 사용
@@ -268,26 +268,26 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         return undefined;
       })();
       const lineHeight = configLineHeight ?? (finalFontSize * 1.2);
-      
+
       // 메인타이틀인 경우 특별 처리 (2줄까지 허용)
       if (element.id === 'main-title') {
         const normalizedText = textNormalize(element.text);
         const lines = normalizedText.split('\n').slice(0, 2);
         const lineHeight = (config.mainTitle?.lineHeight ?? 66.96);
         ctx.textBaseline = 'top';
-        
+
         lines.forEach((line, lineIndex) => {
           const y = element.y + (lineIndex * lineHeight);
           let x = element.x; // 줄마다 x를 left로 초기화
           const letterSpacing = finalFontSize * -0.02; // -2% 자간
-          
+
           // 해당 줄의 세그먼트 필터링
           const lineColorSegments = (element.colorSegments || []).filter(s => s.line === lineIndex);
           const linePreviewSegments = (element.previewSegments || []).filter(s => s.line === lineIndex);
-          
+
           // buildRunsForLine을 사용하여 부분 색상 렌더링
           const runs = buildRunsForLine(line, lineColorSegments, linePreviewSegments, element.color);
-          
+
           runs.forEach(run => {
             ctx.fillStyle = run.color;
             if (letterSpacing !== 0) {
@@ -312,10 +312,10 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           if (element.id === 'button-text' && config.buttonText?.lineHeight) return config.buttonText.lineHeight;
           return finalFontSize * 1.2;
         })();
-        
+
         limitedLines.forEach((line, lineIndex) => {
         let y, currentX;
-        
+
         if (element.id === 'button-text') {
           // 버튼 텍스트는 가운데 정렬
           y = element.y + element.height / 2 + (lineIndex * lineHeight);
@@ -329,7 +329,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           y = element.y + (lineIndex * lineHeight);
           currentX = element.x;
         }
-        
+
         // 버튼 텍스트는 간단하게 처리 (부분 색상 없음)
         if (element.id === 'button-text') {
           ctx.fillStyle = element.color;
@@ -344,22 +344,22 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         else if ((element.colorSegments && element.colorSegments.length > 0) || (element.previewSegments && element.previewSegments.length > 0)) {
           // 현재 줄의 시작 인덱스 계산
           const lineStart = lines.slice(0, lineIndex).join('\n').length + (lineIndex > 0 ? 1 : 0);
-          
+
           // 인터랙티브 배너의 중앙 정렬인 경우 전체 텍스트 너비를 계산해서 시작 위치 조정
           if ((element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') && isInteractiveBanner) {
-            const totalWidth = element.letterSpacing 
-              ? line.split('').reduce((sum, char, idx) => 
+            const totalWidth = element.letterSpacing
+              ? line.split('').reduce((sum, char, idx) =>
                   sum + ctx.measureText(char).width + (idx < line.length - 1 ? (element.letterSpacing || 0) : 0), 0)
               : ctx.measureText(line).width;
             currentX = currentX - totalWidth / 2;
           }
-          
+
           // buildRuns를 사용하여 부분 색상 렌더링 (줄 단위)
           const runs = buildRuns(line, element.color, element.colorSegments, element.previewSegments);
           const lineRuns = runs.filter(run => run.line === lineIndex);
           console.debug('[RUNS]', { elementId: element.id, lineIndex, runsLength: lineRuns.length });
           let x = currentX;
-          
+
           lineRuns.forEach(run => {
             ctx.fillStyle = run.color;
             if (element.letterSpacing) {
@@ -388,7 +388,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         }
       });
       }
-      
+
       ctx.restore();
     });
   }, [config.name]);
@@ -402,7 +402,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   const drawBackground = useCallback(async (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
     setIsLoading(true);
     if (onDrawStart) onDrawStart();
-    
+
     if (isBasicBannerPC) {
       // 기본배너 PC: 2880×480 고정
       ctx.clearRect(0, 0, 2880, 480);
@@ -439,7 +439,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           // 이미지 비율 계산
           const imageRatio = bgImg.width / bgImg.height;
           let canvasRatio, drawWidth, drawHeight, offsetX, offsetY;
-          
+
           if (isBasicBannerPC) {
             // 기본배너 PC: 2880×480 고정
             canvasRatio = 2880 / 480;
@@ -502,7 +502,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         const fixedHeight = logoHeight || 56;
         const aspectRatio = logoImg.width / logoImg.height;
         const calculatedWidth = fixedHeight * aspectRatio;
-        
+
         ctx.drawImage(
           logoImg,
           config.logo!.x,
@@ -583,7 +583,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
     if (onDrawComplete) onDrawComplete();
     setIsLoading(false);
   }, [uploadedImage, uploadedLogo, uploadedLogos, existingImageUrl, existingLogoUrl, existingLogoUrls, config.logo, config.multiLogo, logoHeight, onDrawStart, onDrawComplete]);
-  
+
   // 렌더링 로직 통합 (더블 버퍼링 적용)
   useEffect(() => {
     const visibleCanvas = (ref as RefObject<HTMLCanvasElement>).current;
@@ -596,69 +596,69 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
 
     const render = async () => {
       const dpr = window.devicePixelRatio || 1;
-      
+
       if (isBasicBannerPC) {
         // 기본배너 PC: 2880×480 고정, DPR 반영
         // HTML 속성 width/height 설정으로 내부 픽셀 확정
         visibleCanvas.width = 2880 * dpr;
         visibleCanvas.height = 480 * dpr;
         visibleCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        
+
         // 1. 모든 드로잉을 오프스크린 캔버스에서 수행
         await drawBackground(offscreenCtx, offscreenCanvas);
         drawTextElements(offscreenCtx, textElements);
 
         // 2. 완성된 결과물을 보이는 캔버스로 한번에 복사
         visibleCtx.clearRect(0, 0, 2880, 480);
-        visibleCtx.drawImage(offscreenCanvas, 0, 0);
+        visibleCtx.drawImage(offscreenCanvas, 0, 0, offscreenCanvas.width, offscreenCanvas.height, 0, 0, 2880, 480);
       } else {
         // 기타 배너: designSize 기준으로 DPR 반영하여 렌더링
         visibleCanvas.width = designSize.w * dpr;
         visibleCanvas.height = designSize.h * dpr;
         visibleCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        
+
         // 1. 모든 드로잉을 오프스크린 캔버스에서 수행
         await drawBackground(offscreenCtx, offscreenCanvas);
         drawTextElements(offscreenCtx, textElements);
 
         // 2. 완성된 결과물을 보이는 캔버스로 한번에 복사
         visibleCtx.clearRect(0, 0, designSize.w, designSize.h);
-        visibleCtx.drawImage(offscreenCanvas, 0, 0);
+        visibleCtx.drawImage(offscreenCanvas, 0, 0, offscreenCanvas.width, offscreenCanvas.height, 0, 0, designSize.w, designSize.h);
       }
     };
 
     render();
   }, [
-    ref, 
-    textElements, 
-    drawTextElements, 
-    drawBackground, 
-    uploadedImage, 
-    uploadedLogo, 
-    uploadedLogos, 
-    existingImageUrl, 
-    existingLogoUrl, 
-    existingLogoUrls, 
-    logoHeight, 
+    ref,
+    textElements,
+    drawTextElements,
+    drawBackground,
+    uploadedImage,
+    uploadedLogo,
+    uploadedLogos,
+    existingImageUrl,
+    existingLogoUrl,
+    existingLogoUrls,
+    logoHeight,
     config
   ]);
 
   // 미리보기 컨테이너 크기 - CSS 스케일링만 적용
   const maxPreviewWidth = 600; // 좌측 70% 컨테이너에 맞는 크기
   const maxPreviewHeight = 400;
-  
+
   // 컨테이너 크기 계산 (designSize 기준)
   const containerWidth = Math.min(designSize.w, maxPreviewWidth);
   const containerHeight = Math.min(designSize.h, maxPreviewHeight);
-  
+
   // 미리보기 스케일 계산 (designSize 대비 컨테이너 크기)
   const previewScale = Math.min(containerWidth / designSize.w, containerHeight / designSize.h);
-  
+
   // exportToImage 함수 - CSS 배율 무시하고 디자인 해상도로만 출력
   const exportToImage = (format: 'image/jpeg' | 'image/png' = 'image/jpeg', quality: number = 0.92): string => {
     const canvas = document.createElement('canvas');
     const dpr = window.devicePixelRatio || 1;
-    
+
     if (isBasicBannerPC) {
       // 기본배너 PC: 2880×480 고정, DPR 반영
       // HTML 속성 width/height 설정으로 내부 픽셀 확정
@@ -669,20 +669,20 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       canvas.width = designSize.w * dpr;
       canvas.height = designSize.h * dpr;
     }
-    
+
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       throw new Error('Canvas context를 생성할 수 없습니다.');
     }
-    
+
     // DPR 변환 적용
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    
+
     // 오프스크린 캔버스에서 렌더링
     if (offscreenCanvasRef.current) {
       ctx.drawImage(offscreenCanvasRef.current, 0, 0);
     }
-    
+
     return canvas.toDataURL(format, quality);
   };
 
@@ -693,10 +693,10 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         미리보기
       </h2>
       <div className="flex justify-center items-center bg-gray-50 rounded-lg p-4 overflow-hidden">
-        <div 
-          className="relative" 
-          style={{ 
-            width: containerWidth, 
+        <div
+          className="relative"
+          style={{
+            width: containerWidth,
             height: containerHeight,
             boxSizing: 'border-box',
             overflow: 'hidden'
