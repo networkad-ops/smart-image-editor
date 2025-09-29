@@ -337,12 +337,13 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     setNewText('');
   };
 
-  // 메인타이틀과 서브타이틀, 버튼 텍스트, 하단 서브타이틀 분리
+  // 메인타이틀과 서브타이틀, 버튼 텍스트, 하단 서브타이틀, CTA 버튼 분리
   const mainTitle = textElements.find(el => el.id === 'main-title');
   const subTitle = textElements.find(el => el.id === 'sub-title');
   const bottomSubTitle = textElements.find(el => el.id === 'bottom-sub-title');
   const buttonText = textElements.find(el => el.id === 'button-text');
-  const otherTexts = textElements.filter(el => el.id !== 'main-title' && el.id !== 'sub-title' && el.id !== 'bottom-sub-title' && el.id !== 'button-text');
+  const ctaButton = textElements.find(el => el.id === 'cta-button');
+  const otherTexts = textElements.filter(el => el.id !== 'main-title' && el.id !== 'sub-title' && el.id !== 'bottom-sub-title' && el.id !== 'button-text' && el.id !== 'cta-button');
 
   // 텍스트 색상/그라데이션 UI 렌더링 보완
   const renderColorControls = (element: TextElement) => (
@@ -631,6 +632,98 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                ))}
               </div>
              </div>
+          </div>
+        </div>
+      )}
+
+      {/* CTA 버튼 텍스트 편집 */}
+      {ctaButton && config.ctaButton && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <h3 className="font-medium text-sm mb-2 text-yellow-800">CTA 버튼 텍스트</h3>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium mb-1">버튼 텍스트</label>
+              <input
+                type="text"
+                value={ctaButton.text || ''}
+                onChange={(e) => onUpdateTextLegacy('cta-button', { text: e.target.value })}
+                placeholder={config.ctaButton.placeholder || '버튼 텍스트를 입력하세요'}
+                maxLength={config.ctaButton.maxLength || 20}
+                className="w-full px-3 py-2 border rounded text-sm"
+              />
+              {config.ctaButton.maxLength && (
+                <div className="text-xs text-gray-500 mt-1">
+                  {ctaButton.text?.length || 0}/{config.ctaButton.maxLength}
+                </div>
+              )}
+            </div>
+            
+            {/* CTA 버튼 색상 편집 */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium block mb-1">텍스트 색상</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={ctaButton.color || '#000000'}
+                    onChange={(e) => onUpdateTextLegacy('cta-button', { color: e.target.value })}
+                    className="w-8 h-8 border rounded cursor-pointer"
+                  />
+                  <span className="text-xs text-gray-500">{ctaButton.color || '#000000'}</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium block mb-1">배경 색상</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={ctaButton.backgroundColor || '#FFD700'}
+                    onChange={(e) => onUpdateTextLegacy('cta-button', { backgroundColor: e.target.value })}
+                    className="w-8 h-8 border rounded cursor-pointer"
+                  />
+                  <span className="text-xs text-gray-500">{ctaButton.backgroundColor || '#FFD700'}</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* 빠른 색상 선택 */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">빠른 텍스트 색상</label>
+                <div className="flex flex-wrap gap-1">
+                  {[
+                    '#000000', '#FFFFFF', '#FF6B35', '#F7931E', 
+                    '#FFD700', '#32CD32', '#4169E1', '#8A2BE2'
+                  ].map((color) => (
+                    <button
+                      key={color}
+                      className="w-5 h-5 rounded border border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
+                      style={{ backgroundColor: color }}
+                      onClick={() => onUpdateTextLegacy('cta-button', { color })}
+                      title={`텍스트 색상: ${color}`}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">빠른 배경 색상</label>
+                <div className="flex flex-wrap gap-1">
+                  {[
+                    '#FFD700', '#4F46E5', '#059669', '#DC2626', 
+                    '#7C3AED', '#DB2777', '#EA580C', '#000000'
+                  ].map((color) => (
+                    <button
+                      key={color}
+                      className="w-5 h-5 rounded border border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
+                      style={{ backgroundColor: color }}
+                      onClick={() => onUpdateTextLegacy('cta-button', { backgroundColor: color })}
+                      title={`배경 색상: ${color}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

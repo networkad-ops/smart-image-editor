@@ -423,19 +423,83 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     }
   },
 
+  'popup': {
+    name: '메인홈 팝업',
+    dbType: 'popup',
+    width: 390,
+    height: 520,
+    maxFileSize: 1 * 1024 * 1024,
+    fixedText: true,
+    allowCustomText: false,
+    subTitle: {
+      x: 20,
+      y: 80,
+      width: 350,
+      height: 40,
+      fontSize: 16,
+      lineHeight: 20,
+      fontFamily: 'Pretendard',
+      fontWeight: 500,
+      letterSpacing: -0.16,
+      maxLength: 50,
+      maxLines: 2
+    },
+    mainTitle: {
+      x: 20,
+      y: 130,
+      width: 350,
+      height: 80,
+      fontSize: 24,
+      lineHeight: 30,
+      fontFamily: 'Pretendard',
+      fontWeight: 700,
+      letterSpacing: -0.48,
+      maxLength: 100,
+      maxLines: 3
+    },
+    ctaButton: {
+      x: 20,
+      y: 420,
+      width: 350,
+      height: 50,
+      backgroundColor: '#FFD700',
+      textColor: '#000000',
+      fontSize: 18,
+      fontFamily: 'Pretendard',
+      fontWeight: 700,
+      borderRadius: 8,
+      text: '할인받고 구매하기',
+      allowCustomText: true,
+      maxLength: 20,
+      placeholder: '버튼 텍스트를 입력하세요'
+    }
+  }
+
 };
 
 // 배너 타입별 설정 가져오기
 export const getBannerConfig = (bannerType: string, deviceType: string): BannerConfig => {
+  // 팝업 배너는 deviceType을 무시하고 단일 설정 사용
+  if (bannerType === 'popup') {
+    return bannerConfigs['popup'];
+  }
+  
   const key = `${bannerType}-${deviceType}`;
   return bannerConfigs[key];
 };
 
 // 사용 가능한 배너 타입 목록
 export const getAvailableBannerTypes = (deviceType: string): string[] => {
-  return Object.keys(bannerConfigs)
+  const types = Object.keys(bannerConfigs)
     .filter(key => key.endsWith(deviceType))
     .map(key => key.replace(`-${deviceType}`, ''));
+  
+  // 팝업 배너는 모든 deviceType에서 사용 가능
+  if (!types.includes('popup')) {
+    types.push('popup');
+  }
+  
+  return types;
 };
 
 

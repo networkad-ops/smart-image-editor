@@ -140,6 +140,27 @@ function App() {
           }
         }
         
+        // CTA 버튼이 없고 설정에 있는 경우 추가
+        if (config.ctaButton && !existingElements.find(el => el.id === 'cta-button')) {
+          console.log('CTA 버튼 요소 추가');
+          existingElements.push({
+            id: 'cta-button',
+            type: 'fixed',
+            text: '', // 빈 문자열로 시작
+            x: config.ctaButton.x,
+            y: config.ctaButton.y,
+            width: config.ctaButton.width,
+            height: config.ctaButton.height,
+            fontSize: config.ctaButton.fontSize,
+            fontFamily: config.ctaButton.fontFamily,
+            fontWeight: config.ctaButton.fontWeight,
+            letterSpacing: 0,
+            color: config.ctaButton.textColor,
+            backgroundColor: config.ctaButton.backgroundColor,
+            editable: { position: false, size: false, color: false }
+          });
+        }
+        
         setTextElements(existingElements);
       } else {
         console.warn('텍스트 요소가 배열이 아닙니다. 기본 설정으로 초기화합니다.');
@@ -324,6 +345,31 @@ function App() {
           position: true,
           size: false,
           color: true
+        }
+      });
+    }
+    
+    // CTA 버튼
+    if (selection.config.ctaButton) {
+      elements.push({
+        id: 'cta-button',
+        type: 'fixed',
+        text: '', // 빈 문자열로 시작
+        x: selection.config.ctaButton.x,
+        y: selection.config.ctaButton.y,
+        width: selection.config.ctaButton.width,
+        height: selection.config.ctaButton.height,
+        fontSize: selection.config.ctaButton.fontSize,
+        fontPxAtBase: selection.config.ctaButton.fontSize,
+        fontFamily: selection.config.ctaButton.fontFamily,
+        fontWeight: selection.config.ctaButton.fontWeight,
+        letterSpacing: 0,
+        color: selection.config.ctaButton.textColor,
+        backgroundColor: selection.config.ctaButton.backgroundColor,
+        editable: {
+          position: false,
+          size: false,
+          color: false
         }
       });
     }

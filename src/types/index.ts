@@ -3,7 +3,8 @@ export type BannerType =
   | 'basic-no-logo'
   | 'basic-with-logo'
   | 'interactive'
-  | 'fullscreen';
+  | 'fullscreen'
+  | 'popup';
 
 export type DeviceType = 'pc' | 'mobile';
 
@@ -22,6 +23,7 @@ export interface BannerConfig {
   logo?: LogoConfig;
   multiLogo?: MultiLogoConfig; // 다중 로고 설정 (항공팀용)
   buttonText?: TextConfig;
+  ctaButton?: CTAButtonConfig; // CTA 버튼 설정 (팝업용)
 }
 
 // 텍스트 설정 타입
@@ -59,6 +61,24 @@ export interface MultiLogoConfig {
   separatorWidth: number; // 구분자 너비
   maxLogos: number; // 최대 로고 개수
   maxFileSize?: number;
+}
+
+// CTA 버튼 설정 타입 (팝업용)
+export interface CTAButtonConfig {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  backgroundColor: string;
+  textColor: string;
+  fontSize: number;
+  fontFamily: string;
+  fontWeight: number;
+  borderRadius?: number;
+  text?: string; // 기본 텍스트 (선택사항)
+  allowCustomText?: boolean; // 사용자 텍스트 입력 허용 여부
+  maxLength?: number; // 최대 텍스트 길이
+  placeholder?: string; // 플레이스홀더 텍스트
 }
 
 // 색상 세그먼트 타입 (부분 색상 변경용)
@@ -147,7 +167,7 @@ export interface Banner {
   project_id?: string; // 프로젝트 ID 추가
   title: string; // 이제 "팀명/프로젝트명" 형태로 저장
   description?: string;
-  banner_type: 'basic-no-logo' | 'basic-with-logo' | 'basic-pc' | 'basic-pc-logo' | 'event' | 'interactive' | 'fullscreen' | 'airline';
+  banner_type: 'basic-no-logo' | 'basic-with-logo' | 'basic-pc' | 'basic-pc-logo' | 'event' | 'interactive' | 'fullscreen' | 'airline' | 'popup';
   device_type: 'pc' | 'mobile';
   status: BannerStatus;
   // 새로운 URL 구조

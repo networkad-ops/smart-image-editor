@@ -235,6 +235,42 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         ctx.shadowOffsetY = 0;
       }
 
+      // CTA 버튼인 경우 배경 그리기
+      if (element.id === 'cta-button') {
+        const buttonX = element.x;
+        const buttonY = element.y;
+        const buttonWidth = element.width;
+        const buttonHeight = element.height;
+        const borderRadius = 8;  // CTA 버튼의 둥근 모서리
+
+        // CTA 버튼 배경색
+        const backgroundColor = element.backgroundColor || '#FFD700';
+        ctx.fillStyle = backgroundColor;
+
+        // 둥근 모서리 사각형 그리기
+        ctx.beginPath();
+        ctx.moveTo(buttonX + borderRadius, buttonY);
+        ctx.lineTo(buttonX + buttonWidth - borderRadius, buttonY);
+        ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY, buttonX + buttonWidth, buttonY + borderRadius);
+        ctx.lineTo(buttonX + buttonWidth, buttonY + buttonHeight - borderRadius);
+        ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY + buttonHeight, buttonX + buttonWidth - borderRadius, buttonY + buttonHeight);
+        ctx.lineTo(buttonX + borderRadius, buttonY + buttonHeight);
+        ctx.quadraticCurveTo(buttonX, buttonY + buttonHeight, buttonX, buttonY + buttonHeight - borderRadius);
+        ctx.lineTo(buttonX, buttonY + buttonHeight - borderRadius);
+        ctx.quadraticCurveTo(buttonX, buttonY, buttonX + borderRadius, buttonY);
+        ctx.closePath();
+        ctx.fill();
+
+        // CTA 버튼 그림자 효과
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 3;
+        ctx.fill();
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+      }
+
       // 폰트 설정 (fontPxAtBase 우선 사용)
       const fontWeight = element.fontWeight || 400;
       const finalFontSize = element.fontPxAtBase || element.fontSize;
@@ -247,6 +283,9 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       if (element.id === 'button-text') {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+      } else if (element.id === 'cta-button') {
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
       } else if ((element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') && isInteractiveBanner) {
         // 인터랙티브 배너의 텍스트들만 중앙 정렬
         ctx.textAlign = 'center';
@@ -255,6 +294,23 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         // 나머지는 모두 왼쪽 정렬 (기본 배너, 전면 배너 등)
         ctx.textAlign = 'start';
         ctx.textBaseline = 'top';
+      }
+
+      // CTA 버튼은 단일 줄이므로 별도 처리
+      if (element.id === 'cta-button') {
+        if (element.text && element.text.trim() !== '') {
+          ctx.fillStyle = element.color;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const centerX = element.x + element.width / 2;
+          const centerY = element.y + element.height / 2;
+          if (element.letterSpacing) {
+            drawTextWithLetterSpacing(ctx, element.text, centerX, centerY, element.letterSpacing);
+          } else {
+            ctx.fillText(element.text, centerX, centerY);
+          }
+        }
+        return; // CTA 버튼은 여기서 종료
       }
 
       // 줄바꿈 처리 (CRLF 통일)

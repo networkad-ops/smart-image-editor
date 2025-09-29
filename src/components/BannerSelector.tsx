@@ -14,10 +14,14 @@ const BannerSelector: React.FC<BannerSelectorProps> = ({ onBannerSelect, onBanne
   
   const handleCardClick = (key: string, config: any) => {
     // 올바른 방법으로 bannerType과 deviceType 분리
-    let bannerType: 'basic-no-logo' | 'basic-with-logo' | 'interactive' | 'fullscreen';
+    let bannerType: 'basic-no-logo' | 'basic-with-logo' | 'interactive' | 'fullscreen' | 'popup';
     let deviceType: 'pc' | 'mobile';
     
-    if (key.endsWith('-pc')) {
+    if (key === 'popup') {
+      // 팝업 배너는 deviceType을 무시하고 기본값 사용
+      bannerType = 'popup';
+      deviceType = 'pc'; // 기본값으로 pc 사용
+    } else if (key.endsWith('-pc')) {
       bannerType = key.replace('-pc', '') as any;
       deviceType = 'pc';
     } else if (key.endsWith('-mobile')) {
