@@ -20,7 +20,7 @@ export const BASIC_PC = {
     fontWeight: 500,
     letterSpacing: -0.54, // 54 * -0.01
     maxLength: 20,
-    maxLines: 2
+    maxLines: 1
   },
   mainTitle: {
     x: 110,
@@ -86,7 +86,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 500,
       letterSpacing: -0.54, // 54 * -0.01
       maxLength: 20,
-      maxLines: 2
+      maxLines: 1
     },
     mainTitle: {
       x: 110,
@@ -98,8 +98,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700,
       letterSpacing: -1.68, // 84 * -0.02
-      maxLength: 36,
-      maxLines: 2
+    maxLength: 36,
+    maxLines: 2
     }
   },
 
@@ -122,7 +122,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 500,
       letterSpacing: -0.6, // 60 * -0.01
       maxLength: 20,
-      maxLines: 2
+      maxLines: 1
     },
     mainTitle: {
       x: 81,
@@ -134,8 +134,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700,
       letterSpacing: -1.6, // 80 * -0.02
-      maxLength: 24,
-      maxLines: 2
+    maxLength: 24,
+    maxLines: 2
     }
   },
 
@@ -157,8 +157,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700,
       letterSpacing: -1.68, // 84 * -0.02
-      maxLength: 36,
-      maxLines: 2
+    maxLength: 36,
+    maxLines: 2
     },
     logo: {
       x: 110,
@@ -185,8 +185,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       lineHeight: 99,
       fontFamily: 'Pretendard',
       fontWeight: 700,
-      maxLength: 24,
-      maxLines: 2
+    maxLength: 24,
+    maxLines: 2
     },
     logo: {
       x: 81,
@@ -216,7 +216,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 600,
       letterSpacing: -0.76,
       maxLength: 25,
-      maxLines: 2
+      maxLines: 1
     },
     mainTitle: {
       x: 645,
@@ -228,8 +228,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700,
       letterSpacing: -1.08,
-      maxLength: 30,
-      maxLines: 2
+    maxLength: 30,
+    maxLines: 2
     }
   },
 
@@ -252,7 +252,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 500, // Medium
       letterSpacing: -0.6, // -1%
       maxLength: 20,
-      maxLines: 2
+      maxLines: 1
     },
     mainTitle: {
       x: 81,
@@ -264,8 +264,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // -2%
-      maxLength: 24,
-      maxLines: 2
+    maxLength: 24,
+    maxLines: 2
     },
     bottomSubTitle: {
       x: 81,
@@ -278,7 +278,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700, // Bold
       letterSpacing: -1.2, // -2%
       maxLength: 20,
-      maxLines: 2
+      maxLines: 1
     }
   },
 
@@ -301,7 +301,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 500, // Medium
       letterSpacing: -0.54, // -1%
       maxLength: 20,
-      maxLines: 2
+      maxLines: 1
     },
     mainTitle: {
       x: 110,
@@ -313,8 +313,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // -2%
-      maxLength: 36,
-      maxLines: 2
+    maxLength: 36,
+    maxLines: 2
     },
     bottomSubTitle: {
       x: 110,
@@ -326,8 +326,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
       letterSpacing: -1.28, // -2%
-      maxLength: 30,
-      maxLines: 2
+    maxLength: 30,
+    maxLines: 2
     }
   },
 
@@ -349,8 +349,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // 80 * -0.02
-      maxLength: 24,
-      maxLines: 2
+    maxLength: 24,
+    maxLines: 2
     },
     bottomSubTitle: {
       x: 81,
@@ -363,7 +363,7 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontWeight: 700, // Bold
       letterSpacing: -1.2, // 60 * -0.02
       maxLength: 20,
-      maxLines: 2
+      maxLines: 1
     },
     multiLogo: {
       x: 81,
@@ -395,8 +395,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
       letterSpacing: -1.6, // 80 * -0.02
-      maxLength: 36,
-      maxLines: 2
+    maxLength: 36,
+    maxLines: 2
     },
     bottomSubTitle: {
       x: 110,
@@ -408,8 +408,8 @@ export const bannerConfigs: Record<string, BannerConfig> = {
       fontFamily: 'Pretendard',
       fontWeight: 700, // Bold
       letterSpacing: -1.28, // 64 * -0.02
-      maxLength: 30,
-      maxLines: 2
+    maxLength: 30,
+    maxLines: 2
     },
     multiLogo: {
       x: 110,
@@ -432,43 +432,43 @@ export const bannerConfigs: Record<string, BannerConfig> = {
     fixedText: true,
     allowCustomText: false,
     subTitle: {
-      x: 20,
-      y: 80,
-      width: 350,
-      height: 40,
+      x: 0,
+      y: 70,
+      width: 390,
+      height: 30,
       fontSize: 16,
       lineHeight: 20,
       fontFamily: 'Pretendard',
       fontWeight: 500,
       letterSpacing: -0.16,
-      maxLength: 50,
-      maxLines: 2
+      maxLength: 30,
+      maxLines: 1
     },
     mainTitle: {
-      x: 20,
-      y: 130,
-      width: 350,
-      height: 80,
+      x: 0,
+      y: 95,
+      width: 390,
+      height: 70,
       fontSize: 24,
       lineHeight: 30,
       fontFamily: 'Pretendard',
       fontWeight: 700,
       letterSpacing: -0.48,
-      maxLength: 100,
-      maxLines: 3
+      maxLength: 40,
+      maxLines: 2
     },
     ctaButton: {
       x: 20,
       y: 420,
       width: 350,
       height: 50,
-      backgroundColor: '#FFD700',
+      backgroundColor: 'transparent',
       textColor: '#000000',
       fontSize: 18,
       fontFamily: 'Pretendard',
       fontWeight: 700,
       borderRadius: 8,
-      text: '할인받고 구매하기',
+      text: '',
       allowCustomText: true,
       maxLength: 20,
       placeholder: '버튼 텍스트를 입력하세요'

@@ -260,13 +260,6 @@ const drawTextElements = (
   textElements: TextElement[],
   config: BannerConfig
 ): void => {
-  // 진단 로그: 메인타이틀과 서브타이틀 색상 정보 출력
-  const mainTitle = textElements.find(el => el.id === 'main-title');
-  const subTitle = textElements.find(el => el.id === 'sub-title');
-  console.debug('[EXPORT_COLOR]', { 
-    subtitle: subTitle?.color, 
-    mainTitle: mainTitle?.color 
-  });
   
   textElements.forEach(element => {
     ctx.save();
@@ -305,6 +298,44 @@ const drawTextElements = (
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
     }
+
+    // CTA 버튼인 경우 배경 그리기 (popup 배너에서만)
+    if (element.id === 'cta-button' && config.dbType === 'popup') {
+      const buttonX = element.x;
+      const buttonY = element.y;
+      const buttonWidth = element.width;
+      const buttonHeight = element.height;
+      const borderRadius = 8;  // CTA 버튼의 둥근 모서리
+
+      // CTA 버튼 배경색
+      const backgroundColor = element.backgroundColor || 'transparent';
+      if (backgroundColor !== 'transparent') {
+        ctx.fillStyle = backgroundColor;
+
+        // 둥근 모서리 사각형 그리기
+        ctx.beginPath();
+        ctx.moveTo(buttonX + borderRadius, buttonY);
+        ctx.lineTo(buttonX + buttonWidth - borderRadius, buttonY);
+        ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY, buttonX + buttonWidth, buttonY + borderRadius);
+        ctx.lineTo(buttonX + buttonWidth, buttonY + buttonHeight - borderRadius);
+        ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY + buttonHeight, buttonX + buttonWidth - borderRadius, buttonY + buttonHeight);
+        ctx.lineTo(buttonX + borderRadius, buttonY + buttonHeight);
+        ctx.quadraticCurveTo(buttonX, buttonY + buttonHeight, buttonX, buttonY + buttonHeight - borderRadius);
+        ctx.lineTo(buttonX, buttonY + buttonHeight - borderRadius);
+        ctx.quadraticCurveTo(buttonX, buttonY, buttonX + borderRadius, buttonY);
+        ctx.closePath();
+        ctx.fill();
+
+        // CTA 버튼 그림자 효과
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 3;
+        ctx.fill();
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+      }
+    }
     
     // 폰트 설정 (fontPxAtBase 우선 사용)
     const fontWeight = element.fontWeight || 400;
@@ -316,6 +347,9 @@ const drawTextElements = (
     const isInteractiveBanner = config.name.includes('인터랙티브');
     
     if (element.id === 'button-text') {
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+    } else if (element.id === 'cta-button') {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
     } else if ((element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') && isInteractiveBanner) {
@@ -338,7 +372,6 @@ const drawTextElements = (
       
       lines.forEach((line, lineIndex) => {
         const y = element.y + (lineIndex * lineHeight);
-        let x = element.x; // 줄마다 x를 left로 초기화
         const letterSpacing = finalFontSize * -0.02; // -2% 자간
         
         // 해당 줄의 세그먼트 필터링
@@ -348,6 +381,23 @@ const drawTextElements = (
         // buildRunsForLine을 사용하여 부분 색상 렌더링
         const runs = buildRunsForLine(line, lineColorSegments, linePreviewSegments, element.color);
         
+        // 메인타이틀: 팝업 배너일 때만 중앙 정렬, 아니면 좌측 정렬
+        let x;
+        if (config.dbType === 'popup') {
+          // 팝업 배너: 수동으로 중앙 정렬 계산
+          const totalRunsWidth = runs.reduce((sum, run) => {
+            if (letterSpacing !== 0) {
+              return sum + run.text.split('').reduce((runSum, char, idx) =>
+                runSum + ctx.measureText(char).width + (idx < run.text.length - 1 ? letterSpacing : 0), 0);
+            } else {
+              return sum + ctx.measureText(run.text).width;
+            }
+          }, 0);
+          x = (element.x + element.width / 2) - totalRunsWidth / 2;
+        } else {
+          // 팝업이 아닌 경우: 좌측 정렬
+          x = element.x;
+        }
         runs.forEach(run => {
           ctx.fillStyle = run.color;
           if (letterSpacing !== 0) {
@@ -358,6 +408,20 @@ const drawTextElements = (
           x += ctx.measureText(run.text).width;
         });
       });
+    } else if (element.id === 'cta-button') {
+      // CTA 버튼은 단일 줄이므로 별도 처리 (popup 배너에서만)
+      if (config.dbType === 'popup' && element.text && element.text.trim() !== '') {
+        ctx.fillStyle = element.color || '#000000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const centerX = element.x + element.width / 2;
+        const centerY = element.y + element.height / 2;
+        if (element.letterSpacing) {
+          drawTextWithLetterSpacing(ctx, element.text, centerX, centerY, element.letterSpacing);
+        } else {
+          ctx.fillText(element.text, centerX, centerY);
+        }
+      }
     } else {
       // 다른 텍스트 요소들은 기존 maxLines 제한 적용 (서브타이틀은 1줄)
       const maxLines = element.id === 'sub-title' ? 1 : (config.mainTitle?.maxLines || config.subTitle?.maxLines || config.bottomSubTitle?.maxLines || 1);
@@ -379,10 +443,28 @@ const drawTextElements = (
       } else if ((element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') && isInteractiveBanner) {
         y = element.y + (lineIndex * lineHeight);
         currentX = element.x + element.width / 2;
+      } else if (element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') {
+        // 메인타이틀은 팝업 배너일 때만 중앙 정렬, 서브타이틀과 bottom-sub-title은 팝업 배너일 때만 중앙 정렬
+        y = element.y + (lineIndex * lineHeight);
+        if (element.id === 'main-title' && config.dbType === 'popup') {
+          // 팝업 메인타이틀: 수동으로 중앙 정렬 계산
+          const totalWidth = ctx.measureText(line).width;
+          currentX = (element.x + element.width / 2) - totalWidth / 2;
+        } else if (config.dbType === 'popup' && (element.id === 'sub-title' || element.id === 'bottom-sub-title')) {
+          // 팝업 서브타이틀: 수동으로 중앙 정렬 계산
+          const totalWidth = ctx.measureText(line).width;
+          currentX = (element.x + element.width / 2) - totalWidth / 2;
+        } else {
+          // 팝업이 아닌 경우: 좌측 정렬
+          currentX = element.x;
+        }
       } else {
         y = element.y + (lineIndex * lineHeight);
         currentX = element.x;
       }
+      
+      // 부분 색상 렌더링 시 textAlign을 start로 설정
+      ctx.textAlign = 'start';
       
       // 버튼 텍스트 간단 처리
       if (element.id === 'button-text') {

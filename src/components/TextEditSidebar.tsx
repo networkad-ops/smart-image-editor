@@ -47,12 +47,14 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     originalColor: string | null;
     originalColorSegments: ColorSegment[] | undefined;
     previewColor: string | null;
+    colorType?: 'text' | 'background';
   }>({
     isActive: false,
     elementId: null,
     originalColor: null,
     originalColorSegments: undefined,
-    previewColor: null
+    previewColor: null,
+    colorType: 'text'
   });
   
   // 그라데이션 상태
@@ -209,7 +211,6 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
     target: 'subtitle' | 'mainTitle'; 
     color: string; 
   }) => {
-    console.debug('[APPLY_NOW]', { target, selectionRanges, color });
     
     const elementId = target === 'subtitle' ? 'sub-title' : 'main-title';
     const element = textElements.find(el => el.id === elementId);
@@ -255,7 +256,16 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
   const renderUnifiedColorPicker = () => {
     const isActiveColorPicker = colorPickerMode.isActive;
     const currentElement = textElements.find(el => el.id === colorPickerMode.elementId);
-    const currentColor = currentElement?.color || '#000000';
+    let currentColor = currentElement?.color || '#000000';
+    
+    // CTA 버튼의 경우 색상 타입에 따라 다른 색상 표시
+    if (colorPickerMode.elementId === 'cta-button') {
+      if (colorPickerMode.colorType === 'background') {
+        currentColor = currentElement?.backgroundColor || '#FFD700';
+      } else {
+        currentColor = currentElement?.color || '#000000';
+      }
+    }
     
     // 선택된 요소 이름 표시
     const getElementDisplayName = (elementId: string) => {
@@ -264,6 +274,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
         case 'main-title': return '메인타이틀';
         case 'bottom-sub-title': return '하단 서브타이틀';
         case 'button-text': return '버튼 텍스트';
+        case 'cta-button': return 'CTA 버튼';
         default: return '자유 텍스트';
       }
     };
@@ -279,6 +290,11 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           <div className="mb-2">
             <div className="text-xs text-blue-700 mb-1">
               편집 중: {colorPickerMode.elementId ? getElementDisplayName(colorPickerMode.elementId) : ''}
+              {colorPickerMode.elementId === 'cta-button' && (
+                <span className="ml-1 text-orange-600">
+                  ({colorPickerMode.colorType === 'background' ? '배경 색상' : '텍스트 색상'})
+                </span>
+              )}
             </div>
             <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-xs text-yellow-800">
               미리보기 중입니다. 확인 또는 취소를 선택해주세요.
@@ -286,7 +302,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           </div>
         ) : (
           <div className="text-xs text-gray-500 mb-2">
-            텍스트 입력 필드를 클릭하면 색상 편집이 활성화됩니다
+            텍스트 입력 필드나 CTA 버튼 색상을 클릭하면 색상 편집이 활성화됩니다
           </div>
         )}
         
@@ -294,16 +310,33 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
           key={`${colorPickerMode.elementId}-${currentColor}`}
           color={currentColor}
           onChange={(color) => {
-            console.debug('[PICKER]', { activeTextKey, selectionRanges, color });
             // 색상이 변경될 때마다 즉시 미리보기에 반영
             if (colorPickerMode.elementId) {
-              throttledApplyColorPreview({ target: activeTextKey, color, mode: colorPickerMode });
+              // CTA 버튼의 경우 텍스트 색상과 배경 색상을 구분해서 처리
+              if (colorPickerMode.elementId === 'cta-button') {
+                if (colorPickerMode.colorType === 'background') {
+                  onUpdateTextLegacy('cta-button', { backgroundColor: color });
+                } else {
+                  onUpdateTextLegacy('cta-button', { color: color });
+                }
+              } else {
+                throttledApplyColorPreview({ target: activeTextKey, color, mode: colorPickerMode });
+              }
             }
           }}
           onPreview={(color) => {
             // 드래그 중일 때도 실시간 반영
             if (colorPickerMode.elementId) {
-              throttledApplyColorPreview({ target: activeTextKey, color, mode: colorPickerMode });
+              // CTA 버튼의 경우 텍스트 색상과 배경 색상을 구분해서 처리
+              if (colorPickerMode.elementId === 'cta-button') {
+                if (colorPickerMode.colorType === 'background') {
+                  onUpdateTextLegacy('cta-button', { backgroundColor: color });
+                } else {
+                  onUpdateTextLegacy('cta-button', { color: color });
+                }
+              } else {
+                throttledApplyColorPreview({ target: activeTextKey, color, mode: colorPickerMode });
+              }
             }
           }}
           onConfirm={confirmColorChange}
@@ -438,7 +471,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
             onMouseUp={() => handleTextSelect('sub-title', subTitleInputRef)}
             onKeyUp={() => handleTextSelect('sub-title', subTitleInputRef)}
             className="w-full px-3 py-2 border rounded mb-2 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-            placeholder={isBasicBannerPC ? "서브타이틀 입력 (최대 20자, 1줄)" : "서브타이틀 입력"}
+            placeholder="서브타이틀 입력 (최대 1줄)"
             maxLength={isBasicBannerPC ? 20 : config.subTitle.maxLength}
           />
           
@@ -464,7 +497,7 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               )}
             </div>
             <span className="text-xs text-gray-500">
-              {mainTitle?.text?.length || 0}/{isBasicBannerPC ? 36 : config.mainTitle.maxLength} | {mainTitle?.text?.split('\n').length || 0}/2줄
+              {mainTitle?.text?.length || 0}/{isBasicBannerPC ? 36 : config.mainTitle.maxLength} | {mainTitle?.text?.split('\n').length || 0}/{isBasicBannerPC ? 2 : config.mainTitle.maxLines || 2}줄
             </span>
           </div>
           
@@ -650,6 +683,16 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
                 placeholder={config.ctaButton.placeholder || '버튼 텍스트를 입력하세요'}
                 maxLength={config.ctaButton.maxLength || 20}
                 className="w-full px-3 py-2 border rounded text-sm"
+                onClick={() => {
+                  setColorPickerMode({ 
+                    isActive: true, 
+                    elementId: 'cta-button', 
+                    originalColor: ctaButton?.color || '#000000',
+                    originalColorSegments: undefined,
+                    previewColor: null,
+                    colorType: 'text' 
+                  });
+                }}
               />
               {config.ctaButton.maxLength && (
                 <div className="text-xs text-gray-500 mt-1">
@@ -658,71 +701,41 @@ export const TextEditSidebar: React.FC<TextEditSidebarProps> = ({
               )}
             </div>
             
-            {/* CTA 버튼 색상 편집 */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium block mb-1">텍스트 색상</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={ctaButton.color || '#000000'}
-                    onChange={(e) => onUpdateTextLegacy('cta-button', { color: e.target.value })}
-                    className="w-8 h-8 border rounded cursor-pointer"
-                  />
-                  <span className="text-xs text-gray-500">{ctaButton.color || '#000000'}</span>
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-medium block mb-1">배경 색상</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={ctaButton.backgroundColor || '#FFD700'}
-                    onChange={(e) => onUpdateTextLegacy('cta-button', { backgroundColor: e.target.value })}
-                    className="w-8 h-8 border rounded cursor-pointer"
-                  />
-                  <span className="text-xs text-gray-500">{ctaButton.backgroundColor || '#FFD700'}</span>
-                </div>
-              </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  setColorPickerMode({ 
+                    isActive: true, 
+                    elementId: 'cta-button', 
+                    originalColor: ctaButton?.color || '#000000',
+                    originalColorSegments: undefined,
+                    previewColor: null,
+                    colorType: 'text' 
+                  });
+                }}
+                className="px-3 py-2 text-xs border rounded hover:bg-gray-50"
+              >
+                텍스트 색상 편집
+              </button>
+              <button
+                onClick={() => {
+                  setColorPickerMode({ 
+                    isActive: true, 
+                    elementId: 'cta-button', 
+                    originalColor: ctaButton?.backgroundColor || '#FFD700',
+                    originalColorSegments: undefined,
+                    previewColor: null,
+                    colorType: 'background' 
+                  });
+                }}
+                className="px-3 py-2 text-xs border rounded hover:bg-gray-50"
+              >
+                배경 색상 편집
+              </button>
             </div>
             
-            {/* 빠른 색상 선택 */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">빠른 텍스트 색상</label>
-                <div className="flex flex-wrap gap-1">
-                  {[
-                    '#000000', '#FFFFFF', '#FF6B35', '#F7931E', 
-                    '#FFD700', '#32CD32', '#4169E1', '#8A2BE2'
-                  ].map((color) => (
-                    <button
-                      key={color}
-                      className="w-5 h-5 rounded border border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
-                      style={{ backgroundColor: color }}
-                      onClick={() => onUpdateTextLegacy('cta-button', { color })}
-                      title={`텍스트 색상: ${color}`}
-                    />
-                  ))}
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">빠른 배경 색상</label>
-                <div className="flex flex-wrap gap-1">
-                  {[
-                    '#FFD700', '#4F46E5', '#059669', '#DC2626', 
-                    '#7C3AED', '#DB2777', '#EA580C', '#000000'
-                  ].map((color) => (
-                    <button
-                      key={color}
-                      className="w-5 h-5 rounded border border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
-                      style={{ backgroundColor: color }}
-                      onClick={() => onUpdateTextLegacy('cta-button', { backgroundColor: color })}
-                      title={`배경 색상: ${color}`}
-                    />
-                  ))}
-                </div>
-              </div>
+            <div className="text-xs text-gray-500">
+              색상은 하단의 통합 색상 선택기에서 조정하세요.
             </div>
           </div>
         </div>

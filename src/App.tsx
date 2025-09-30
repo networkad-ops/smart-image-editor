@@ -36,16 +36,11 @@ function App() {
 
   // 배너 편집 (히스토리에서)
   const handleBannerEdit = async (banner: Banner) => {
-    console.log('handleBannerEdit 호출됨:', banner);
-    
     setEditingBanner(banner);
     
     // 배너 설정으로 BannerSelection 생성
     const configKey = `${banner.banner_type.replace(/-pc$|-mobile$/, '')}-${banner.device_type}` as keyof typeof bannerConfigs;
     let config = bannerConfigs[configKey];
-    
-    console.log('Config Key:', configKey);
-    console.log('Config:', config);
     
     // Config가 없는 경우 기본 설정 사용
     if (!config) {
@@ -132,11 +127,11 @@ function App() {
           });
         }
         
-        // [보완] 버튼 텍스트 요소가 있는데 text가 빈 문자열이면 기본값('버튼')을 넣어줌
+        // [보완] 버튼 텍스트 요소가 있는데 text가 빈 문자열이면 빈 문자열로 유지
         if (config.buttonText) {
           const btn = existingElements.find(el => el.id === 'button-text');
           if (btn && (!btn.text || btn.text.trim() === '')) {
-            btn.text = '버튼';
+            btn.text = '';
           }
         }
         
@@ -354,7 +349,7 @@ function App() {
       elements.push({
         id: 'cta-button',
         type: 'fixed',
-        text: '', // 빈 문자열로 시작
+        text: selection.config.ctaButton.text || '', // 기본 텍스트 설정
         x: selection.config.ctaButton.x,
         y: selection.config.ctaButton.y,
         width: selection.config.ctaButton.width,

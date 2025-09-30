@@ -187,13 +187,6 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
 
   // 텍스트 렌더링 함수
   const drawTextElements = useCallback((ctx: CanvasRenderingContext2D, elements: TextElement[]) => {
-    // 진단 로그: 메인타이틀과 서브타이틀 색상 정보 출력
-    const mainTitle = elements.find(el => el.id === 'main-title');
-    const subTitle = elements.find(el => el.id === 'sub-title');
-    console.debug('[PREVIEW_COLOR]', {
-      subtitle: subTitle?.color,
-      mainTitle: mainTitle?.color
-    });
 
     elements.forEach(element => {
       ctx.save();
@@ -235,8 +228,8 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         ctx.shadowOffsetY = 0;
       }
 
-      // CTA 버튼인 경우 배경 그리기
-      if (element.id === 'cta-button') {
+      // CTA 버튼인 경우 배경 그리기 (popup 배너에서만)
+      if (element.id === 'cta-button' && config.dbType === 'popup') {
         const buttonX = element.x;
         const buttonY = element.y;
         const buttonWidth = element.width;
@@ -278,28 +271,35 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
       ctx.textBaseline = 'top'; // 텍스트의 기준선을 상단으로 설정
 
       // 텍스트 정렬 설정
-      const isInteractiveBanner = config.name.includes('인터랙티브');
-
       if (element.id === 'button-text') {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
       } else if (element.id === 'cta-button') {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-      } else if ((element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') && isInteractiveBanner) {
-        // 인터랙티브 배너의 텍스트들만 중앙 정렬
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
+      } else if (element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') {
+        // 메인타이틀은 항상 중앙 정렬, 서브타이틀과 bottom-sub-title은 팝업 배너일 때만 중앙 정렬
+        if (element.id === 'main-title') {
+          ctx.textAlign = 'start'; // 메인타이틀은 수동으로 중앙 정렬 계산
+          ctx.textBaseline = 'top';
+        } else if (config.dbType === 'popup' && (element.id === 'sub-title' || element.id === 'bottom-sub-title')) {
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+        } else {
+          ctx.textAlign = 'start';
+          ctx.textBaseline = 'top';
+        }
       } else {
-        // 나머지는 모두 왼쪽 정렬 (기본 배너, 전면 배너 등)
+        // 나머지는 왼쪽 정렬
         ctx.textAlign = 'start';
         ctx.textBaseline = 'top';
       }
 
-      // CTA 버튼은 단일 줄이므로 별도 처리
-      if (element.id === 'cta-button') {
+      // CTA 버튼은 단일 줄이므로 별도 처리 (popup 배너에서만)
+      if (element.id === 'cta-button' && config.dbType === 'popup') {
+        // CTA 버튼 텍스트 렌더링 (텍스트가 있을 때만)
         if (element.text && element.text.trim() !== '') {
-          ctx.fillStyle = element.color;
+          ctx.fillStyle = element.color || '#000000';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           const centerX = element.x + element.width / 2;
@@ -334,9 +334,8 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
 
         lines.forEach((line, lineIndex) => {
           const y = element.y + (lineIndex * lineHeight);
-          let x = element.x; // 줄마다 x를 left로 초기화
           const letterSpacing = finalFontSize * -0.02; // -2% 자간
-
+          
           // 해당 줄의 세그먼트 필터링
           const lineColorSegments = (element.colorSegments || []).filter(s => s.line === lineIndex);
           const linePreviewSegments = (element.previewSegments || []).filter(s => s.line === lineIndex);
@@ -344,19 +343,43 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           // buildRunsForLine을 사용하여 부분 색상 렌더링
           const runs = buildRunsForLine(line, lineColorSegments, linePreviewSegments, element.color);
 
+          // 메인홈 팝업 배너만 중앙 정렬, 나머지는 왼쪽 정렬
+          let currentX = element.x;
+          if (config.dbType === 'popup') {
+            // 중앙 정렬을 위해 전체 runs의 너비를 먼저 계산
+            const totalRunsWidth = runs.reduce((sum, run) => {
+              if (letterSpacing !== 0) {
+                return sum + run.text.split('').reduce((runSum, char, idx) =>
+                  runSum + ctx.measureText(char).width + (idx < run.text.length - 1 ? letterSpacing : 0), 0);
+              } else {
+                return sum + ctx.measureText(run.text).width;
+              }
+            }, 0);
+            
+            // 중앙 정렬을 위한 시작 x 위치 재계산
+            currentX = (element.x + element.width / 2) - totalRunsWidth / 2;
+          }
+
           runs.forEach(run => {
             ctx.fillStyle = run.color;
             if (letterSpacing !== 0) {
-              drawTextWithLetterSpacing(ctx, run.text, x, y, letterSpacing);
+              drawTextWithLetterSpacing(ctx, run.text, currentX, y, letterSpacing);
+              currentX += run.text.split('').reduce((sum, char, idx) =>
+                sum + ctx.measureText(char).width + (idx < run.text.length - 1 ? letterSpacing : 0), 0);
             } else {
-              ctx.fillText(run.text, x, y);
+              ctx.fillText(run.text, currentX, y);
+              currentX += ctx.measureText(run.text).width;
             }
-            x += ctx.measureText(run.text).width;
           });
         });
       } else {
-        // 다른 텍스트 요소들은 기존 maxLines 제한 적용 (서브타이틀은 1줄)
-        const maxLines = element.id === 'sub-title' ? 1 : (config.mainTitle?.maxLines || config.subTitle?.maxLines || config.bottomSubTitle?.maxLines || 1);
+        // 다른 텍스트 요소들은 기존 maxLines 제한 적용
+        const maxLines = (() => {
+          if (element.id === 'sub-title') return config.subTitle?.maxLines || 1;
+          if (element.id === 'main-title') return config.mainTitle?.maxLines || 2;
+          if (element.id === 'bottom-sub-title') return config.bottomSubTitle?.maxLines || 1;
+          return 1;
+        })();
         // 줄바꿈 처리 (CRLF 통일)
         const lines = element.text.replace(/\r\n/g, '\n').split('\n');
         const limitedLines = lines.slice(0, maxLines);
@@ -376,12 +399,21 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           // 버튼 텍스트는 가운데 정렬
           y = element.y + element.height / 2 + (lineIndex * lineHeight);
           currentX = element.x + element.width / 2;
-        } else if ((element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') && isInteractiveBanner) {
-          // 인터랙티브 배너의 텍스트들만 중앙 정렬
+        } else if (element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') {
+          // 메인타이틀은 항상 중앙 정렬, 서브타이틀과 bottom-sub-title은 팝업 배너일 때만 중앙 정렬
           y = element.y + (lineIndex * lineHeight);
-          currentX = element.x + element.width / 2;
+          if (element.id === 'main-title') {
+            // 메인타이틀: 수동으로 중앙 정렬 계산
+            const totalWidth = ctx.measureText(line).width;
+            currentX = (element.x + element.width / 2) - totalWidth / 2;
+          } else if (config.dbType === 'popup' && (element.id === 'sub-title' || element.id === 'bottom-sub-title')) {
+            // 팝업 서브타이틀: textAlign이 'center'로 설정되어 있으므로 중앙 위치 사용
+            currentX = element.x + element.width / 2;
+          } else {
+            currentX = element.x;
+          }
         } else {
-          // 나머지는 모두 왼쪽 정렬 (기본 배너, 전면 배너 등)
+          // 나머지는 왼쪽 정렬
           y = element.y + (lineIndex * lineHeight);
           currentX = element.x;
         }
@@ -401,32 +433,75 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           // 현재 줄의 시작 인덱스 계산
           const lineStart = lines.slice(0, lineIndex).join('\n').length + (lineIndex > 0 ? 1 : 0);
 
-          // 인터랙티브 배너의 중앙 정렬인 경우 전체 텍스트 너비를 계산해서 시작 위치 조정
-          if ((element.id === 'sub-title' || element.id === 'main-title' || element.id === 'bottom-sub-title') && isInteractiveBanner) {
-            const totalWidth = element.letterSpacing
-              ? line.split('').reduce((sum, char, idx) =>
-                  sum + ctx.measureText(char).width + (idx < line.length - 1 ? (element.letterSpacing || 0) : 0), 0)
-              : ctx.measureText(line).width;
-            currentX = currentX - totalWidth / 2;
+          // 해당 줄의 세그먼트만 필터링
+          const lineColorSegments = (element.colorSegments || []).filter(s => s.line === lineIndex);
+          const linePreviewSegments = (element.previewSegments || []).filter(s => s.line === lineIndex);
+          
+          
+          // 색상 미리보기 중이면 previewSegments만 사용, 아니면 colorSegments만 사용
+          const lineRuns = linePreviewSegments.length > 0 
+            ? buildRunsForLine(line, [], linePreviewSegments, element.color)
+            : buildRunsForLine(line, lineColorSegments, [], element.color);
+          
+          // 메인타이틀은 항상 중앙 정렬, 서브타이틀과 bottom-sub-title은 팝업 배너일 때만 중앙 정렬
+          if (element.id === 'main-title') {
+            // 메인타이틀: 수동으로 중앙 정렬 계산
+            const totalRunsWidth = lineRuns.reduce((sum, run) => {
+              if (element.letterSpacing) {
+                return sum + run.text.split('').reduce((runSum, char, idx) =>
+                  runSum + ctx.measureText(char).width + (idx < run.text.length - 1 ? (element.letterSpacing || 0) : 0), 0);
+              } else {
+                return sum + ctx.measureText(run.text).width;
+              }
+            }, 0);
+            currentX = (element.x + element.width / 2) - totalRunsWidth / 2;
+          } else if (config.dbType === 'popup' && (element.id === 'sub-title' || element.id === 'bottom-sub-title')) {
+            // 팝업 서브타이틀: 수동으로 중앙 정렬 계산
+            const totalRunsWidth = lineRuns.reduce((sum, run) => {
+              if (element.letterSpacing) {
+                return sum + run.text.split('').reduce((runSum, char, idx) =>
+                  runSum + ctx.measureText(char).width + (idx < run.text.length - 1 ? (element.letterSpacing || 0) : 0), 0);
+              } else {
+                return sum + ctx.measureText(run.text).width;
+              }
+            }, 0);
+            currentX = (element.x + element.width / 2) - totalRunsWidth / 2;
+          } else {
+            // 왼쪽 정렬인 경우
+            currentX = element.x;
           }
-
-          // buildRuns를 사용하여 부분 색상 렌더링 (줄 단위)
-          const runs = buildRuns(line, element.color, element.colorSegments, element.previewSegments);
-          const lineRuns = runs.filter(run => run.line === lineIndex);
-          console.debug('[RUNS]', { elementId: element.id, lineIndex, runsLength: lineRuns.length });
+          
+          // 부분 색상 렌더링 시 textAlign을 start로 설정
+          ctx.textAlign = 'start';
+          
           let x = currentX;
 
           lineRuns.forEach(run => {
             ctx.fillStyle = run.color;
             if (element.letterSpacing) {
               drawTextWithLetterSpacing(ctx, run.text, x, y, element.letterSpacing);
+              x += run.text.split('').reduce((sum, char, idx) =>
+                sum + ctx.measureText(char).width + (idx < run.text.length - 1 ? (element.letterSpacing || 0) : 0), 0);
             } else {
               ctx.fillText(run.text, x, y);
+              x += ctx.measureText(run.text).width;
             }
-            x += ctx.measureText(run.text).width;
           });
         } else {
           // 부분 색상이 없는 경우 전체 색상 또는 그라데이션으로 렌더링
+          // 메인타이틀은 항상 중앙 정렬, 서브타이틀과 bottom-sub-title은 팝업 배너일 때만 중앙 정렬
+          if (element.id === 'main-title') {
+            // 메인타이틀: 수동으로 중앙 정렬 계산
+            const totalWidth = ctx.measureText(line).width;
+            currentX = (element.x + element.width / 2) - totalWidth / 2;
+          } else if (config.dbType === 'popup' && (element.id === 'sub-title' || element.id === 'bottom-sub-title')) {
+            // 팝업 서브타이틀: textAlign이 'center'로 설정되어 있으므로 중앙 위치 사용
+            currentX = element.x + element.width / 2;
+          } else {
+            // 왼쪽 정렬인 경우
+            currentX = element.x;
+          }
+          
           if (element.gradient) {
             // 좌→우 linearGradient
             const grad = ctx.createLinearGradient(element.x, element.y, element.x + element.width, element.y);
@@ -437,8 +512,34 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
             ctx.fillStyle = element.color;
           }
           if (element.letterSpacing) {
+            // letterSpacing이 있는 경우 textAlign을 start로 변경하고 수동으로 중앙 정렬 계산
+            if (element.id === 'main-title') {
+              // 메인타이틀: 수동으로 중앙 정렬 계산
+              const totalWidth = line.split('').reduce((sum, char, idx) =>
+                sum + ctx.measureText(char).width + (idx < line.length - 1 ? (element.letterSpacing || 0) : 0), 0);
+              currentX = (element.x + element.width / 2) - totalWidth / 2;
+              ctx.textAlign = 'start'; // letterSpacing 사용 시 start로 변경
+            } else if (config.dbType === 'popup' && (element.id === 'sub-title' || element.id === 'bottom-sub-title')) {
+              // 팝업 서브타이틀: 수동으로 중앙 정렬 계산
+              const totalWidth = line.split('').reduce((sum, char, idx) =>
+                sum + ctx.measureText(char).width + (idx < line.length - 1 ? (element.letterSpacing || 0) : 0), 0);
+              currentX = (element.x + element.width / 2) - totalWidth / 2;
+              ctx.textAlign = 'start'; // letterSpacing 사용 시 start로 변경
+            }
             drawTextWithLetterSpacing(ctx, line, currentX, y, element.letterSpacing);
           } else {
+            // letterSpacing이 없는 경우 textAlign을 start로 변경하고 수동으로 중앙 정렬 계산
+            if (element.id === 'main-title') {
+              // 메인타이틀: 수동으로 중앙 정렬 계산
+              const totalWidth = ctx.measureText(line).width;
+              currentX = (element.x + element.width / 2) - totalWidth / 2;
+              ctx.textAlign = 'start'; // fillText 사용 시 start로 변경
+            } else if (config.dbType === 'popup' && (element.id === 'sub-title' || element.id === 'bottom-sub-title')) {
+              // 팝업 서브타이틀: 수동으로 중앙 정렬 계산
+              const totalWidth = ctx.measureText(line).width;
+              currentX = (element.x + element.width / 2) - totalWidth / 2;
+              ctx.textAlign = 'start'; // fillText 사용 시 start로 변경
+            }
             ctx.fillText(line, currentX, y);
           }
         }
@@ -491,8 +592,17 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
         });
       }
       bgImg = cachedBackgroundImg.current?.img || null;
-              if (bgImg) {
-          // 이미지 비율 계산
+      if (bgImg) {
+        // 자르기 완료된 이미지인지 확인 (uploadedImage가 있으면 자르기 완료된 이미지)
+        if (uploadedImage) {
+          // 자르기 완료된 이미지는 이미 올바른 크기로 조정되었으므로 전체 캔버스를 채움
+          if (isBasicBannerPC) {
+            ctx.drawImage(bgImg, 0, 0, 2880, 480);
+          } else {
+            ctx.drawImage(bgImg, 0, 0, designSize.w, designSize.h);
+          }
+        } else {
+          // 기존 이미지나 URL에서 로드된 이미지는 비율에 맞게 중앙 정렬
           const imageRatio = bgImg.width / bgImg.height;
           let canvasRatio, drawWidth, drawHeight, offsetX, offsetY;
 
@@ -527,6 +637,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
           }
           ctx.drawImage(bgImg, offsetX, offsetY, drawWidth, drawHeight);
         }
+      }
     }
 
     // 단일 로고
@@ -701,7 +812,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
 
   // 미리보기 컨테이너 크기 - CSS 스케일링만 적용
   const maxPreviewWidth = 600; // 좌측 70% 컨테이너에 맞는 크기
-  const maxPreviewHeight = 400;
+  const maxPreviewHeight = config.dbType === 'popup' ? 600 : 400; // popup 배너는 더 큰 높이 허용
 
   // 컨테이너 크기 계산 (designSize 기준)
   const containerWidth = Math.min(designSize.w, maxPreviewWidth);
