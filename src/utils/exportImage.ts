@@ -382,7 +382,7 @@ const drawTextElements = (
         const runs = buildRunsForLine(line, lineColorSegments, linePreviewSegments, element.color);
         
         // 메인타이틀: 팝업 배너일 때만 중앙 정렬, 아니면 좌측 정렬
-        let x;
+        let x: number;
         if (config.dbType === 'popup') {
           // 팝업 배너: 수동으로 중앙 정렬 계산
           const totalRunsWidth = runs.reduce((sum, run) => {
