@@ -3,13 +3,6 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "public": true,
-  "redirects": [
-    {
-      "source": "/(.*)",
-      "destination": "https://mrt-ad-banner-ditor.vercel.app/$1",
-      "permanent": true
-    }
-  ],
   "rewrites": [
     {
       "source": "/(.*)",
