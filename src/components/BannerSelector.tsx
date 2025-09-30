@@ -12,6 +12,10 @@ interface BannerSelectorProps {
 
 const BannerSelector: React.FC<BannerSelectorProps> = ({ onBannerSelect, onBannerTypeChange, onBack, onGoHome, editingBanner }) => {
   
+  // 디버깅: 배너 설정 목록 확인
+  console.log('Available banner configs:', Object.keys(bannerConfigs));
+  console.log('Popup config:', bannerConfigs['popup']);
+  
   const handleCardClick = (key: string, config: any) => {
     // 올바른 방법으로 bannerType과 deviceType 분리
     let bannerType: 'basic-no-logo' | 'basic-with-logo' | 'interactive' | 'fullscreen' | 'popup';
