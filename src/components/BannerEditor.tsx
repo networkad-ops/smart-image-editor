@@ -113,7 +113,7 @@ export const BannerEditor: React.FC<BannerEditorProps> = ({
         editingBanner?.logo_url,
         editingBanner?.logo_urls,
         logoHeight,
-        { scale: 1, format: 'image/jpeg', quality: 0.92 }
+        { scale: 1, format: 'image/jpeg', quality: 0.99 }
       );
 
       

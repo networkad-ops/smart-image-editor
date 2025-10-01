@@ -822,7 +822,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
   const previewScale = Math.min(containerWidth / designSize.w, containerHeight / designSize.h);
 
   // exportToImage 함수 - CSS 배율 무시하고 디자인 해상도로만 출력
-  const exportToImage = (format: 'image/jpeg' | 'image/png' = 'image/jpeg', quality: number = 0.92): string => {
+  const exportToImage = (format: 'image/jpeg' | 'image/png' = 'image/jpeg', quality: number = 0.99): string => {
     const canvas = document.createElement('canvas');
     const dpr = window.devicePixelRatio || 1;
 

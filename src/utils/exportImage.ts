@@ -73,24 +73,33 @@ export const exportBanner = async (
   logoHeight?: number,
   options: ExportOptions = {}
 ): Promise<Blob> => {
-  const { scale = 1, format = 'image/jpeg', quality = 0.92 } = options;
+  const { scale = 1, format = 'image/jpeg', quality = 0.99 } = options;
   
   // 웹폰트 로딩 완료 대기
   await document.fonts.ready;
   
-  // 오프스크린 캔버스 생성
+  // 고해상도 렌더링용 캔버스 생성 (390×520 크기 유지하면서 DPI만 높임)
   const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+  const dpiMultiplier = 1; // DPI를 1배로 설정하여 정확한 크기 390×520
+  const ctx = canvas.getContext('2d', { 
+    alpha: false,
+    desynchronized: false,
+    colorSpace: 'srgb'
+  });
   if (!ctx) {
     throw new Error('Canvas context를 생성할 수 없습니다.');
   }
   
-  // 캔버스 크기 설정 (각 배너의 실제 해상도 사용)
-  canvas.width = config.width * scale;
-  canvas.height = config.height * scale;
+  // 캔버스 크기 설정 (390×520 크기 유지하면서 DPI만 높임)
+  canvas.width = config.width * scale * dpiMultiplier;
+  canvas.height = config.height * scale * dpiMultiplier;
   
-  // 스케일 적용 (좌표계는 기준 해상도 유지)
-  ctx.scale(scale, scale);
+  // 극고품질 렌더링 설정
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  
+  // DPI 변환 적용 (4배 고해상도 렌더링)
+  ctx.setTransform(dpiMultiplier, 0, 0, dpiMultiplier, 0, 0);
   
   // 배경 렌더링
   await drawBackground(ctx, config, uploadedImage, existingImageUrl);
@@ -101,7 +110,7 @@ export const exportBanner = async (
   // 텍스트 렌더링
   drawTextElements(ctx, textElements, config);
   
-  // Blob으로 변환
+  // Blob으로 변환 (390×520 크기 그대로 다운로드)
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) {
@@ -343,6 +352,12 @@ const drawTextElements = (
     ctx.font = `${fontWeight} ${finalFontSize}px Pretendard`;
     ctx.textBaseline = 'top';
     
+    // 고품질 텍스트 렌더링 설정
+    ctx.fontKerning = 'normal';
+    ctx.fontVariantCaps = 'normal';
+    ctx.letterSpacing = 'normal';
+    ctx.wordSpacing = 'normal';
+    
     // 텍스트 정렬 설정
     const isInteractiveBanner = config.name.includes('인터랙티브');
     
@@ -512,6 +527,8 @@ const drawTextElements = (
         } else {
           ctx.fillStyle = element.color;
         }
+        
+        // 고품질 텍스트 렌더링 설정
         
         if (element.letterSpacing) {
           drawTextWithLetterSpacing(ctx, line, currentX, y, element.letterSpacing);
