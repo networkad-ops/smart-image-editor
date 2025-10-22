@@ -75,12 +75,17 @@ export const exportBanner = async (
 ): Promise<Blob> => {
   const { scale = 1, format = 'image/jpeg', quality = 0.99 } = options;
   
+  // 메인홈 팝업 배너는 최고 품질(1.0)로 설정하여 선명도 향상
+  const finalQuality = config.dbType === 'popup' ? 1.0 : quality;
+  
   // 웹폰트 로딩 완료 대기
   await document.fonts.ready;
   
-  // 고해상도 렌더링용 캔버스 생성 (390×520 크기 유지하면서 DPI만 높임)
+  // 팝업 배너는 4배 고해상도 렌더링 후 다운샘플링, 기타는 원래 크기
+  const isPopup = config.dbType === 'popup';
+  const ssaaMultiplier = isPopup ? 4 : 1; // 팝업: 4배 SSAA, 기타: 1배
+  
   const canvas = document.createElement('canvas');
-  const dpiMultiplier = 1; // DPI를 1배로 설정하여 정확한 크기 390×520
   const ctx = canvas.getContext('2d', { 
     alpha: false,
     desynchronized: false,
@@ -90,16 +95,26 @@ export const exportBanner = async (
     throw new Error('Canvas context를 생성할 수 없습니다.');
   }
   
-  // 캔버스 크기 설정 (390×520 크기 유지하면서 DPI만 높임)
-  canvas.width = config.width * scale * dpiMultiplier;
-  canvas.height = config.height * scale * dpiMultiplier;
+  // 캔버스 크기 설정 (팝업은 4배, 기타는 원래 크기)
+  canvas.width = config.width * scale * ssaaMultiplier;
+  canvas.height = config.height * scale * ssaaMultiplier;
   
-  // 극고품질 렌더링 설정
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
+  // 팝업 배너 전용 극고품질 렌더링 설정
+  if (config.dbType === 'popup') {
+    ctx.imageSmoothingEnabled = true; // 자연스러운 앤티앨리어싱
+    ctx.imageSmoothingQuality = 'high';
+    // 팝업 배너 전용: 자연스러운 텍스트 렌더링 설정
+    ctx.lineCap = 'round'; // 부드러운 텍스트 엣지
+    ctx.lineJoin = 'round'; // 부드러운 텍스트 엣지
+    ctx.miterLimit = 10;
+  } else {
+    // 기타 배너: 일반 고품질 렌더링
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+  }
   
-  // DPI 변환 적용 (4배 고해상도 렌더링)
-  ctx.setTransform(dpiMultiplier, 0, 0, dpiMultiplier, 0, 0);
+  // SSAA를 위한 스케일 변환 적용
+  ctx.scale(ssaaMultiplier, ssaaMultiplier);
   
   // 배경 렌더링
   await drawBackground(ctx, config, uploadedImage, existingImageUrl);
@@ -110,7 +125,42 @@ export const exportBanner = async (
   // 텍스트 렌더링
   drawTextElements(ctx, textElements, config);
   
-  // Blob으로 변환 (390×520 크기 그대로 다운로드)
+  // 팝업 배너: 고해상도 캔버스를 390x520으로 다운샘플링
+  if (isPopup) {
+    const finalCanvas = document.createElement('canvas');
+    const finalCtx = finalCanvas.getContext('2d', {
+      alpha: false,
+      desynchronized: false,
+      colorSpace: 'srgb'
+    });
+    if (!finalCtx) {
+      throw new Error('Final canvas context를 생성할 수 없습니다.');
+    }
+    
+    // 최종 크기: 390x520
+    finalCanvas.width = 390;
+    finalCanvas.height = 520;
+    
+    // 최고 품질 다운샘플링 설정
+    finalCtx.imageSmoothingEnabled = true;
+    finalCtx.imageSmoothingQuality = 'high';
+    
+    // 고해상도 캔버스를 390x520으로 다운샘플링 (자연스러운 앤티앨리어싱)
+    finalCtx.drawImage(canvas, 0, 0, 390, 520);
+    
+    // Blob으로 변환 (최고 품질)
+    return new Promise<Blob>((resolve, reject) => {
+      finalCanvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error('이미지 생성에 실패했습니다.'));
+        }
+      }, format, finalQuality);
+    });
+  }
+  
+  // 기타 배너: 원래 크기로 Blob 생성
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) {
@@ -118,7 +168,7 @@ export const exportBanner = async (
       } else {
         reject(new Error('이미지 생성에 실패했습니다.'));
       }
-    }, format, quality);
+    }, format, finalQuality);
   });
 };
 
@@ -284,19 +334,19 @@ const drawTextElements = (
       const backgroundColor = element.backgroundColor || '#4F46E5';
       ctx.fillStyle = backgroundColor;
       
-      // 둥근 모서리 사각형 그리기
-      ctx.beginPath();
-      ctx.moveTo(buttonX + borderRadius, buttonY);
-      ctx.lineTo(buttonX + buttonWidth - borderRadius, buttonY);
-      ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY, buttonX + buttonWidth, buttonY + borderRadius);
-      ctx.lineTo(buttonX + buttonWidth, buttonY + buttonHeight - borderRadius);
-      ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY + buttonHeight, buttonX + buttonWidth - borderRadius, buttonY + buttonHeight);
-      ctx.lineTo(buttonX + borderRadius, buttonY + buttonHeight);
-      ctx.quadraticCurveTo(buttonX, buttonY + buttonHeight, buttonX, buttonY + buttonHeight - borderRadius);
-      ctx.lineTo(buttonX, buttonY + borderRadius);
-      ctx.quadraticCurveTo(buttonX, buttonY, buttonX + borderRadius, buttonY);
-      ctx.closePath();
-      ctx.fill();
+        // 둥근 모서리 사각형 그리기 (오른쪽과 동일하게)
+        ctx.beginPath();
+        ctx.moveTo(buttonX + borderRadius, buttonY);
+        ctx.lineTo(buttonX + buttonWidth - borderRadius, buttonY);
+        ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY, buttonX + buttonWidth, buttonY + borderRadius);
+        ctx.lineTo(buttonX + buttonWidth, buttonY + buttonHeight - borderRadius);
+        ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY + buttonHeight, buttonX + buttonWidth - borderRadius, buttonY + buttonHeight);
+        ctx.lineTo(buttonX + borderRadius, buttonY + buttonHeight);
+        ctx.quadraticCurveTo(buttonX, buttonY + buttonHeight, buttonX, buttonY + buttonHeight - borderRadius);
+        ctx.lineTo(buttonX, buttonY + borderRadius);
+        ctx.quadraticCurveTo(buttonX, buttonY, buttonX + borderRadius, buttonY);
+        ctx.closePath();
+        ctx.fill();
       
       // 버튼 그림자 효과
       ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
@@ -330,7 +380,7 @@ const drawTextElements = (
         ctx.quadraticCurveTo(buttonX + buttonWidth, buttonY + buttonHeight, buttonX + buttonWidth - borderRadius, buttonY + buttonHeight);
         ctx.lineTo(buttonX + borderRadius, buttonY + buttonHeight);
         ctx.quadraticCurveTo(buttonX, buttonY + buttonHeight, buttonX, buttonY + buttonHeight - borderRadius);
-        ctx.lineTo(buttonX, buttonY + buttonHeight - borderRadius);
+        ctx.lineTo(buttonX, buttonY + borderRadius);
         ctx.quadraticCurveTo(buttonX, buttonY, buttonX + borderRadius, buttonY);
         ctx.closePath();
         ctx.fill();
