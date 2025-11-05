@@ -125,7 +125,7 @@ export const exportBanner = async (
   // 텍스트 렌더링
   drawTextElements(ctx, textElements, config);
   
-  // 팝업 배너: 고해상도 캔버스를 390x520으로 다운샘플링
+  // 팝업 배너: 고해상도 캔버스를 1560x2080으로 다운샘플링
   if (isPopup) {
     const finalCanvas = document.createElement('canvas');
     const finalCtx = finalCanvas.getContext('2d', {
@@ -137,16 +137,16 @@ export const exportBanner = async (
       throw new Error('Final canvas context를 생성할 수 없습니다.');
     }
     
-    // 최종 크기: 390x520
-    finalCanvas.width = 390;
-    finalCanvas.height = 520;
+    // 최종 크기: 1560x2080
+    finalCanvas.width = 1560;
+    finalCanvas.height = 2080;
     
     // 최고 품질 다운샘플링 설정
     finalCtx.imageSmoothingEnabled = true;
     finalCtx.imageSmoothingQuality = 'high';
     
-    // 고해상도 캔버스를 390x520으로 다운샘플링 (자연스러운 앤티앨리어싱)
-    finalCtx.drawImage(canvas, 0, 0, 390, 520);
+    // 고해상도 캔버스를 1560x2080으로 다운샘플링 (자연스러운 앤티앨리어싱)
+    finalCtx.drawImage(canvas, 0, 0, 1560, 2080);
     
     // Blob으로 변환 (최고 품질)
     return new Promise<Blob>((resolve, reject) => {

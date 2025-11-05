@@ -812,7 +812,7 @@ export const BannerPreview = React.forwardRef<HTMLCanvasElement, BannerPreviewPr
 
   // 미리보기 컨테이너 크기 - CSS 스케일링만 적용
   const maxPreviewWidth = 600; // 좌측 70% 컨테이너에 맞는 크기
-  const maxPreviewHeight = config.dbType === 'popup' ? 600 : 400; // popup 배너는 더 큰 높이 허용
+  const maxPreviewHeight = config.dbType === 'popup' ? 900 : 400; // popup 배너는 더 큰 높이 허용 (1560x2080 비율 고려)
 
   // 컨테이너 크기 계산 (designSize 기준)
   const containerWidth = Math.min(designSize.w, maxPreviewWidth);
